@@ -5,7 +5,7 @@ import type { RouterContext } from './types/router'
 
 export function getRouter() {
   const queryClient = new QueryClient()
-  return createRouter({ routeTree, context: { queryClient, session: null } satisfies RouterContext, defaultPreload: 'intent' })
+  return createRouter({ routeTree, context: { queryClient, session: null, sessionCookiePresent: false } satisfies RouterContext, defaultPreload: 'intent' })
 }
 
 declare module '@tanstack/react-router' {

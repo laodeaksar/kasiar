@@ -1,0 +1,2 @@
+import { createFileRoute, redirect } from '@tanstack/react-router'
+export const Route = createFileRoute('/_app/admin')({ beforeLoad: ({ context }) => { if (context.session?.peran !== 'admin') throw redirect({ to: '/' }) }, component: () => <section className="rounded-box border border-base-300 p-6"><h1 className="text-2xl font-bold">Area admin</h1><p className="mt-2">Halaman pengelolaan admin akan tersedia pada tahap berikutnya.</p></section> })

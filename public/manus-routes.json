@@ -1,0 +1,1 @@
+{"routes":[{"path":"/","title":"Kasiar — beranda (wajib login)"},{"path":"/login","title":"Masuk ke Kasiar"},{"path":"/admin","title":"Area admin (khusus admin)"},{"path":"/uji-komponen","title":"Uji komponen (pengembangan, wajib login)"}]}

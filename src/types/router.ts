@@ -5,4 +5,5 @@ export type UserSession = { id: string; username: string; peran: 'admin' | 'kasi
 export type RouterContext = {
   queryClient: QueryClient
   session: UserSession
+  sessionCookiePresent: boolean
 }

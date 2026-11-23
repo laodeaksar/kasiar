@@ -12,6 +12,13 @@ const loadTheme = createServerFn({ method: 'GET' }).handler(async () => {
   const theme = getCookie('tema')
   return theme === 'terang' || theme === 'gelap' ? theme : null
 })
+const loadSession = createServerFn({ method: 'GET' }).handler(async () => {
+  const { getRequestHeader } = await import('@tanstack/react-start/server')
+  const { readUserSession } = await import('../lib/auth')
+  const cookie = getRequestHeader('cookie') ?? ''
+  const sessionCookiePresent = /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=[^;\s]+/.test(cookie)
+  return { session: await readUserSession(cookie), sessionCookiePresent }
+})
 
 function RootDocument({ children, theme }: { children: ReactNode; theme: 'terang' | 'gelap' | null }) {
   const dataTheme = theme === 'terang' ? 'light' : theme === 'gelap' ? 'dark' : undefined
@@ -23,6 +30,7 @@ function RootDocument({ children, theme }: { children: ReactNode; theme: 'terang
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: async () => loadSession(),
   loader: async () => ({ theme: await loadTheme() }),
   head: () => ({ meta: [{ title: 'Kasiar — Catatan Stok Sembako' }] }),
   component: RootRouteComponent,

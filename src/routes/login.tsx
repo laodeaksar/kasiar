@@ -1,0 +1,34 @@
+import { useEffect, useState } from 'react'
+import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
+import { Form, useField, useForm } from '@formisch/react'
+import * as v from 'valibot'
+import { TextField, PasswordField, FormAlert, FormSubmitButton } from '../components/form'
+import { useToast } from '../components/toast/toast-provider'
+import { authClient } from '../lib/auth-client'
+import { LoginSchema } from '../validation/login'
+import { safeReturnTarget, LoginSearchSchema } from '../validation/search'
+export const Route = createFileRoute('/login')({ validateSearch: (search) => v.parse(LoginSearchSchema, search), beforeLoad: ({ context, search }) => { if (context.session) throw redirect({ to: safeReturnTarget(search.kembali) }) }, component: LoginPage })
+function LoginPage() {
+  const { kembali, sesiBerakhir } = Route.useSearch()
+  const router = useRouter(); const navigate = useNavigate(); const { showToast } = useToast()
+  const [message, setMessage] = useState(''); const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    if (sesiBerakhir !== '1') return
+    showToast('peringatan', 'Sesi Anda berakhir. Silakan masuk kembali.')
+    void navigate({ to: '/login', search: { kembali: safeReturnTarget(kembali) }, replace: true })
+  }, [kembali, navigate, sesiBerakhir, showToast])
+  const form = useForm({ schema: LoginSchema, initialInput: { username: '', password: '' } })
+  const username = useField(form, { path: ['username'] }); const password = useField(form, { path: ['password'] })
+  async function submit(input: { username: string; password: string }) {
+    setMessage(''); setLoading(true)
+    try {
+      const result = await authClient.signIn.username({ username: input.username, password: input.password })
+      if (result.error) throw new Error(result.error.message)
+      await router.invalidate()
+      showToast('sukses', 'Berhasil masuk.')
+      await navigate({ to: safeReturnTarget(kembali) })
+    } catch (error) { setMessage(error instanceof Error ? 'Username atau password salah. Silakan coba lagi.' : 'Tidak dapat masuk. Silakan coba lagi.') }
+    finally { setLoading(false) }
+  }
+  return <main className="grid min-h-screen place-items-center bg-base-200 p-4"><section className="card w-full max-w-md border border-base-300 bg-base-100 shadow-xl"><div className="card-body gap-5"><header><p className="badge badge-primary badge-outline">Kasiar</p><h1 className="mt-3 text-2xl font-bold">Masuk</h1><p className="mt-1 text-sm text-base-content/70">Masuk untuk melanjutkan ke pencatatan toko.</p></header><Form of={form} onSubmit={submit} className="space-y-4"><TextField field={username} label="Username" required/><PasswordField field={password} label="Password" required/><FormAlert message={message}/><FormSubmitButton loading={loading}>Masuk</FormSubmitButton></Form></div></section></main>
+}

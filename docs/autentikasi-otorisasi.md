@@ -20,11 +20,12 @@ Lingkungan: database pengembangan Neon; pengujian UI memakai server pengembangan
 | Target internal untuk kembali | Memeriksa nilai `kembali` setelah pengalihan di atas | Target `/admin?tab=aman` dipertahankan. Login yang berhasil diarahkan ke `safeReturnTarget(kembali)` pada kode; satu rangkaian login-browser-ke-halaman-asal belum diuji sebagai skenario end-to-end. |
 | Login salah | Mengisi form browser dengan akun uji yang tidak ada dan password uji yang salah | Pesan tampil di dalam form: “Username atau password salah. Silakan coba lagi.” Tidak ada rahasia admin yang digunakan untuk tes ini. |
 | Session berakhir | Memasang cookie palsu yang tidak sensitif di browser uji, lalu membuka halaman terlindungi | Dialihkan ke login dan muncul toast “Sesi Anda berakhir. Silakan masuk kembali.” Parameter penanda dibersihkan, `kembali` tetap ada. Cookie uji dihapus sesudah pengujian. |
+| Validasi Open Redirect | Uji fungsi/schema terhadap path lokal, URL absolut, `//host`, `///host`, slash-backslash, karakter kontrol, serta slash ter-encode | Path eksternal dan variasi slash/backslash ditolak; path internal diterima. Path dengan slash persen-terkode tetap ber-origin lokal saat diparse, sehingga tidak menjadi redirect eksternal. Nilai tak valid jatuh ke `/`. |
 | Login admin dan logout | Memanggil API Better Auth secara langsung dari proses lokal dengan kredensial yang dibaca dari environment privat | Login admin menghasilkan session; logout berhasil. Nilai kredensial/session tidak dicetak. |
 | Endpoint admin tanpa login | Memanggil `/api/admin/probe` tanpa cookie | Middleware menolak dengan HTTP 401. |
 | Middleware admin dengan session admin | Memanggil `/api/admin/probe` menggunakan session admin | Middleware login dan peran dilewati; hasil HTTP 404 berasal dari tidak adanya endpoint `probe`, bukan penolakan akses. Tidak ada endpoint bisnis/admin pengguna yang ditambahkan. |
 | Build dan tipe | `npm run build` | Lulus, termasuk TypeScript. |
-| Lint | `npm run lint` | 0 error, 12 warning. Warning adalah warning Fast Refresh (`react/only-export-components`) pada komponen yang mengekspor hook dan komponen dalam satu file. |
+| Lint | `npm run lint` | 0 error, 13 warning. Warning adalah warning Fast Refresh (`react/only-export-components`) pada komponen yang mengekspor hook dan komponen dalam satu file. |
 
 ## Hal yang belum diuji
 

@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
 import { Form, useField, useForm } from '@formisch/react'
-import * as v from 'valibot'
 import { TextField, PasswordField, FormAlert, FormSubmitButton } from '../components/form'
 import { useToast } from '../components/toast/toast-provider'
 import { authClient } from '../lib/auth-client'
 import { LoginSchema } from '../validation/login'
-import { safeReturnTarget, LoginSearchSchema } from '../validation/search'
-export const Route = createFileRoute('/login')({ validateSearch: (search) => v.parse(LoginSearchSchema, search), beforeLoad: ({ context, search }) => { if (context.session) throw redirect({ to: safeReturnTarget(search.kembali) }) }, component: LoginPage })
+import { parseLoginSearch, safeReturnTarget } from '../validation/search'
+export const Route = createFileRoute('/login')({ validateSearch: (search) => parseLoginSearch(search), beforeLoad: ({ context, search }) => { if (context.session) throw redirect({ to: safeReturnTarget(search.kembali) }) }, component: LoginPage })
 function LoginPage() {
   const { kembali, sesiBerakhir } = Route.useSearch()
   const router = useRouter(); const navigate = useNavigate(); const { showToast } = useToast()

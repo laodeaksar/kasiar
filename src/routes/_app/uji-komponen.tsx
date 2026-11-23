@@ -45,6 +45,8 @@ function FeedbackSamples() {
 }
 function TableSamples() {
   const [query, setQuery] = useState(''); const [page, setPage] = useState(1)
-  const data: ListResponse<ExampleRow> = { rows: exampleRows.filter((row) => row.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())), total: exampleRows.length, page, pageSize: 20 }
-  return <section className="card border border-base-300 bg-base-100"><div className="card-body"><h2 className="card-title">Daftar contoh</h2><p>Desktop menampilkan tabel, layar HP menampilkan kartu.</p><DataTableToolbar><DataTableSearch value={query} onChange={(value: string) => { setQuery(value); setPage(1) }}/></DataTableToolbar><DataTable columns={columns} data={data} caption="Daftar contoh untuk pengujian"/><DataTablePagination page={page} pageSize={20} total={data.total} onPageChange={setPage}/><DataTableStates isEmpty={data.rows.length === 0} isSearchEmpty={query !== '' && data.rows.length === 0} query={query} onClearSearch={() => setQuery('')}/></div></section>
+  const filteredRows = exampleRows.filter((row) => row.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()))
+  const pageSize = 1
+  const data: ListResponse<ExampleRow> = { rows: filteredRows.slice((page - 1) * pageSize, page * pageSize), total: filteredRows.length, page, pageSize }
+  return <section className="card border border-base-300 bg-base-100"><div className="card-body"><h2 className="card-title">Daftar contoh</h2><p>Desktop menampilkan tabel, layar HP menampilkan kartu.</p><DataTableToolbar><DataTableSearch value={query} onChange={(value: string) => { setQuery(value); setPage(1) }}/></DataTableToolbar><DataTable columns={columns} data={data} caption="Daftar contoh untuk pengujian"/><DataTablePagination page={page} pageSize={data.pageSize} total={data.total} onPageChange={setPage}/><DataTableStates isEmpty={data.rows.length === 0} isSearchEmpty={query !== '' && data.rows.length === 0} query={query} onClearSearch={() => setQuery('')}/></div></section>
 }

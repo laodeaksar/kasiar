@@ -3,7 +3,7 @@ import { hashPassword } from 'better-auth/crypto'
 import { and, eq } from 'drizzle-orm'
 import { db } from '../../db'
 import { account, session, user } from '../../db/schema'
-import { getPasswordStrength } from '../../lib/password-strength'
+import { getPasswordAssessment } from '../../lib/password-strength'
 import { PenggunaSchema } from '../../validation/pengguna'
 import { ResetPasswordSchema } from '../../validation/reset-password'
 import * as v from 'valibot'
@@ -20,7 +20,7 @@ penggunaRoutes.post('/', async (c) => {
   const result = v.safeParse(PenggunaSchema, body)
   if (!result.success) return c.json({ message: 'Periksa kembali username dan password.', fields: fieldErrors(result.issues) }, 400)
   const { username: usernameValue, password } = result.output
-  if (getPasswordStrength(password, usernameValue) === 'Lemah') return c.json({ message: weakPasswordMessage, fields: { password: weakPasswordMessage } }, 400)
+  if (!getPasswordAssessment(password, usernameValue).valid) return c.json({ message: weakPasswordMessage, fields: { password: weakPasswordMessage } }, 400)
   const email = `${usernameValue.toLocaleLowerCase()}@kasiar.invalid`
   try {
     const accountId = crypto.randomUUID()
@@ -38,7 +38,7 @@ penggunaRoutes.post('/:id/reset-password', async (c) => {
   const result = v.safeParse(ResetPasswordSchema, body)
   if (!result.success) return c.json({ message: 'Periksa kembali password baru.', fields: fieldErrors(result.issues) }, 400)
   const { userId, username: usernameValue, password } = result.output
-  if (getPasswordStrength(password, usernameValue) === 'Lemah') return c.json({ message: weakPasswordMessage, fields: { password: weakPasswordMessage } }, 400)
+  if (!getPasswordAssessment(password, usernameValue).valid) return c.json({ message: weakPasswordMessage, fields: { password: weakPasswordMessage } }, 400)
   if (userId !== c.req.param('id')) return c.json({ message: 'Akun kasir tidak valid.', fields: { userId: 'Akun kasir tidak valid.' } }, 400)
   const [target] = await db.select({ id: user.id, username: user.username }).from(user).where(and(eq(user.id, userId), eq(user.role, 'kasir'))).limit(1)
   if (!target || target.username !== usernameValue) return c.json({ message: 'Akun kasir tidak ditemukan.', fields: {} }, 404)

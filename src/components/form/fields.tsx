@@ -5,7 +5,7 @@ import { formatRupiah } from '../../lib/format'
 import { getPasswordStrength, getPasswordSuggestion } from '../../lib/password-strength'
 
 type FormFieldStore = { path: readonly PropertyKey[]; input: unknown; errors: [string, ...string[]] | null; isTouched: boolean; onChange(value: unknown): void; props: FieldElementProps }
-type FieldProps = { field: FormFieldStore; label: string; hint?: string; required?: boolean; type?: string; placeholder?: string; showStrength?: boolean; username?: string; inputMode?: 'text' | 'numeric' | 'decimal' | 'email' }
+type FieldProps = { field: FormFieldStore; label: string; hint?: string; required?: boolean; type?: string; placeholder?: string; showStrength?: boolean; username?: string; inputMode?: 'text' | 'numeric' | 'decimal' | 'email'; autoComplete?: string }
 export function FormField({ field, label, hint, required, children }: FieldProps & { children: ReactNode }) {
   const id = `field-${field.path.map(String).join('-')}`
   const errorId = `${id}-error`
@@ -21,9 +21,9 @@ export function FormField({ field, label, hint, required, children }: FieldProps
 function ids(field: FormFieldStore) { const id = `field-${field.path.map(String).join('-')}`; return { id, describedBy: field.isTouched && field.errors?.[0] ? `${id}-error` : undefined } }
 
 export function TextField(props: FieldProps) {
-  const { field, required, placeholder, type = 'text', inputMode } = props
+  const { field, required, placeholder, type = 'text', inputMode, autoComplete } = props
   const attr = ids(field)
-  return <FormField {...props}><input {...field.props} id={attr.id} className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`} type={type} value={String(field.input ?? '')} placeholder={placeholder} inputMode={inputMode} required={required} aria-invalid={Boolean(field.isTouched && field.errors?.length)} aria-describedby={attr.describedBy ?? (props.hint ? `${attr.id}-hint` : undefined)} /></FormField>
+  return <FormField {...props}><input {...field.props} id={attr.id} className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`} type={type} value={String(field.input ?? '')} placeholder={placeholder} inputMode={inputMode} autoComplete={autoComplete} required={required} aria-invalid={Boolean(field.isTouched && field.errors?.length)} aria-describedby={attr.describedBy ?? (props.hint ? `${attr.id}-hint` : undefined)} /></FormField>
 }
 
 export function PasswordStrengthIndicator({ password, username }: { password: string; username?: string }) {

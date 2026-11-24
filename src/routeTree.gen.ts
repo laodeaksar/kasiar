@@ -13,8 +13,11 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAdminRouteRouteImport } from './routes/_app/admin/route'
+import { Route as AppBarangRouteImport } from './routes/_app/barang'
 import { Route as AppUjiKomponenRouteImport } from './routes/_app/uji-komponen'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as AppAdminBarangRouteImport } from './routes/_app/admin/barang'
+import { Route as AppAdminPenggunaRouteImport } from './routes/_app/admin/pengguna'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -35,6 +38,11 @@ const AppAdminRouteRoute = AppAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBarangRoute = AppBarangRouteImport.update({
+  id: '/barang',
+  path: '/barang',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUjiKomponenRoute = AppUjiKomponenRouteImport.update({
   id: '/uji-komponen',
   path: '/uji-komponen',
@@ -45,43 +53,81 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminBarangRoute = AppAdminBarangRouteImport.update({
+  id: '/barang',
+  path: '/barang',
+  getParentRoute: () => AppAdminRouteRoute,
+} as any)
+const AppAdminPenggunaRoute = AppAdminPenggunaRouteImport.update({
+  id: '/pengguna',
+  path: '/pengguna',
+  getParentRoute: () => AppAdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/admin': typeof AppAdminRouteRoute
+  '/admin': typeof AppAdminRouteRouteWithChildren
+  '/barang': typeof AppBarangRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
   '/api/$': typeof ApiSplatRoute
+  '/admin/barang': typeof AppAdminBarangRoute
+  '/admin/pengguna': typeof AppAdminPenggunaRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/admin': typeof AppAdminRouteRoute
+  '/admin': typeof AppAdminRouteRouteWithChildren
+  '/barang': typeof AppBarangRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
   '/api/$': typeof ApiSplatRoute
   '/': typeof AppIndexRoute
+  '/admin/barang': typeof AppAdminBarangRoute
+  '/admin/pengguna': typeof AppAdminPenggunaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/_app/admin': typeof AppAdminRouteRoute
+  '/_app/admin': typeof AppAdminRouteRouteWithChildren
+  '/_app/barang': typeof AppBarangRoute
   '/_app/uji-komponen': typeof AppUjiKomponenRoute
   '/api/$': typeof ApiSplatRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/admin/barang': typeof AppAdminBarangRoute
+  '/_app/admin/pengguna': typeof AppAdminPenggunaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/admin' | '/uji-komponen' | '/api/$'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/admin'
+    | '/barang'
+    | '/uji-komponen'
+    | '/api/$'
+    | '/admin/barang'
+    | '/admin/pengguna'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/admin' | '/uji-komponen' | '/api/$' | '/'
+  to:
+    | '/login'
+    | '/admin'
+    | '/barang'
+    | '/uji-komponen'
+    | '/api/$'
+    | '/'
+    | '/admin/barang'
+    | '/admin/pengguna'
   id:
     | '__root__'
     | '/_app'
     | '/login'
     | '/_app/admin'
+    | '/_app/barang'
     | '/_app/uji-komponen'
     | '/api/$'
     | '/_app/'
+    | '/_app/admin/barang'
+    | '/_app/admin/pengguna'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/barang': {
+      id: '/_app/barang'
+      path: '/barang'
+      fullPath: '/barang'
+      preLoaderRoute: typeof AppBarangRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/uji-komponen': {
       id: '/_app/uji-komponen'
       path: '/uji-komponen'
@@ -134,17 +187,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/barang': {
+      id: '/_app/admin/barang'
+      path: '/barang'
+      fullPath: '/admin/barang'
+      preLoaderRoute: typeof AppAdminBarangRouteImport
+      parentRoute: typeof AppAdminRouteRoute
+    }
+    '/_app/admin/pengguna': {
+      id: '/_app/admin/pengguna'
+      path: '/pengguna'
+      fullPath: '/admin/pengguna'
+      preLoaderRoute: typeof AppAdminPenggunaRouteImport
+      parentRoute: typeof AppAdminRouteRoute
+    }
   }
 }
 
+interface AppAdminRouteRouteChildren {
+  AppAdminBarangRoute: typeof AppAdminBarangRoute
+  AppAdminPenggunaRoute: typeof AppAdminPenggunaRoute
+}
+
+const AppAdminRouteRouteChildren: AppAdminRouteRouteChildren = {
+  AppAdminBarangRoute: AppAdminBarangRoute,
+  AppAdminPenggunaRoute: AppAdminPenggunaRoute,
+}
+
+const AppAdminRouteRouteWithChildren = AppAdminRouteRoute._addFileChildren(
+  AppAdminRouteRouteChildren,
+)
+
 interface AppRouteChildren {
-  AppAdminRouteRoute: typeof AppAdminRouteRoute
+  AppAdminRouteRoute: typeof AppAdminRouteRouteWithChildren
+  AppBarangRoute: typeof AppBarangRoute
   AppUjiKomponenRoute: typeof AppUjiKomponenRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAdminRouteRoute: AppAdminRouteRoute,
+  AppAdminRouteRoute: AppAdminRouteRouteWithChildren,
+  AppBarangRoute: AppBarangRoute,
   AppUjiKomponenRoute: AppUjiKomponenRoute,
   AppIndexRoute: AppIndexRoute,
 }

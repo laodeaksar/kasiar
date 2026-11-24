@@ -7,6 +7,7 @@ import { useConfirm } from '../../components/confirm/confirm-provider'
 import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataTableToolbar, JumlahCell, RupiahCell, StatusBadge, TanggalCell } from '../../components/data-table'
 import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
 import { DateField, FormAlert, FormSubmitButton, NumberField, PasswordField, RupiahField, SelectField, TextField } from '../../components/form'
+import { PasswordRequirementsSamples } from '../../components/form/password-requirements-samples'
 import { useToast } from '../../components/toast/toast-provider'
 import type { ListResponse } from '../../types/api'
 
@@ -28,7 +29,7 @@ const columns: ColumnDef<ExampleRow, unknown>[] = [
 function ComponentTestPage() {
   return <div className="space-y-8">
     <header className="space-y-2"><p className="badge badge-primary badge-outline">Khusus mode pengembangan</p><h1 className="text-3xl font-bold">Uji komponen bersama</h1><p>Contoh data di halaman ini hanya untuk uji tampilan, bukan data toko.</p></header>
-    <ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
+    <PasswordRequirementsSamples/><ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
   </div>
 }
 function ActionSamples() {

@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import type { FieldElementProps } from '@formisch/react'
 import { Eye, EyeOff } from 'lucide-react'
 import { formatRupiah } from '../../lib/format'
-import { getPasswordStrength, getPasswordSuggestion } from '../../lib/password-strength'
+import { getPasswordAssessment, getPasswordSuggestion } from '../../lib/password-strength'
+import { PasswordRequirementsPopover } from './password-requirements-popover'
 
 type FormFieldStore = { path: readonly PropertyKey[]; input: unknown; errors: [string, ...string[]] | null; isTouched: boolean; onChange(value: unknown): void; props: FieldElementProps }
 type FieldProps = { field: FormFieldStore; label: string; hint?: string; required?: boolean; type?: string; placeholder?: string; showStrength?: boolean; username?: string; inputMode?: 'text' | 'numeric' | 'decimal' | 'email'; autoComplete?: string }
@@ -27,23 +28,34 @@ export function TextField(props: FieldProps) {
 }
 
 export function PasswordStrengthIndicator({ password, username }: { password: string; username?: string }) {
-  const strength = getPasswordStrength(password, username)
+  const strength = getPasswordAssessment(password, username).strength
   const active = strength === 'Lemah' ? 1 : strength === 'Sedang' ? 2 : 3
-  return <div className="space-y-1" aria-live="polite">
+  return <div className="space-y-1">
     <div className="flex gap-1" aria-hidden="true">{[1, 2, 3].map((segment) => <span key={segment} className={`h-2 flex-1 rounded-full ${segment <= active ? (strength === 'Lemah' ? 'bg-error' : strength === 'Sedang' ? 'bg-warning' : 'bg-success') : 'bg-base-300'}`} />)}</div>
-    <p className="text-sm">Kekuatan password: <strong>{strength}</strong>. {getPasswordSuggestion(strength)}</p>
+    <p className="text-sm" aria-live="polite">Kekuatan password: <strong>{strength}</strong>. {getPasswordSuggestion(strength)}</p>
   </div>
 }
 
 export function PasswordField(props: FieldProps) {
   const { field, required, showStrength, username } = props
   const [visible, setVisible] = useState(false)
+  const [popoverOpen, setPopoverOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const attr = ids(field)
   const password = typeof field.input === 'string' ? field.input : ''
-  return <FormField {...props}><div className="join w-full">
-    <input {...field.props} id={attr.id} className={`input input-bordered join-item min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`} value={password} type={visible ? 'text' : 'password'} autoComplete="new-password" required={required} aria-invalid={Boolean(field.isTouched && field.errors?.length)} aria-describedby={[attr.describedBy, props.hint ? `${attr.id}-hint` : undefined].filter(Boolean).join(' ') || undefined} />
-    <button type="button" className="btn btn-outline join-item min-h-12" aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'} onClick={() => setVisible((value) => !value)}>{visible ? <EyeOff /> : <Eye />}</button>
-  </div>{showStrength && <PasswordStrengthIndicator password={password} username={username} />}</FormField>
+  const requirementsId = `${attr.id}-requirements`
+  const describedBy = [attr.describedBy, props.hint ? `${attr.id}-hint` : undefined, showStrength ? requirementsId : undefined].filter(Boolean).join(' ') || undefined
+  function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
+    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return
+    setPopoverOpen(false)
+  }
+  return <div ref={containerRef} className="relative w-full" onFocusCapture={() => { if (showStrength) setPopoverOpen(true) }} onBlurCapture={handleBlur}>
+    <FormField {...props}><div className="join w-full">
+      <input {...field.props} id={attr.id} className={`input input-bordered join-item min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`} value={password} type={visible ? 'text' : 'password'} autoComplete="new-password" required={required} aria-invalid={Boolean(field.isTouched && field.errors?.length)} aria-describedby={describedBy} />
+      <button type="button" className="btn btn-outline join-item min-h-12" aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'} onClick={() => setVisible((value) => !value)}>{visible ? <EyeOff /> : <Eye />}</button>
+    </div>{showStrength && <PasswordStrengthIndicator password={password} username={username} />}</FormField>
+    {showStrength && <PasswordRequirementsPopover password={password} username={username} open={popoverOpen} containerRef={containerRef} id={requirementsId}/>}
+  </div>
 }
 
 export function NumberField({ field, label, decimals = 0, hint, required }: FieldProps & { decimals?: 0 | 1 }) {

@@ -103,7 +103,7 @@ kasiar/
     │   ├── auth-client.ts      # Better Auth sisi layar
     │   ├── api.ts              # fungsi dasar memanggil API Hono + penanganan error
     │   ├── format.ts           # format rupiah dan angka (kg satu angka di belakang koma)
-    │   ├── password-strength.ts # menghitung kekuatan password (Lemah, Sedang, Kuat)
+    │   ├── password-strength.ts # menilai password: tingkat (Lemah, Sedang, Kuat) dan status tiap syarat
     │   └── konstanta.ts        # nilai tetap bersama: satuan, peran, status, ukuran halaman
     ├── validation/             # aturan isian Valibot, dipakai layar dan server (satu file per form, ditambah `search.ts` untuk parameter URL)
     ├── types/                  # tipe bersama: bentuk respons API, bentuk error, session (lihat "Types dan Schema")
@@ -239,6 +239,7 @@ Semua isian form memakai **komponen field yang sama**, disimpan di `components/f
 | `TextField` | Isian teks | Nama barang, nama pembeli, pemasok, username |
 | `PasswordField` | Isian password dengan tombol tampilkan/sembunyikan | Login, buat akun kasir, reset password |
 | `PasswordStrengthIndicator` | Indikator kekuatan password (Lemah, Sedang, Kuat) di bawah isian, dipasang lewat pilihan `showStrength` pada `PasswordField` | Buat akun kasir, reset password (tidak di login) |
+| `PasswordRequirementsPopover` | Kotak daftar syarat password yang **melayang di atas** isian. Tiap syarat merah (belum terpenuhi) atau hijau (sudah). Dipasang lewat pilihan `showStrength` pada `PasswordField` | Buat akun kasir, reset password (tidak di login) |
 | `NumberField` | Isian angka dengan jumlah desimal yang bisa diatur (0 atau 1) | Jumlah barang masuk dan jumlah di kasir (kg beras eceran: satu angka di belakang koma) |
 | `RupiahField` | Isian uang, bilangan bulat, tampil seperti "Rp 12.000" | Harga jual, harga beli, jumlah dibayar, nominal pelunasan |
 | `SelectField` | Pilihan dari daftar | Satuan barang |
@@ -437,6 +438,15 @@ Aturan password: **minimal 8 karakter dan tidak boleh Lemah** (kriteria di bawah
 - **Indikator kekuatan password** tampil saat admin membuat akun dan mereset password (bukan di login). Dihitung oleh fungsi murni di `lib/password-strength.ts` yang **dipakai bersama oleh layar dan server**, **tanpa pustaka tambahan**, lalu ditampilkan oleh `PasswordStrengthIndicator` yang dipasang lewat pilihan `showStrength` pada `PasswordField`.
 - **Kriteria penilaian:** **Lemah** jika kurang dari 8 karakter, hanya satu jenis karakter, atau sama dengan username. **Sedang** jika minimal 8 karakter dan memuat minimal 2 jenis karakter. **Kuat** jika minimal 12 karakter dan memuat minimal 3 jenis karakter (jenis: huruf kecil, huruf besar, angka, simbol). Password dengan penilaian **Lemah ditolak**, baik di layar maupun di server (pesan: "Password terlalu lemah. Tambahkan huruf besar, angka, atau simbol."). **Sedang** dan **Kuat** diterima.
 - **Tampilan indikator:** batang tiga segmen berwarna (merah, kuning, hijau) **ditambah teks** "Lemah", "Sedang", atau "Kuat" dan saran singkat, agar tidak bergantung pada warna saja. Teksnya memakai `aria-live` sopan (*polite*) untuk pembaca layar.
+- **Daftar syarat melayang (`PasswordRequirementsPopover`):**
+  - **Data:** fungsi di `lib/password-strength.ts` menerima password dan username, lalu mengembalikan **tingkat** (Lemah, Sedang, Kuat) dan **daftar syarat**: id, label, kelompok (`wajib` atau `disarankan`), dan terpenuhi atau tidak. Server memakai fungsi yang sama: password diterima bila semua syarat `wajib` terpenuhi. Jika username belum diisi, syarat "tidak sama dengan username" dianggap terpenuhi.
+  - **Syarat:** wajib: minimal 8 karakter, tidak sama dengan username, minimal 2 jenis karakter. Disarankan (untuk Kuat): minimal 12 karakter, minimal 3 jenis karakter. Ditambah penanda empat jenis karakter (huruf kecil, huruf besar, angka, simbol), hijau jika ada dan merah jika belum.
+  - **Posisi:** melayang **di atas** isian, tidak menutupi isian maupun labelnya. Jika ruang di atas tidak cukup, pindah ke bawah (*flip*). Dibangun dengan CSS dan DaisyUI **tanpa pustaka tambahan**; pembalikan posisi memakai pengukuran sederhana.
+  - **Kapan tampil:** muncul saat isian mendapat fokus, hilang saat fokus keluar. Kotak hanya informasi, sehingga tidak menangkap sentuhan atau klik (`pointer-events` dimatikan).
+  - **Warna:** hijau memakai token `success` dan merah memakai token `error` dari DaisyUI. Tiap syarat juga memakai ikon (`Check` atau `X` dari Lucide) dan teks. Kontras dijaga di tema terang dan gelap.
+  - **Aksesibilitas:** isian memakai `aria-describedby` yang menunjuk ke daftar syarat. Ringkasan tingkat memakai `aria-live` sopan; perubahan tiap syarat tidak diumumkan satu per satu agar tidak berisik.
+  - **Props `PasswordField`:** `showStrength` dan `username` (nilai username dari isian form, atau akun yang sedang direset).
+  - Pesan galat saat form dikirim ("Password terlalu lemah. Tambahkan huruf besar, angka, atau simbol.") tetap tampil di bawah isian.
 
 ### Tema (Dark Mode)
 

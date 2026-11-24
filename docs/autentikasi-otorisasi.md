@@ -45,3 +45,22 @@ Lingkungan: database pengembangan Neon; pengujian UI memakai server pengembangan
 ## Menjalankan pemeriksaan ulang
 
 Di lingkungan pengembangan yang sudah disiapkan, jalankan `npm run build` dan `npm run lint`. Uji manual alur browser melalui `/admin?tab=aman`; gunakan hanya kredensial pengujian yang sah dan jangan menyalinnya ke tiket, log, atau dokumen. Untuk mensimulasikan sesi berakhir, pakai cookie uji sementara yang tidak berisi token aktif, lalu hapus cookie sesudah tes.
+
+## Pengujian keamanan tambahan (CSRF dan XSS)
+
+Pengujian tambahan dilakukan 24 November 2026 pada modul auth di lingkungan pengembangan. Semua permintaan API negatif memakai akun tak dikenal/password palsu atau cookie sesi palsu yang tidak aktif; tidak ada akun/session nyata yang diubah.
+
+| Uji | Hasil |
+|---|---|
+| POST `sign-out` memakai cookie palsu dan `Origin: https://evil.example` | HTTP 403 dari pemeriksaan origin Better Auth. |
+| POST `sign-out` memakai cookie palsu tanpa `Origin`/`Referer` | HTTP 403; origin kosong ditolak untuk request cookie-bearing. |
+| Form HTML lintas situs (`application/x-www-form-urlencoded`) ke username sign-in | HTTP 415; endpoint hanya menerima JSON, tidak mengeluarkan cookie session dan tidak memantulkan password. |
+| CORS preflight dari origin asing untuk username sign-in | Tidak memberikan `Access-Control-Allow-Origin`; permintaan tidak dapat dibaca sebagai CORS oleh origin tersebut. |
+| POST JSON sign-in tanpa cookie dengan origin asing | Mencapai validasi kredensial dan menghasilkan 401 untuk username uji yang tidak ada, bukan penolakan origin. Ini tidak membuat session, sedangkan form HTML ditolak 415 dan preflight CORS tidak diizinkan. Catat sebagai batas pengujian/pertahanan berlapis, bukan bukti login CSRF berhasil. |
+| Payload `<img onerror=...>` pada parameter `kembali` dan field username | Tidak ada node image/script yang diinjeksi dan kode uji tidak berjalan; field tetap menampilkan payload sebagai teks, error tetap pesan generik. |
+| Header response HTML saat development | Tidak ada `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, atau `Referrer-Policy` yang terdeteksi. Tidak ditemukan XSS pada alur yang diuji, tetapi CSP dan header pertahanan berlapis belum dikonfigurasi. |
+| Atribut cookie session saat login admin lokal | Cookie aktual dikeluarkan dengan `HttpOnly` dan `SameSite=Lax`; `Secure` tidak aktif di server development HTTP. Atribut produksi HTTPS belum diverifikasi. Nilai cookie tidak dicatat. |
+
+### Catatan konfigurasi sebelum produksi
+
+Better Auth mengeluarkan peringatan karena `BETTER_AUTH_URL`/`baseURL` belum disetel di environment lokal. Jangan mengandalkan alamat host yang datang dari request sebagai konfigurasi origin produksi. Sebelum publikasi, isi `BETTER_AUTH_URL` dengan origin HTTPS resmi aplikasi dan batasi `trustedOrigins` ke origin resmi yang memang digunakan. Nilai domain produksi harus dipilih Project Owner/hosting; jangan menebaknya. Setelah itu, ulangi uji origin asing melalui ingress/hosting aktual. Cookie Better Auth memakai `HttpOnly` dan `SameSite=Lax` pada pengujian; `Secure` tidak aktif pada development HTTP dan belum diverifikasi untuk HTTPS produksi. Hindari menambahkan CSP secara terburu-buru tanpa menyesuaikan kebutuhan script SSR/hydration, lalu uji login dan SSR setelah header diterapkan.

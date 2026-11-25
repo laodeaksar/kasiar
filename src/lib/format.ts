@@ -8,7 +8,9 @@ export function formatJumlah(value: number, unit?: string): string {
 }
 
 export function formatTanggal(value: string | Date): string {
-  const date = typeof value === 'string' ? new Date(value) : value
+  const date = typeof value === 'string'
+    ? /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value)
+    : value
   if (Number.isNaN(date.getTime())) return 'Tanggal tidak valid'
   return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(date)
 }

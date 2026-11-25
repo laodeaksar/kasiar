@@ -8,6 +8,13 @@
       "when": 1795468640436,
       "tag": "0000_narrow_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795643520830,
+      "tag": "0001_barang_masuk_tanggal",
+      "breakpoints": true
     }
   ]
 }

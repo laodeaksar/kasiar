@@ -49,3 +49,26 @@
 - [x] Satuan, status, role, dan ukuran halaman berasal dari `lib/konstanta.ts`; kg boleh satu angka desimal dan satuan lain bilangan bulat (barang tidak menyimpan jumlah stok pada tahap ini).
 - [x] Tidak mengerjakan barang masuk, kasir, maupun utang. Tidak menambah dependency dan tidak menampilkan rahasia.
 - [x] Build dan pemeriksaan tipe lulus, lint tanpa error, serta fitur yang dapat diuji tanpa mengubah data bersama sudah dicoba.
+
+
+# TODO — Barang Masuk dan Modal Reusable
+
+## Form barang masuk
+- [ ] Halaman `/barang-masuk` menyediakan form tanggal (hari ini dihitung di browser), pencarian/pemilihan barang yang sudah ada, jumlah, harga beli, dan pemasok teks opsional.
+- [ ] Jumlah untuk barang bersatuan kg menerima paling banyak satu angka desimal; satuan lain hanya menerima bilangan bulat. Server memeriksa kembali satuan dan jumlah.
+- [ ] Jika harga beli lebih tinggi dari harga jual, konfirmasi menampilkan kedua harga; pengguna dapat membatalkan atau tetap menyimpan.
+- [ ] Catatan barang masuk dan penambahan stok disimpan dalam satu transaksi database atomik.
+- [ ] Setelah tersimpan: toast “Barang masuk tersimpan.”, form kembali ke nilai awal, fokus kembali ke pilihan barang, dan route/data terkait dimuat ulang.
+
+## Daftar barang masuk
+- [ ] Daftar mencari nama barang atau pemasok dengan `q`, memfilter `dari`/`sampai`, dan menyimpan `halaman` pada URL; server memvalidasi ulang, menampilkan 20 baris per halaman, terbaru dulu.
+- [ ] Daftar memakai `queries.ts`, `columns.tsx`, DataTable reusable, kartu pada HP, tabel pada desktop, serta empty state PRD yang membedakan data kosong dari hasil pencarian kosong.
+- [ ] Kolom `tanggal` pilihan terpisah dari `waktuDicatat`/`createdAt` server; migrasi mengisi tanggal lama dari `waktu_dicatat` sebelum membuatnya wajib.
+
+## Modal reusable (permintaan sebelumnya, tetap perlu diserahkan)
+- [ ] Semua modal responsif (lembar bawah di HP/tengah desktop), mempunyai tombol X, menutup dengan klik luar atau Esc lewat satu jalur penjagaan, tidak menutup saat menyimpan, dan meminta konfirmasi bila form kotor.
+- [ ] ConfirmProvider menggunakan Modal reusable; form tambah/ubah barang, buat/reset akun kasir, dan halaman uji menggunakan Modal tanpa menghapus perilaku sebelumnya.
+
+## Cakupan dan pemeriksaan
+- [ ] Jangan mengerjakan kasir atau utang, jangan menambah pustaka, dan jangan menulis data uji ke database bersama.
+- [ ] Build/tipe, lint, dan `git diff --check` lulus; periksa perubahan Modal dan fitur barang masuk bersama sebelum commit/push ke `origin/main`.

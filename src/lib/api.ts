@@ -4,11 +4,13 @@ import type { ApiError } from '../types/api'
 export class ApiRequestError extends Error {
   readonly status: number
   readonly fields: Record<string, string>
-  constructor(error: ApiError, status: number) {
+  readonly details: unknown
+  constructor(error: ApiError, status: number, details?: unknown) {
     super(error.message)
     this.name = 'ApiRequestError'
     this.status = status
     this.fields = error.fields
+    this.details = details
   }
 }
 
@@ -40,7 +42,7 @@ export async function apiFetch<T>(path: string, decode: (payload: unknown) => T,
     if (isRecord(source.fields)) {
       for (const [key, message] of Object.entries(source.fields)) if (typeof message === 'string') fields[key] = message
     }
-    throw new ApiRequestError({ message: typeof source.message === 'string' ? source.message : 'Permintaan gagal. Silakan coba lagi.', fields }, response.status)
+    throw new ApiRequestError({ message: typeof source.message === 'string' ? source.message : 'Permintaan gagal. Silakan coba lagi.', fields }, response.status, source.warning)
   }
   return decode(payload)
 }

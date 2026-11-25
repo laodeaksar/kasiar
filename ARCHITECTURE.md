@@ -83,7 +83,8 @@ kasiar/
     │   ├── utang/
     │   └── admin/
     ├── components/             # komponen umum yang dipakai banyak fitur (tabel, input, tombol, layout)
-    │   ├── confirm/            # modal konfirmasi: confirm-provider.tsx (dipasang di __root) + use-confirm.ts (hook)
+    │   ├── modal/              # kotak dialog reusable: Modal, ModalBody, ModalFooter (lihat "Modal Reusable")
+    │   ├── confirm/            # modal konfirmasi (dibangun di atas Modal): confirm-provider.tsx (dipasang di __root) + use-confirm.ts (hook)
     │   ├── form/               # field form reusable + tombol simpan (lihat "Field Form Reusable")
     │   ├── data-table/         # tabel reusable (TanStack Table): paginasi, pencarian, kartu di HP (lihat "Data Table Reusable")
     │   ├── toast/              # notifikasi singkat: toast-provider.tsx (dipasang di __root) + use-toast.ts (hook)
@@ -192,7 +193,7 @@ Setiap fitur punya **satu file `queries.ts`** di foldernya (`features/kasir/quer
 Semua konfirmasi "Yakin?" memakai **satu modal bersama** yang dipanggil lewat hook `useConfirm`, bukan modal buatan sendiri di tiap halaman.
 
 **Cara kerja:**
-1. `confirm-provider.tsx` dipasang **sekali** di `__root.tsx` dan menampilkan satu modal (komponen modal DaisyUI).
+1. `confirm-provider.tsx` dipasang **sekali** di `__root.tsx` dan menampilkan satu modal yang dibangun di atas komponen `Modal` reusable (lihat Modal Reusable).
 2. `use-confirm.ts` adalah hook yang dipanggil dari komponen. Hasilnya fungsi `confirm(...)` yang **ditunggu (await) jawabannya**: `true` jika pengguna menekan tombol lanjut, `false` jika batal.
 3. Isian yang bisa diatur saat memanggil: judul, pesan, teks tombol lanjut dan batal, serta jenis (biasa atau berbahaya, tombol lanjut berwarna merah).
 4. Alurnya di komponen: tanya `confirm` dulu, lalu hanya jika `true`, jalankan mutasi dari `queries.ts`.
@@ -203,7 +204,7 @@ Semua konfirmasi "Yakin?" memakai **satu modal bersama** yang dipanggil lewat ho
 - Menutup modal (tombol Esc atau klik di luar modal) dianggap **batal**.
 - Untuk aksi berbahaya, fokus awal ada di tombol **Batal**.
 - Tombol cukup besar untuk layar HP, dan teks memakai Bahasa Indonesia.
-- Modal yang berisi **form** (misalnya form tambah barang di halaman admin) bukan konfirmasi. Itu memakai komponen modal biasa di `components/`.
+- Modal yang berisi **form** (misalnya form tambah barang di halaman admin) bukan konfirmasi. Itu memakai komponen `Modal` reusable (lihat Modal Reusable).
 
 **Aksi yang memakai konfirmasi** (sama dengan `PRD.md` bagian 5, "Konfirmasi dan Peringatan", yang menjadi acuan utama):
 
@@ -512,6 +513,44 @@ Daftar ini dipakai untuk pilihan di tabel database, aturan Valibot (hanya nilai 
 - **Penamaan:** istilah domain memakai Bahasa Indonesia agar sesuai dokumen (`Barang`, `BarangMasuk`, `Transaksi`, `ItemTransaksi`, `Pembeli`, `PembayaranUtang`, `Pengguna`, `hargaJual`, `hargaBeli`). Istilah teknis umum tetap Inggris (`id`, `createdAt`). Gaya penulisan *camelCase* untuk nama field.
 - **Klien Hono:** jika klien bawaan Hono dipakai, tipe aplikasi diekspor dari `server/app.ts` sehingga pemanggilan API di `queries.ts` ikut bertipe.
 - **Mengubah struktur data:** ubah dulu skema tabel (dan buat migrasi), lalu perbarui skema input bila perlu. Tipe lain akan mengikuti, dan galat kompilasi menandai bagian yang perlu disesuaikan.
+
+### Modal Reusable
+
+Semua kotak dialog (form tambah/ubah barang, buat akun kasir, reset password, pelunasan utang, dan konfirmasi) memakai **satu komponen `Modal`** di `components/modal/`. Dibangun dari komponen `modal` DaisyUI di atas elemen `<dialog>` bawaan browser, **tanpa pustaka tambahan**.
+
+| Komponen | Fungsi |
+|---|---|
+| `Modal` | Kotak dialog: judul, tombol tutup (X) di pojok, dan isi |
+| `ModalBody` | Area isi yang bisa digulir |
+| `ModalFooter` | Area tombol aksi |
+
+**Pengaturan `Modal`** (props): terbuka atau tidak, fungsi yang dipanggil saat ditutup, judul, ukuran (kecil, sedang, besar), apakah boleh ditutup (dimatikan saat sedang menyimpan), dan penjaga penutupan (lihat di bawah).
+
+**Tampilan responsif:**
+- **HP (lebar di bawah 640px):** muncul dari bawah sebagai **lembar bawah** (*bottom sheet*), lebar penuh, sudut atas membulat, tinggi maksimal sekitar 90% layar. Tinggi memakai satuan `dvh` agar tetap benar saat keyboard layar muncul. Isi bisa digulir, dan area tombol aksi menempel di bawah dengan jarak aman untuk HP berponi atau bilah gestur (*safe area*).
+- **Desktop (640px ke atas):** tampil **di tengah layar**. Lebar kecil sekitar 24rem, sedang 32rem, besar 42rem, dan tidak pernah melebihi lebar layar.
+
+**Cara menutup** (ketiganya lewat **satu jalur penutupan** yang sama, yaitu yang melewati penjaga):
+- **Tombol tutup (X) di pojok kanan atas** kotak. Ikon Lucide `X`, area sentuh minimal 44 x 44 px, dan `aria-label` "Tutup".
+- **Klik atau sentuh di luar kotak** (pada latar gelap). Penutupan hanya terjadi jika tekan **dan** lepas sama-sama di latar. Jika pengguna menyeleksi teks di dalam kotak lalu melepas di luar kotak, kotak tidak menutup.
+- **Tombol Esc** pada keyboard.
+
+**Penjaga penutupan:**
+- **Sedang menyimpan:** semua cara menutup dinonaktifkan (tombol X redup, klik di luar dan Esc diabaikan), agar proses simpan tidak terputus.
+- **Isian belum disimpan:** jika form sudah diubah, panggil `useConfirm` lebih dulu ("Isian yang belum disimpan akan hilang"), sesuai tabel konfirmasi di PRD. Jika form belum diubah, langsung tutup.
+- **Konfirmasi** (`ConfirmProvider`) dibangun di atas `Modal` yang sama, ukuran kecil, **tanpa penjaga**: tombol X, klik di luar, dan Esc dianggap **batal**.
+
+**Aturan lain:**
+- **Penumpukan:** konfirmasi boleh tampil **di atas** modal lain (diperlukan untuk penjaga isian belum disimpan). Modal biasa **tidak bertumpuk**: hanya satu yang terbuka.
+- **Fokus:** saat terbuka, fokus pindah ke isian pertama (pada konfirmasi berbahaya ke tombol Batal) dan terkunci di dalam kotak. Saat ditutup, fokus kembali ke elemen yang membukanya.
+- **Gulir:** halaman di belakang tidak ikut bergulir selama modal terbuka. Yang bergulir hanya `ModalBody`.
+- **Keyboard HP:** isian yang sedang diketik tidak boleh tertutup keyboard layar.
+- **SSR:** modal tidak dirender dalam keadaan terbuka. Status buka dan tutup hanya di browser dan **tidak disimpan di URL**.
+- **Aksesibilitas:** judul tertaut lewat `aria-labelledby`, tombol X berlabel, dan animasi singkat serta mengikuti pengaturan *reduce motion*.
+- **Tema:** token DaisyUI, tanpa warna tetap. Latar gelap semi transparan cukup kontras di tema terang dan gelap.
+- **Tombol kembali Android** yang menutup modal tidak dikerjakan di MVP.
+
+**Pemakaian (usulan):** form tambah/ubah barang, buat akun kasir, reset password, pelunasan utang, dan semua konfirmasi.
 
 ## 4. Peran & Hak Akses
 

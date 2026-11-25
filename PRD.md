@@ -54,6 +54,7 @@
   - Di **HP**, tiap baris daftar tampil sebagai **kartu** agar mudah dibaca. Di **desktop**, tampil sebagai tabel penuh.
   - Urutan baris ditentukan aplikasi (misalnya barang masuk dari yang terbaru).
 - **Konfirmasi dan peringatan harga** sebelum aksi penting (lihat bagian 5).
+- **Kotak dialog (modal)** yang responsif untuk form dan konfirmasi, dengan tombol tutup di pojok dan bisa ditutup dengan klik di luar kotak (lihat bagian 5).
 - **Notifikasi singkat (toast)** setelah aksi berhasil atau gagal (lihat bagian 5).
 - **Tampilan memuat (skeleton) dan tampilan kosong** yang ramah di setiap daftar dan halaman (lihat bagian 5).
 - **Mode tampilan terang dan gelap** (dark mode), dengan pilihan Ikuti perangkat, Terang, atau Gelap (lihat bagian 5).
@@ -169,6 +170,18 @@ Setelah sebuah aksi selesai, aplikasi menampilkan **pesan kecil yang hilang send
 - Pilihan tersimpan di **perangkat** yang dipakai (bukan di akun) dan diingat saat aplikasi dibuka lagi.
 - Halaman langsung tampil dengan tema yang benar, tanpa kilatan tema yang salah saat dibuka.
 - Semua halaman, tabel, kartu, kotak konfirmasi, toast, dan indikator password tetap **mudah dibaca** di kedua mode. Status seperti Lunas dan Utang tidak hanya mengandalkan warna, tetapi juga teks.
+
+### Kotak Dialog (Modal)
+
+Form dan konfirmasi tampil dalam **kotak dialog** yang seragam di seluruh aplikasi.
+
+- **Di HP**, kotak muncul dari bawah layar selebar layar. **Di desktop**, kotak tampil di tengah layar.
+- **Tombol tutup (X)** ada di **pojok kanan atas** kotak.
+- **Mengetuk atau mengklik di luar kotak** juga menutupnya. Tombol Esc di keyboard juga berfungsi.
+- Jika isian form **sudah diubah tetapi belum disimpan**, aplikasi bertanya dulu sebelum menutup ("Isian yang belum disimpan akan hilang").
+- Saat data **sedang disimpan**, kotak tidak bisa ditutup, agar proses tidak terputus.
+- Isian yang sedang diketik di HP tidak tertutup keyboard layar.
+- Kotak mudah dibaca di mode terang dan gelap.
 
 ## 6. Tech-Stack
 

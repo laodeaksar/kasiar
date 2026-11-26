@@ -7,7 +7,7 @@ import {
   useLoaderData,
 } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { Menu, Package, Shield, ShoppingCart, Warehouse } from 'lucide-react'
+import { Menu, Package, Shield, ShoppingCart, Wallet, Warehouse } from 'lucide-react'
 import { ThemeToggle } from '../components/theme/theme-toggle'
 import { toast } from '../components/toast/toast-store'
 import { authClient } from '../lib/auth-client'
@@ -95,6 +95,11 @@ function AppLayout() {
                 </Link>
               </li>
               <li>
+                <Link to="/utang" search={{ q: '', status: 'belum-lunas', halaman: 1 }}>
+                  <Wallet className="size-4" /> Utang
+                </Link>
+              </li>
+              <li>
                 <Link to="/uji-komponen">Uji komponen</Link>
               </li>
             </ul>
@@ -118,6 +123,11 @@ function AppLayout() {
             <li>
               <Link to="/kasir">
                 <ShoppingCart className="size-4" /> Kasir
+              </Link>
+            </li>
+            <li>
+              <Link to="/utang" search={{ q: '', status: 'belum-lunas', halaman: 1 }}>
+                <Wallet className="size-4" /> Utang
               </Link>
             </li>
             {session?.peran === 'admin' && (

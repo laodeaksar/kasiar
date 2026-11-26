@@ -83,3 +83,31 @@ export function parseBarangMasukSearch(value: unknown) {
   if (safeFrom && safeTo && safeFrom > safeTo) return { q: safeQ, dari: '', sampai: '', halaman: 1 }
   return { q: safeQ, dari: safeFrom, sampai: safeTo, halaman: safePage }
 }
+
+const UtangPageSchema = v.pipe(
+  v.union([v.number(), v.string()]),
+  v.transform((value) => (typeof value === 'number' ? value : Number(value))),
+  v.integer(),
+  v.minValue(1),
+)
+const UtangStatusSchema = v.picklist(['belum-lunas', 'semua'])
+export const UtangSearchSchema = v.object({
+  q: v.optional(v.pipe(v.string(), v.maxLength(100))),
+  status: v.optional(UtangStatusSchema),
+  pembeli: v.optional(UtangPageSchema),
+  halaman: v.optional(UtangPageSchema),
+})
+
+export function parseUtangSearch(value: unknown) {
+  const input = asRecord(value)
+  const q = v.safeParse(v.pipe(v.string(), v.maxLength(100)), input.q ?? '')
+  const status = v.safeParse(UtangStatusSchema, input.status ?? 'belum-lunas')
+  const pembeli = v.safeParse(UtangPageSchema, input.pembeli)
+  const halaman = v.safeParse(UtangPageSchema, input.halaman ?? 1)
+  return {
+    q: q.success ? q.output : '',
+    status: status.success ? status.output : 'belum-lunas',
+    ...(pembeli.success && pembeli.output !== undefined ? { pembeli: pembeli.output } : {}),
+    halaman: halaman.success ? halaman.output : 1,
+  }
+}

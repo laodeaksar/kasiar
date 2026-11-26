@@ -16,6 +16,7 @@ import { Route as AppBarangRouteImport } from './routes/_app/barang'
 import { Route as AppBarangMasukRouteImport } from './routes/_app/barang-masuk'
 import { Route as AppKasirRouteImport } from './routes/_app/kasir'
 import { Route as AppUjiKomponenRouteImport } from './routes/_app/uji-komponen'
+import { Route as AppUtangRouteImport } from './routes/_app/utang'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as AppAdminBarangRouteImport } from './routes/_app/admin/barang'
@@ -55,6 +56,11 @@ const AppUjiKomponenRoute = AppUjiKomponenRouteImport.update({
   path: '/uji-komponen',
   getParentRoute: () => AppRoute,
 } as any)
+const AppUtangRoute = AppUtangRouteImport.update({
+  id: '/utang',
+  path: '/utang',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/barang-masuk': typeof AppBarangMasukRoute
   '/kasir': typeof AppKasirRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
+  '/utang': typeof AppUtangRoute
   '/api/$': typeof ApiSplatRoute
   '/admin/barang': typeof AppAdminBarangRoute
   '/admin/pengguna': typeof AppAdminPenggunaRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/barang-masuk': typeof AppBarangMasukRoute
   '/kasir': typeof AppKasirRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
+  '/utang': typeof AppUtangRoute
   '/api/$': typeof ApiSplatRoute
   '/': typeof AppIndexRoute
   '/admin/barang': typeof AppAdminBarangRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/_app/barang-masuk': typeof AppBarangMasukRoute
   '/_app/kasir': typeof AppKasirRoute
   '/_app/uji-komponen': typeof AppUjiKomponenRoute
+  '/_app/utang': typeof AppUtangRoute
   '/api/$': typeof ApiSplatRoute
   '/_app/': typeof AppIndexRoute
   '/_app/admin/barang': typeof AppAdminBarangRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/barang-masuk'
     | '/kasir'
     | '/uji-komponen'
+    | '/utang'
     | '/api/$'
     | '/admin/barang'
     | '/admin/pengguna'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/barang-masuk'
     | '/kasir'
     | '/uji-komponen'
+    | '/utang'
     | '/api/$'
     | '/'
     | '/admin/barang'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_app/barang-masuk'
     | '/_app/kasir'
     | '/_app/uji-komponen'
+    | '/_app/utang'
     | '/api/$'
     | '/_app/'
     | '/_app/admin/barang'
@@ -211,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUjiKomponenRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/utang': {
+      id: '/_app/utang'
+      path: '/utang'
+      fullPath: '/utang'
+      preLoaderRoute: typeof AppUtangRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -247,6 +266,7 @@ interface AppRouteChildren {
   AppBarangMasukRoute: typeof AppBarangMasukRoute
   AppKasirRoute: typeof AppKasirRoute
   AppUjiKomponenRoute: typeof AppUjiKomponenRoute
+  AppUtangRoute: typeof AppUtangRoute
   AppIndexRoute: typeof AppIndexRoute
   AppAdminBarangRoute: typeof AppAdminBarangRoute
   AppAdminPenggunaRoute: typeof AppAdminPenggunaRoute
@@ -258,6 +278,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppBarangMasukRoute: AppBarangMasukRoute,
   AppKasirRoute: AppKasirRoute,
   AppUjiKomponenRoute: AppUjiKomponenRoute,
+  AppUtangRoute: AppUtangRoute,
   AppIndexRoute: AppIndexRoute,
   AppAdminBarangRoute: AppAdminBarangRoute,
   AppAdminPenggunaRoute: AppAdminPenggunaRoute,

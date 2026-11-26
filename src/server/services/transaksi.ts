@@ -102,6 +102,7 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
         .select({ id: pembeli.id })
         .from(pembeli)
         .where(eq(pembeli.nama, nama))
+        .for('update')
         .limit(1)
       pembeliId =
         existing[0]?.id ??

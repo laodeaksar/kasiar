@@ -11,7 +11,13 @@ type Field = {
   props: FieldElementProps
   path: readonly PropertyKey[]
 }
-export function PembeliField({ field }: { field: Field }) {
+export function PembeliField({
+  field,
+  onSelected,
+}: {
+  field: Field
+  onSelected?: (buyer: { id: number; nama: string } | null) => void
+}) {
   const [open, setOpen] = useState(false)
   const value = typeof field.input === 'string' ? field.input : ''
   const { data = [], isPending } = useQuery(pembeliOptions(value, open))
@@ -38,6 +44,7 @@ export function PembeliField({ field }: { field: Field }) {
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           field.onChange(event.target.value)
+          onSelected?.(null)
           setOpen(true)
         }}
       />
@@ -52,6 +59,7 @@ export function PembeliField({ field }: { field: Field }) {
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 field.onChange(item.nama)
+                onSelected?.(item)
                 setOpen(false)
               }}
             >

@@ -16,7 +16,6 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
   const form = useForm({ schema: BarangSchema, initialInput })
   const confirm = useConfirm()
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
   const { showToast } = useToast()
 
   async function closeGuard() {
@@ -26,7 +25,6 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
 
   async function submit(input: BarangInput) {
     setMessage('')
-    setLoading(true)
     try {
       await tambahBarang(input)
       reset(form)
@@ -34,13 +32,11 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
       onSaved()
     } catch (error) {
       setMessage(error instanceof ApiRequestError ? error.message : 'Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.')
-    } finally {
-      setLoading(false)
     }
   }
 
-  return <Modal open onClose={onClose} title="Barang baru" size="sedang" canClose={!loading} closeGuard={closeGuard}>
-    <BarangFormFields form={form} message={message} loading={loading} onSubmit={submit}/>
+  return <Modal open onClose={onClose} title="Barang baru" size="sedang" canClose={!form.isSubmitting} closeGuard={closeGuard}>
+    <BarangFormFields form={form} message={message} loading={form.isSubmitting} onSubmit={submit}/>
   </Modal>
 }
 

@@ -74,7 +74,6 @@ function EditBarangDialog({ row, onClose, onSaved }: { row: BarangRow; onClose: 
   const confirm = useConfirm()
   const { showToast } = useToast()
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
 
   async function closeGuard() {
     if (!isDirty(form)) return true
@@ -95,7 +94,6 @@ function EditBarangDialog({ row, onClose, onSaved }: { row: BarangRow; onClose: 
     if (input.nama !== row.nama) changes.nama = input.nama
     if (input.satuan !== row.satuan) changes.satuan = input.satuan
     if (priceChanged) changes.hargaJual = input.hargaJual
-    setLoading(true)
     try {
       await ubahBarang(row.id, changes)
       reset(form)
@@ -103,13 +101,11 @@ function EditBarangDialog({ row, onClose, onSaved }: { row: BarangRow; onClose: 
       await onSaved()
     } catch (error) {
       setMessage(error instanceof ApiRequestError ? error.message : 'Data barang tidak dapat diperbarui.')
-    } finally {
-      setLoading(false)
     }
   }
 
-  return <Modal open onClose={onClose} title="Ubah barang" size="sedang" canClose={!loading} closeGuard={closeGuard}>
-    <EditBarangFields form={form} message={message} loading={loading} onSubmit={submit}/>
+  return <Modal open onClose={onClose} title="Ubah barang" size="sedang" canClose={!form.isSubmitting} closeGuard={closeGuard}>
+    <EditBarangFields form={form} message={message} loading={form.isSubmitting} onSubmit={submit}/>
   </Modal>
 }
 

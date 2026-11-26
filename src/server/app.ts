@@ -4,6 +4,7 @@ import { auth } from '../lib/auth'
 import { adminBarangRoutes, barangRoutes } from './routes/barang'
 import { penggunaRoutes } from './routes/pengguna'
 import { barangMasukRoutes } from './routes/barang-masuk'
+import { transaksiRoutes } from './routes/transaksi'
 type Env = { Variables: { user: { id: string; role: string } } }
 export const requireLogin = createMiddleware<Env>(async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers })
@@ -27,6 +28,7 @@ app.get('/api/session', (c) => c.json({ user: c.get('user') }))
 app.use('/api/admin/*', requireAdmin)
 app.route('/api/barang', barangRoutes)
 app.route('/api/barang-masuk', barangMasukRoutes)
+app.route('/api/transaksi', transaksiRoutes)
 app.route('/api/admin/barang', adminBarangRoutes)
 app.route('/api/admin/pengguna', penggunaRoutes)
 app.all('*', (c) => c.json({ message: 'Endpoint tidak ditemukan.', fields: {} }, 404))

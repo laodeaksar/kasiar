@@ -12,6 +12,8 @@ import { ThemeToggle } from '../components/theme/theme-toggle'
 import { toast } from '../components/toast/toast-store'
 import { authClient } from '../lib/auth-client'
 import { safeReturnTarget } from '../validation/search'
+import { useConfirm } from '../components/confirm/use-confirm'
+import { useCart } from '../features/kasir/cart-store'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: ({ context, location }) => {
@@ -30,9 +32,21 @@ export const Route = createFileRoute('/_app')({
 function AppLayout() {
   const router = useRouter()
   const queryClient = useQueryClient()
+  const confirm = useConfirm()
+  const cart = useCart()
   const rootData = useLoaderData({ from: '__root__' })
   const session = Route.useRouteContext({ select: (context) => context.session })
   async function logout() {
+    if (
+      cart.length &&
+      !(await confirm({
+        title: 'Keranjang belum kosong',
+        message: 'Jika keluar sekarang, isi keranjang akan hilang. Tetap keluar?',
+        confirmText: 'Tetap keluar',
+        danger: true,
+      }))
+    )
+      return
     await authClient.signOut()
     queryClient.clear()
     await router.invalidate()
@@ -76,9 +90,9 @@ function AppLayout() {
                 </Link>
               </li>
               <li>
-                <a href="#kasir">
+                <Link to="/kasir">
                   <ShoppingCart className="size-4" /> Kasir
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/uji-komponen">Uji komponen</Link>
@@ -102,9 +116,9 @@ function AppLayout() {
               </Link>
             </li>
             <li>
-              <a href="#kasir">
+              <Link to="/kasir">
                 <ShoppingCart className="size-4" /> Kasir
-              </a>
+              </Link>
             </li>
             {session?.peran === 'admin' && (
               <li>

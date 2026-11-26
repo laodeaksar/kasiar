@@ -122,6 +122,9 @@ export function TextField({
   hint,
   icon,
   trailing,
+  displayValue,
+  parseValue,
+  className,
   ...rest
 }: {
   label: string
@@ -129,6 +132,8 @@ export function TextField({
   hint?: string
   icon?: ReactNode
   trailing?: ReactNode
+  displayValue?: string
+  parseValue?: (value: string) => unknown
 } & InputExtra) {
   const message = errorText(field)
   const ref = useValidity<HTMLInputElement>(message)
@@ -143,12 +148,18 @@ export function TextField({
       ref={ref}
       id={attr.id}
       aria-labelledby={attr.labelId}
-      value={String(field.input ?? '')}
+      value={displayValue ?? String(field.input ?? '')}
       onBlur={field.props.onBlur}
-      onChange={(event) => field.onChange(event.target.value)}
+      onChange={(event) =>
+        field.onChange(parseValue ? parseValue(event.target.value) : event.target.value)
+      }
       aria-invalid={!!message}
       aria-describedby={describedBy}
-      className={wrapped ? 'grow' : `input validator w-full ${message ? 'input-error' : ''}`}
+      className={
+        wrapped
+          ? `grow ${className ?? ''}`.trim()
+          : `${className ?? 'input validator w-full'} ${message ? 'input-error' : ''}`.trim()
+      }
     />
   )
   return (
@@ -267,31 +278,22 @@ export function NumberField({
   hint,
   required,
 }: FieldProps & { decimals?: 0 | 1 }) {
-  const attr = ids(field, hint)
   return (
-    <FormField field={field} label={label} hint={hint} required={required}>
-      <input
-        {...field.props}
-        id={attr.id}
-        aria-labelledby={attr.labelId}
-        value={typeof field.input === 'number' ? field.input : ''}
-        onChange={(event) =>
-          field.onChange(event.target.value === '' ? undefined : Number(event.target.value))
-        }
-        type="number"
-        step={decimals === 1 ? '0.1' : '1'}
-        inputMode={decimals === 1 ? 'decimal' : 'numeric'}
-        className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
-        required={required}
-        aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={attr.describedBy}
-      />
-    </FormField>
+    <TextField
+      field={field}
+      label={label}
+      hint={hint}
+      required={required}
+      type="number"
+      step={decimals === 1 ? '0.1' : '1'}
+      inputMode={decimals === 1 ? 'decimal' : 'numeric'}
+      parseValue={(value) => (value === '' ? undefined : Number(value))}
+      className="input input-bordered min-h-12 w-full"
+    />
   )
 }
 
 export function RupiahField({ field, label, hint, required }: FieldProps) {
-  const attr = ids(field, hint)
   const raw =
     typeof field.input === 'number'
       ? field.input
@@ -300,29 +302,25 @@ export function RupiahField({ field, label, hint, required }: FieldProps) {
         : 0
   const display = Number.isFinite(raw) && raw > 0 ? formatRupiah(raw).replace(/^Rp\s?/, '') : ''
   return (
-    <FormField field={field} label={label} hint={hint} required={required}>
-      <div className="join w-full">
-        <span className="join-item btn btn-disabled min-h-12" aria-hidden="true">
+    <TextField
+      field={field}
+      label={label}
+      hint={hint}
+      required={required}
+      type="text"
+      inputMode="numeric"
+      displayValue={display}
+      parseValue={(value) => {
+        const digits = value.replace(/\D/g, '')
+        return digits === '' ? '' : Number(digits)
+      }}
+      icon={
+        <span className="text-base-content/60" aria-hidden="true">
           Rp
         </span>
-        <input
-          {...field.props}
-          id={attr.id}
-          aria-labelledby={attr.labelId}
-          className={`input input-bordered join-item min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
-          type="text"
-          inputMode="numeric"
-          value={display}
-          onChange={(event) => {
-            const digits = event.target.value.replace(/\D/g, '')
-            field.onChange(digits === '' ? '' : Number(digits))
-          }}
-          required={required}
-          aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-          aria-describedby={attr.describedBy}
-        />
-      </div>
-    </FormField>
+      }
+      className="min-h-12 w-full"
+    />
   )
 }
 
@@ -407,20 +405,14 @@ export function CheckboxField({
 }
 
 export function DateField({ field, label, hint, required }: FieldProps) {
-  const attr = ids(field, hint)
   return (
-    <FormField field={field} label={label} hint={hint} required={required}>
-      <input
-        {...field.props}
-        id={attr.id}
-        aria-labelledby={attr.labelId}
-        value={String(field.input ?? '')}
-        type="date"
-        className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
-        required={required}
-        aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={attr.describedBy}
-      />
-    </FormField>
+    <TextField
+      field={field}
+      label={label}
+      hint={hint}
+      required={required}
+      type="date"
+      className="input input-bordered min-h-12 w-full"
+    />
   )
 }

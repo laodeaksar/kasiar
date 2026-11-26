@@ -161,6 +161,37 @@ Router TanStack punya **context**: tempat menitipkan data yang bisa dipakai semu
 - Session tidak disimpan di TanStack Store. Sumber kebenarannya satu: cookie login yang dibaca Better Auth.
 - Isi session secukupnya (id, username, peran). Jangan menaruh password atau data sensitif lain.
 
+### Provider di `__root.tsx`
+
+Semua provider dipasang **sekali, di satu tempat: `__root.tsx`**. Bagian ini menegaskan susunan dan aturannya.
+
+**Susunan, dari luar ke dalam:**
+1. `<html>` dengan atribut tema dari cookie (ini **bukan provider**, lihat Tema), lalu `<body>`.
+2. **Provider TanStack Query** (`QueryClientProvider`) dengan **queryClient dari router context**. Cara memasangnya mengikuti dokumentasi TanStack Start (lewat pembungkus router atau paket integrasi SSR). **Jangan membuat QueryClient kedua.**
+3. **`ToastProvider`**.
+4. **`ConfirmProvider`**.
+5. Isi halaman (`Outlet`) dan skrip bawaan framework.
+
+**Alasan urutan:** Query paling luar karena dipakai semuanya. Toast berada di luar Confirm agar toast tetap bisa tampil bersamaan dengan konfirmasi. Confirm paling dalam karena dibangun di atas `Modal`.
+
+**Yang bukan provider (jangan dibuatkan provider):**
+
+| Hal | Cara |
+|---|---|
+| Router | Sudah disediakan TanStack Start. Jangan memasang `RouterProvider` sendiri |
+| Session | Router context. Klien Better Auth tidak butuh provider karena session dibaca dari context |
+| Tema | Atribut pada `<html>` dan cookie `tema`. `ThemeToggle` adalah komponen biasa |
+| TanStack Store | Store dibuat per fitur (misalnya keranjang di `features/kasir`) tanpa provider |
+| Formisch | Per form, tanpa provider global |
+
+**Aturan:**
+- **Aman untuk SSR.** Provider tidak membaca `window` atau penyimpanan browser saat render pertama. Status toast dan konfirmasi dimulai kosong dan hanya berubah di browser. TanStack Store hanya ditulis di browser, karena store tingkat modul di server dipakai bersama oleh semua permintaan.
+- **Hanya di `__root.tsx`.** Jangan memasang provider yang sama lagi di layout `_app` atau di halaman.
+- **Error dan halaman tidak ditemukan ikut terbungkus.** Provider ditempatkan di komponen kerangka root yang juga membungkus tampilan error, halaman tidak ditemukan, dan indikator memuat (gunakan `shellComponent` bila tersedia di versi yang dipakai). Dengan begitu `ErrorState` dan tombol "Coba lagi" tetap bisa memakai QueryClient dan toast.
+- **Toast harus tampil di atas modal.** Elemen `<dialog>` yang dibuka sebagai modal berada di *top layer* browser, sehingga wadah toast biasa bisa **tertutup** olehnya. Wadah toast harus ikut berada di top layer (misalnya memakai atribut `popover` pada wadahnya dan menampilkannya ulang saat ada toast baru). Uji di halaman uji komponen: munculkan toast saat modal terbuka.
+- **Konfirmasi di atas modal lain** juga mengandalkan top layer yang berurutan (yang dibuka belakangan berada di atas).
+- **Tidak menambah provider baru** tanpa alasan jelas. Provider baru wajib dicatat di bagian ini.
+
 ### queries.ts (Query dan Mutasi)
 
 Setiap fitur punya **satu file `queries.ts`** di foldernya (`features/kasir/queries.ts`, `features/barang/queries.ts`, dan seterusnya). File ini satu-satunya tempat layar berbicara dengan API Hono.
@@ -188,6 +219,59 @@ Setiap fitur punya **satu file `queries.ts`** di foldernya (`features/kasir/quer
 | Catat pelunasan | Utang dan pembeli |
 | Tambah/ubah barang atau harga (admin) | Barang |
 | Buat akun/reset password (admin) | Pengguna |
+
+### TanStack Query sebagai Jembatan Query dan Mutasi
+
+**TanStack Query adalah satu-satunya jembatan antara layar dan server.** Alurnya: komponen atau loader, lalu `queries.ts` (query dan mutasi TanStack Query), lalu `lib/api.ts`, lalu server Hono, lalu `server/services/`, lalu database. Tidak ada pengambilan data lewat `useEffect` dan `fetch` buatan sendiri.
+
+**Pembagian tugas data (siapa memegang apa):**
+
+| Jenis data | Dipegang oleh |
+|---|---|
+| Data dari server (barang, barang masuk, utang, pembeli, pengguna) | **TanStack Query** lewat `queries.ts` |
+| Isi keranjang kasir | TanStack Store (hanya di browser) |
+| Isian form | Formisch |
+| Pencarian, filter, nomor halaman | URL (`validateSearch`) |
+| Session pengguna | Router context (diisi dari cookie di root route) |
+| Status modal, toast, dan konfirmasi | State lokal di komponen atau provider masing-masing |
+| Salinan data offline (masa depan) | Dexie |
+
+**Query (membaca data):**
+- Tiap query ditulis sebagai ***query options*** di `queries.ts`: satu definisi berisi kunci, fungsi pengambil, dan pengaturannya. Definisi yang **sama persis** dipakai oleh loader halaman dan oleh komponen, sehingga cache sama dan tidak terjadi pengambilan ganda.
+- **Kunci disusun berjenjang lewat satu "pabrik kunci" per fitur**: fitur, lalu jenis (daftar atau rincian), lalu parameter yang sudah tervalidasi (`q`, `halaman`, `status`, dan seterusnya). Parameter wajib ikut menjadi bagian kunci.
+- **Loader memuat data awal** dengan memastikan data ada di cache (*ensure*) memakai queryClient dari router context. Komponen kemudian membaca data dari cache yang sama.
+- **Daftar berpaginasi** mempertahankan data halaman sebelumnya selagi halaman baru dimuat (`placeholderData` dengan `keepPreviousData`), selaras dengan `DataTable`.
+- **Query bersyarat** memakai `enabled`, misalnya rincian pembeli hanya diambil jika parameter `pembeli` ada di URL.
+
+**Pengaturan bawaan QueryClient** (satu tempat: `router.tsx`, usulan):
+- **`staleTime` sekitar 30 detik**, agar perpindahan halaman tidak memicu pengambilan ulang berlebihan. Data tetap segar karena **invalidasi setelah mutasi** (lihat tabel di atas), dan server selalu memeriksa ulang stok saat transaksi.
+- **Query diulang 1 kali** untuk gangguan jaringan atau galat server (5xx). **Tidak diulang** untuk galat 4xx (misalnya 401, 403, 404), karena mengulang tidak akan membantu.
+- **Mutasi tidak pernah diulang otomatis** (`retry` 0), agar tidak terjadi transaksi ganda atau efek ganda.
+- Di server (SSR), QueryClient **baru untuk setiap permintaan** (lihat Context Router).
+
+**Mutasi (menulis data):**
+- Tiap mutasi ditulis sebagai ***mutation options*** di `queries.ts`: fungsi pengirim (lewat `lib/api.ts`), kunci mutasi, dan **aturan invalidasi di `onSuccess`** sesuai tabel "Data yang dimuat ulang". `queries.ts` **tidak** menampilkan toast, konfirmasi, atau berpindah halaman.
+- **Komponen** memanggil `useMutation` dengan opsi itu, lalu menambahkan **efek tampilan**: toast sukses, mengosongkan form, menutup modal, atau mengosongkan keranjang.
+- **Urutan baku** (sama dengan alur kirim form): validasi Formisch, konfirmasi bila perlu, mutasi, jawaban server. Jika sukses: invalidasi data terkait, lalu toast, reset form, dan tutup modal. Jika gagal: error ditampilkan di form.
+- **Status `isPending`** mengunci `FormSubmitButton` dan menjadi dasar penjaga `Modal` (tidak bisa ditutup saat menyimpan).
+- **Invalidasi tidak menahan penutupan modal.** Data dimuat ulang di latar dengan penanda memuat kecil.
+- **Tanpa pembaruan optimistis** untuk stok dan utang.
+
+**Penanganan error:**
+- `lib/api.ts` melempar error bertipe `ApiError` berisi status, pesan umum, dan pesan per isian.
+- **Mutasi form:** komponen memetakan pesan per isian ke isian Formisch, dan pesan umum ke `FormAlert`. Error ini **tidak** ditampilkan sebagai toast.
+- **Penanganan global** (di pengaturan QueryClient):
+  - **401 (belum login atau sesi berakhir):** satu toast lalu arahkan ke login dengan `kembali`. Hanya sekali, tidak berulang untuk tiap query yang gagal.
+  - **Jaringan terputus:** toast error singkat berbahasa Indonesia.
+  - **Error query lain:** tampil sebagai `ErrorState` di area terkait, bukan toast.
+- **Mencegah toast ganda:** mutasi form diberi penanda (`meta`) bahwa errornya ditangani oleh form, sehingga penanganan global tidak menampilkan toast kedua.
+
+**SSR dan hidrasi:**
+- Data yang dimuat loader di server dikirim ke browser (*dehydrate*) lalu dipulihkan (*hydrate*), jadi browser tidak mengambil ulang. Penyambungan TanStack Router dengan TanStack Query mengikuti dokumentasi resminya. **Jika integrasi memerlukan paket tambahan dari TanStack, minta persetujuan Project Owner** sebelum memasangnya.
+- Karena QueryClient dibuat per permintaan di server, **data satu pengguna tidak bocor ke pengguna lain**.
+- Setelah **login atau logout**, cache QueryClient dikosongkan.
+
+**Masa depan (kasir offline):** pencatatan offline memakai antrean Dexie dengan ID unik, bukan mutasi TanStack Query yang ditahan. TanStack Query tetap dipakai untuk membaca data dan memuat ulang setelah sinkronisasi.
 
 ### Modal Konfirmasi (useConfirm)
 

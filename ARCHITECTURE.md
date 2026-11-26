@@ -89,7 +89,8 @@ kasiar/
     │   ├── data-table/         # tabel reusable (TanStack Table): paginasi, pencarian, kartu di HP (lihat "Data Table Reusable")
     │   ├── toast/              # notifikasi singkat: toast-provider.tsx (dipasang di __root) + use-toast.ts (hook)
     │   ├── feedback/           # EmptyState, Skeleton, ErrorState (lihat "Komponen Umpan Balik")
-    │   └── theme/              # tema terang/gelap: theme-toggle.tsx + pembaca cookie tema (lihat "Tema (Dark Mode)")
+    │   ├── theme/              # tema terang/gelap: theme-toggle.tsx + pembaca cookie tema (lihat "Tema (Dark Mode)")
+    │   └── page-header/        # PageHeader dan HeaderButton (lihat "Page Header dan Header Button")
     ├── server/                 # SERVER (hanya berjalan di server)
     │   ├── app.ts              # aplikasi Hono utama
     │   ├── middleware/         # cek sudah login, cek peran admin
@@ -551,6 +552,46 @@ Semua kotak dialog (form tambah/ubah barang, buat akun kasir, reset password, pe
 - **Tombol kembali Android** yang menutup modal tidak dikerjakan di MVP.
 
 **Pemakaian (usulan):** form tambah/ubah barang, buat akun kasir, reset password, pelunasan utang, dan semua konfirmasi.
+
+### Page Header dan Header Button
+
+`PageHeader` adalah bagian judul di bagian atas **isi** setiap halaman. Ia berada di bawah header aplikasi di `_app` (yang berisi navigasi dan `ThemeToggle`), bukan menggantikannya. `HeaderButton` adalah tombol aksi di dalamnya. Keduanya disimpan di `components/page-header/`, dibangun dari DaisyUI dan Lucide, **tanpa pustaka tambahan**.
+
+| Komponen | Fungsi |
+|---|---|
+| `PageHeader` | Judul halaman (`h1`), keterangan singkat opsional, dan wadah tombol aksi di sisi kanan |
+| `HeaderButton` | Tombol aksi: **hanya ikon di HP**, **ikon dengan label di desktop** |
+
+**Pengaturan `HeaderButton`:** ikon (Lucide), label, jenis (utama, biasa, atau bahaya), tujuan tautan atau fungsi saat diklik, nonaktif, dan sedang memproses.
+
+**Perilaku responsif:**
+- **HP (lebar di bawah 640px):** tombol hanya menampilkan **ikon**, berbentuk persegi dengan area sentuh minimal **44 x 44 px**. Label **tidak tampil**, tetapi tetap tersedia untuk pembaca layar (`aria-label` atau teks `sr-only`). Jangan mengandalkan `title` saja.
+- **Desktop (640px ke atas):** tombol menampilkan **ikon dan label**.
+- **Pergantian murni lewat CSS** (kelas responsif Tailwind, misalnya label `hidden sm:inline`), **bukan** pengecekan lebar layar lewat JavaScript, agar tidak terjadi ketidakcocokan tampilan pada SSR.
+- **Tata letak:** judul di kiri, tombol di kanan, sama di HP dan desktop. Judul satu baris dan dipotong dengan titik-titik jika terlalu panjang. Area tombol tidak membungkus dan tidak terdorong keluar layar.
+
+**Aturan:**
+- **Wajib dipakai.** Setiap halaman setelah login memakai `PageHeader` dengan satu `h1`, dan tombol aksi halaman memakai `HeaderButton`, bukan tombol DaisyUI mentah.
+- **Jenis tombol:** **utama** (`btn-primary`) maksimal satu per halaman, **biasa** (ghost atau outline), dan **bahaya** (error) untuk aksi merusak, yang tetap harus lewat `useConfirm`.
+- **Ikon wajib**, bermakna, berukuran sekitar 20px, dan `aria-hidden` (yang dibaca adalah labelnya). Label singkat, 1 sampai 3 kata, Bahasa Indonesia.
+- **Maksimal 3 `HeaderButton`** per halaman (usulan). Jika butuh lebih, putuskan bersama Project Owner.
+- **Tautan atau tombol:** jika `HeaderButton` hanya berpindah halaman, render sebagai `Link` router. Jika menjalankan aksi, render sebagai `button`.
+- **Sedang memproses:** ikon diganti penanda proses, tombol nonaktif, label tetap.
+- **Hak akses:** tombol khusus admin **tidak ditampilkan** untuk kasir. Keputusan ini diambil oleh halaman pemanggil berdasarkan session di context, dan server tetap mengecek peran.
+- Judul tampil langsung dan **tidak ikut skeleton**.
+- Warna memakai token DaisyUI, tanpa warna tetap.
+
+**Pemakaian (usulan):**
+
+| Halaman | Judul | Tombol (nama ikon hanya contoh) |
+|---|---|---|
+| `admin/barang` | Kelola Barang | Tambah barang (`Plus`) |
+| `admin/pengguna` | Pengguna | Buat akun kasir (`UserPlus`) |
+| `kasir` | Kasir | Kosongkan keranjang (`Trash2`, jenis bahaya, dengan konfirmasi) |
+| `utang` | Utang | Catat pelunasan (`Banknote`) |
+| Halaman lain | Sesuai halaman | Tanpa tombol jika tidak ada aksi |
+
+Pastikan nama ikon tersedia di Lucide sebelum dipakai.
 
 ## 4. Peran & Hak Akses
 

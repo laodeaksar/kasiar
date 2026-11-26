@@ -55,6 +55,7 @@
   - Urutan baris ditentukan aplikasi (misalnya barang masuk dari yang terbaru).
 - **Konfirmasi dan peringatan harga** sebelum aksi penting (lihat bagian 5).
 - **Kotak dialog (modal)** yang responsif untuk form dan konfirmasi, dengan tombol tutup di pojok dan bisa ditutup dengan klik di luar kotak (lihat bagian 5).
+- **Judul halaman dan tombol aksi** yang responsif: di HP hanya ikon, di desktop ikon dengan tulisan (lihat bagian 5).
 - **Notifikasi singkat (toast)** setelah aksi berhasil atau gagal (lihat bagian 5).
 - **Tampilan memuat (skeleton) dan tampilan kosong** yang ramah di setiap daftar dan halaman (lihat bagian 5).
 - **Mode tampilan terang dan gelap** (dark mode), dengan pilihan Ikuti perangkat, Terang, atau Gelap (lihat bagian 5).
@@ -182,6 +183,14 @@ Form dan konfirmasi tampil dalam **kotak dialog** yang seragam di seluruh aplika
 - Saat data **sedang disimpan**, kotak tidak bisa ditutup, agar proses tidak terputus.
 - Isian yang sedang diketik di HP tidak tertutup keyboard layar.
 - Kotak mudah dibaca di mode terang dan gelap.
+
+### Judul Halaman dan Tombol Aksi
+
+- Setiap halaman punya **judul di bagian atas**, dan jika perlu **tombol aksi di sisi kanan judul** (misalnya "Tambah barang").
+- Di **HP**, tombol aksi hanya berupa **ikon** agar muat di layar kecil. Di **desktop**, tombol menampilkan **ikon beserta tulisan**.
+- Tombol mudah disentuh di HP, dan tetap punya nama yang terbaca oleh pembaca layar meski tulisannya tidak tampil.
+- Judul yang panjang dipotong dengan titik-titik dan tidak mendorong tombol keluar layar.
+- Tombol khusus admin **tidak tampil** untuk kasir.
 
 ## 6. Tech-Stack
 

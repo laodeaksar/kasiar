@@ -29,7 +29,7 @@ function errorText(field: FormFieldStore) {
   return field.isTouched ? (field.errors?.[0] ?? '') : ''
 }
 
-function useValidity<T extends HTMLInputElement>(message: string) {
+function useValidity<T extends HTMLInputElement | HTMLSelectElement>(message: string) {
   const ref = useRef<T>(null)
   useEffect(() => {
     ref.current?.setCustomValidity(message)
@@ -309,20 +309,21 @@ export function SelectField({
   required,
   options = [],
 }: FieldProps & { options: { label: string; value: string }[] }) {
-  const attr = ids(field)
+  const message = errorText(field)
+  const ref = useValidity<HTMLSelectElement>(message)
+  const attr = ids(field, hint)
   return (
-    <FormField field={field} label={label} hint={hint} required={required}>
+    <FieldShell label={`${label}${required ? ' *' : ''}`} hint={hint} message={message}>
       <select
         {...field.props}
+        ref={ref}
         id={attr.id}
         value={String(field.input ?? '')}
-        className={`select select-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'select-error' : ''}`}
+        onChange={(event) => field.onChange(event.target.value)}
+        className={`select validator w-full ${message ? 'select-error' : ''}`}
         required={required}
-        aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={
-          [attr.describedBy, hint ? `${attr.id}-hint` : undefined].filter(Boolean).join(' ') ||
-          undefined
-        }
+        aria-invalid={!!message}
+        aria-describedby={attr.describedBy}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -330,7 +331,46 @@ export function SelectField({
           </option>
         ))}
       </select>
-    </FormField>
+    </FieldShell>
+  )
+}
+
+export function CheckboxField({
+  field,
+  label,
+  hint,
+  required,
+  ...rest
+}: FieldProps &
+  Omit<
+    InputHTMLAttributes<HTMLInputElement>,
+    'value' | 'checked' | 'onChange' | 'onBlur' | 'name' | 'id' | 'type'
+  >) {
+  const message = errorText(field)
+  const ref = useValidity<HTMLInputElement>(message)
+  const attr = ids(field, hint)
+  return (
+    <FieldShell hint={hint} message={message}>
+      <label className="label min-h-12 cursor-pointer justify-start gap-3 px-0">
+        <input
+          {...rest}
+          {...field.props}
+          ref={ref}
+          id={attr.id}
+          type="checkbox"
+          checked={field.input === true}
+          onChange={(event) => field.onChange(event.target.checked)}
+          required={required}
+          aria-invalid={!!message}
+          aria-describedby={attr.describedBy}
+          className={`checkbox validator ${message ? 'checkbox-error' : ''}`}
+        />
+        <span className="label-text">
+          {label}
+          {required ? ' *' : ''}
+        </span>
+      </label>
+    </FieldShell>
   )
 }
 

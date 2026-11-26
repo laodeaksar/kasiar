@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 export {
+  FieldShell,
   FormField,
   TextField,
   PasswordField,
@@ -7,6 +8,7 @@ export {
   NumberField,
   RupiahField,
   SelectField,
+  CheckboxField,
   DateField,
 } from './fields'
 export { PasswordRequirementsPopover } from './password-requirements-popover'

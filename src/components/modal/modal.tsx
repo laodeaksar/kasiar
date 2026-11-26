@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useId, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from 'react'
 import { X } from 'lucide-react'
 
 type ModalSize = 'kecil' | 'sedang' | 'besar'
@@ -16,7 +25,17 @@ type ModalProps = {
 
 const RequestCloseContext = createContext<(() => void) | null>(null)
 
-export function Modal({ open, onClose, title, descriptionId, size = 'sedang', canClose = true, closeGuard, initialFocusRef, children }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  descriptionId,
+  size = 'sedang',
+  canClose = true,
+  closeGuard,
+  initialFocusRef,
+  children,
+}: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const backdropPointerDown = useRef(false)
@@ -24,7 +43,9 @@ export function Modal({ open, onClose, title, descriptionId, size = 'sedang', ca
   const reactId = useId()
   const titleId = `modal-title-${reactId.replaceAll(':', '')}`
   const latest = useRef({ open, onClose, canClose, closeGuard })
-  useEffect(() => { latest.current = { open, onClose, canClose, closeGuard } }, [open, onClose, canClose, closeGuard])
+  useEffect(() => {
+    latest.current = { open, onClose, canClose, closeGuard }
+  }, [open, onClose, canClose, closeGuard])
 
   const requestClose = useCallback(async () => {
     const current = latest.current
@@ -50,14 +71,24 @@ export function Modal({ open, onClose, title, descriptionId, size = 'sedang', ca
 
     const scrollFocusedFieldIntoView = () => {
       const active = document.activeElement
-      if (active instanceof HTMLElement && dialog.contains(active) && active.closest('[data-modal-body]')) {
+      if (
+        active instanceof HTMLElement &&
+        dialog.contains(active) &&
+        active.closest('[data-modal-body]')
+      ) {
         active.scrollIntoView({ block: 'nearest' })
       }
     }
     const frame = window.requestAnimationFrame(() => {
       if (!dialog.open) return
-      const firstField = dialog.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])')
-      const target = initialFocusRef?.current ?? firstField ?? dialog.querySelector<HTMLElement>('[data-modal-action]:not([disabled])') ?? closeButtonRef.current
+      const firstField = dialog.querySelector<HTMLElement>(
+        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
+      )
+      const target =
+        initialFocusRef?.current ??
+        firstField ??
+        dialog.querySelector<HTMLElement>('[data-modal-action]:not([disabled])') ??
+        closeButtonRef.current
       target?.focus({ preventScroll: true })
       scrollFocusedFieldIntoView()
     })
@@ -87,43 +118,81 @@ export function Modal({ open, onClose, title, descriptionId, size = 'sedang', ca
     besar: 'sm:w-[42rem]',
   }
 
-  return <RequestCloseContext.Provider value={() => { void requestClose() }}>
-    <dialog
-      ref={dialogRef}
-      className="modal modal-bottom sm:modal-middle kasiar-modal fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent p-0 text-base-content sm:p-4"
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
-      aria-modal="true"
-      onCancel={(event) => { event.preventDefault(); void requestClose() }}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      onPointerCancel={() => { backdropPointerDown.current = false }}
+  return (
+    <RequestCloseContext.Provider
+      value={() => {
+        void requestClose()
+      }}
     >
-      <div className={`modal-box flex max-h-[90dvh] w-full max-w-none flex-col overflow-hidden rounded-t-2xl rounded-b-none bg-base-100 p-0 shadow-xl sm:max-h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box ${sizeClasses[size]}`}>
-        <header className="relative flex shrink-0 items-center border-b border-base-300 px-4 py-3 pr-16 sm:px-6">
-          <h2 id={titleId} className="text-lg font-semibold sm:text-xl">{title}</h2>
-          <button
-            ref={closeButtonRef}
-            type="button"
-            className="btn btn-ghost btn-square absolute right-2 top-1/2 size-11 min-h-11 min-w-11 -translate-y-1/2 disabled:opacity-40"
-            aria-label="Tutup"
-            data-modal-close="true"
-            disabled={!canClose}
-            onClick={() => { void requestClose() }}
-          ><X className="size-5" aria-hidden="true"/></button>
-        </header>
-        {children}
-      </div>
-    </dialog>
-  </RequestCloseContext.Provider>
+      <dialog
+        ref={dialogRef}
+        className="modal modal-bottom sm:modal-middle kasiar-modal fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent p-0 text-base-content sm:p-4"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        aria-modal="true"
+        onCancel={(event) => {
+          event.preventDefault()
+          void requestClose()
+        }}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={() => {
+          backdropPointerDown.current = false
+        }}
+      >
+        <div
+          className={`modal-box flex max-h-[90dvh] w-full max-w-none flex-col overflow-hidden rounded-t-2xl rounded-b-none bg-base-100 p-0 shadow-xl sm:max-h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box ${sizeClasses[size]}`}
+        >
+          <header className="relative flex shrink-0 items-center border-b border-base-300 px-4 py-3 pr-16 sm:px-6">
+            <h2 id={titleId} className="text-lg font-semibold sm:text-xl">
+              {title}
+            </h2>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              className="btn btn-ghost btn-square absolute right-2 top-1/2 size-11 min-h-11 min-w-11 -translate-y-1/2 disabled:opacity-40"
+              aria-label="Tutup"
+              data-modal-close="true"
+              disabled={!canClose}
+              onClick={() => {
+                void requestClose()
+              }}
+            >
+              <X className="size-5" aria-hidden="true" />
+            </button>
+          </header>
+          {children}
+        </div>
+      </dialog>
+    </RequestCloseContext.Provider>
+  )
 }
 
 export function ModalBody({ children, className = '', ...props }: ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} data-modal-body="true" className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 ${className}`}>{children}</div>
+  return (
+    <div
+      {...props}
+      data-modal-body="true"
+      className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 ${className}`}
+    >
+      {children}
+    </div>
+  )
 }
 
-export function ModalFooter({ children, className = '', ...props }: ComponentPropsWithoutRef<'footer'>) {
-  return <footer {...props} className={`flex shrink-0 flex-wrap justify-end gap-2 border-t border-base-300 bg-base-100 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-4 ${className}`}>{children}</footer>
+export function ModalFooter({
+  children,
+  className = '',
+  ...props
+}: ComponentPropsWithoutRef<'footer'>) {
+  return (
+    <footer
+      {...props}
+      className={`flex shrink-0 flex-wrap justify-end gap-2 border-t border-base-300 bg-base-100 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-4 ${className}`}
+    >
+      {children}
+    </footer>
+  )
 }
 
 export function useModalClose() {

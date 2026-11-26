@@ -1,10 +1,20 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { dismissToast, type ToastKind, useToasts } from './toast-store'
 
-const classes: Record<ToastKind, string> = { sukses: 'alert-success', info: 'alert-info', peringatan: 'alert-warning', error: 'alert-error' }
+const classes: Record<ToastKind, string> = {
+  sukses: 'alert-success',
+  info: 'alert-info',
+  peringatan: 'alert-warning',
+  error: 'alert-error',
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  return <>{children}<Toaster/></>
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  )
 }
 
 function Toaster() {
@@ -26,9 +36,30 @@ function Toaster() {
     }
   }, [items])
 
-  return <div ref={container} popover="manual" className="toast toast-top toast-center z-[100] sm:toast-end" aria-live="polite" aria-atomic="false">
-    {items.map((item) => <div key={item.id} className={`alert ${classes[item.kind]} shadow-lg`} role={item.kind === 'error' ? 'alert' : 'status'}>
-      <span>{item.message}</span><button className="btn btn-ghost btn-sm" aria-label="Tutup notifikasi" onClick={() => dismissToast(item.id)}>Tutup</button>
-    </div>)}
-  </div>
+  return (
+    <div
+      ref={container}
+      popover="manual"
+      className="toast toast-top toast-center z-[100] sm:toast-end"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className={`alert ${classes[item.kind]} shadow-lg`}
+          role={item.kind === 'error' ? 'alert' : 'status'}
+        >
+          <span>{item.message}</span>
+          <button
+            className="btn btn-ghost btn-sm"
+            aria-label="Tutup notifikasi"
+            onClick={() => dismissToast(item.id)}
+          >
+            Tutup
+          </button>
+        </div>
+      ))}
+    </div>
+  )
 }

@@ -12,9 +12,9 @@
 
 ## 2. Target Pengguna
 
-| Peran | Jumlah | Keterangan |
-|---|---|---|
-| **Kasir** | 1 orang | Pengguna harian: catat barang masuk, melayani penjualan, mencatat utang dan pelunasan |
+| Peran               | Jumlah  | Keterangan                                                                                                                 |
+| ------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Kasir**           | 1 orang | Pengguna harian: catat barang masuk, melayani penjualan, mencatat utang dan pelunasan                                      |
 | **Admin (pemilik)** | 1 orang | Memakai akun admin terpisah untuk membuat dan mereset akun kasir serta mengelola barang dan harga jual lewat halaman admin |
 
 **Perangkat:** HP (mobile) dan komputer (desktop). Tampilan harus **responsif** (nyaman di kedua ukuran layar).
@@ -101,25 +101,26 @@ Ditulis dengan bahasa sederhana agar bisa langsung diikuti AI Builder.
 
 Sebelum aksi tertentu, aplikasi menampilkan kotak **"Yakin?"** agar kesalahan input tidak langsung tersimpan. Kotak yang sama dipakai di seluruh aplikasi. Menutup kotak tanpa memilih dianggap **batal**.
 
-| Aksi | Konfirmasi | Isi pesan |
-|---|---|---|
-| Simpan transaksi **Lunas** | Tidak | Agar kasir tetap cepat |
-| Simpan transaksi dengan **sisa utang** | Ya | Nama pembeli, total, dibayar, sisa utang |
-| Catat pelunasan | Ya | Nama pembeli, nominal, sisa setelah bayar |
-| Simpan barang masuk | Tidak | Langsung simpan |
-| Ubah harga jual (admin) | Ya | Harga lama dan harga baru |
-| Ubah data barang: nama atau satuan (admin) | Ya | Peringatan bahwa mengubah satuan mengubah arti angka stok |
-| Reset password kasir (admin) | Ya | Nama akun kasir |
-| Nonaktifkan barang (admin) | Ya | Nama barang |
-| Kosongkan seluruh keranjang kasir | Ya | Jumlah item yang akan dihapus |
-| Keluar (logout) saat keranjang masih berisi | Ya | Peringatan bahwa keranjang belum disimpan |
-| Menutup form yang isiannya belum disimpan | Ya | Peringatan bahwa isian akan hilang |
-| Hapus satu item dari keranjang kasir | Tidak | Mudah ditambahkan kembali |
-| Tambah barang baru (admin) | Tidak | Mudah diubah lagi oleh admin |
-| Buat akun kasir (admin) | Tidak | Langsung simpan |
-| Aktifkan kembali barang (admin) | Tidak | Langsung simpan |
+| Aksi                                        | Konfirmasi | Isi pesan                                                 |
+| ------------------------------------------- | ---------- | --------------------------------------------------------- |
+| Simpan transaksi **Lunas**                  | Tidak      | Agar kasir tetap cepat                                    |
+| Simpan transaksi dengan **sisa utang**      | Ya         | Nama pembeli, total, dibayar, sisa utang                  |
+| Catat pelunasan                             | Ya         | Nama pembeli, nominal, sisa setelah bayar                 |
+| Simpan barang masuk                         | Tidak      | Langsung simpan                                           |
+| Ubah harga jual (admin)                     | Ya         | Harga lama dan harga baru                                 |
+| Ubah data barang: nama atau satuan (admin)  | Ya         | Peringatan bahwa mengubah satuan mengubah arti angka stok |
+| Reset password kasir (admin)                | Ya         | Nama akun kasir                                           |
+| Nonaktifkan barang (admin)                  | Ya         | Nama barang                                               |
+| Kosongkan seluruh keranjang kasir           | Ya         | Jumlah item yang akan dihapus                             |
+| Keluar (logout) saat keranjang masih berisi | Ya         | Peringatan bahwa keranjang belum disimpan                 |
+| Menutup form yang isiannya belum disimpan   | Ya         | Peringatan bahwa isian akan hilang                        |
+| Hapus satu item dari keranjang kasir        | Tidak      | Mudah ditambahkan kembali                                 |
+| Tambah barang baru (admin)                  | Tidak      | Mudah diubah lagi oleh admin                              |
+| Buat akun kasir (admin)                     | Tidak      | Langsung simpan                                           |
+| Aktifkan kembali barang (admin)             | Tidak      | Langsung simpan                                           |
 
 **Peringatan harga** (peringatan, bukan larangan: pengguna tetap boleh lanjut setelah membaca):
+
 - **Barang masuk:** jika **harga beli lebih tinggi dari harga jual** barang itu, tampilkan kedua harga dan minta pengguna memeriksa ulang sebelum menyimpan.
 - **Admin mengubah harga jual:** jika **harga baru di bawah harga beli terakhir** barang itu (diambil dari catatan barang masuk terbaru), tampilkan harga baru dan harga beli terakhir.
 - Jika barang belum pernah punya catatan barang masuk, peringatan ini tidak ditampilkan.
@@ -128,18 +129,19 @@ Sebelum aksi tertentu, aplikasi menampilkan kotak **"Yakin?"** agar kesalahan in
 
 Setelah sebuah aksi selesai, aplikasi menampilkan **pesan kecil yang hilang sendiri** (toast) agar kasir tahu aksinya berhasil.
 
-| Aksi | Pesan sukses |
-|---|---|
-| Simpan transaksi Lunas | "Transaksi tersimpan." |
-| Simpan transaksi dengan sisa utang | "Transaksi tersimpan. Utang tercatat atas nama [nama pembeli]." |
-| Simpan barang masuk | "Barang masuk tersimpan." |
-| Catat pelunasan | "Pembayaran tercatat." |
-| Tambah barang (admin) | "Barang ditambahkan." |
-| Ubah data atau harga barang (admin) | "Data barang diperbarui." |
-| Buat akun kasir (admin) | "Akun kasir dibuat." |
-| Reset password kasir (admin) | "Password kasir direset." |
+| Aksi                                | Pesan sukses                                                    |
+| ----------------------------------- | --------------------------------------------------------------- |
+| Simpan transaksi Lunas              | "Transaksi tersimpan."                                          |
+| Simpan transaksi dengan sisa utang  | "Transaksi tersimpan. Utang tercatat atas nama [nama pembeli]." |
+| Simpan barang masuk                 | "Barang masuk tersimpan."                                       |
+| Catat pelunasan                     | "Pembayaran tercatat."                                          |
+| Tambah barang (admin)               | "Barang ditambahkan."                                           |
+| Ubah data atau harga barang (admin) | "Data barang diperbarui."                                       |
+| Buat akun kasir (admin)             | "Akun kasir dibuat."                                            |
+| Reset password kasir (admin)        | "Password kasir direset."                                       |
 
 **Aturan:**
+
 - Pesan sukses hilang sendiri setelah sekitar 3 detik. Peringatan sekitar 5 detik. Pesan error tetap tampil sampai ditutup.
 - **Kesalahan pada form tetap tampil di form**, bukan sebagai toast. Contoh: "Stok tidak cukup" muncul di atas form sampai kasir memperbaikinya.
 - Toast error dipakai untuk kegagalan di luar form, misalnya internet terputus atau sesi login berakhir. Jika sesi berakhir, pengguna diarahkan ke halaman login dan setelah login kembali ke halaman semula.
@@ -153,16 +155,16 @@ Setelah sebuah aksi selesai, aplikasi menampilkan **pesan kecil yang hilang send
 - Pesan untuk **"belum ada data"** berbeda dari **"hasil pencarian tidak ditemukan"**. Pada yang kedua tersedia tombol **Hapus pencarian**.
 - Tombol aksi hanya tampil untuk pengguna yang berhak. Kasir tidak melihat tombol "Tambah barang".
 
-| Tempat | Pesan saat kosong | Tombol |
-|---|---|---|
-| Daftar barang (kasir) | "Belum ada barang. Hubungi admin untuk menambahkan barang." | Tidak ada |
-| Daftar barang (admin) | "Belum ada barang. Tambahkan barang pertama." | Tambah barang |
-| Barang masuk | "Belum ada barang masuk. Catat barang masuk pertama." | Catat barang masuk |
-| Utang (belum lunas) | "Tidak ada utang yang belum lunas." | Tidak ada |
-| Rincian utang pembeli | "Belum ada pembayaran." | Tidak ada |
-| Keranjang kasir | "Keranjang masih kosong. Pilih barang untuk memulai." | Tidak ada |
-| Pilih barang (hasil pencarian kosong) | "Barang tidak ditemukan." | Tidak ada |
-| Pencarian pada semua daftar | "Tidak ada hasil untuk [kata cari]." | Hapus pencarian |
+| Tempat                                | Pesan saat kosong                                           | Tombol             |
+| ------------------------------------- | ----------------------------------------------------------- | ------------------ |
+| Daftar barang (kasir)                 | "Belum ada barang. Hubungi admin untuk menambahkan barang." | Tidak ada          |
+| Daftar barang (admin)                 | "Belum ada barang. Tambahkan barang pertama."               | Tambah barang      |
+| Barang masuk                          | "Belum ada barang masuk. Catat barang masuk pertama."       | Catat barang masuk |
+| Utang (belum lunas)                   | "Tidak ada utang yang belum lunas."                         | Tidak ada          |
+| Rincian utang pembeli                 | "Belum ada pembayaran."                                     | Tidak ada          |
+| Keranjang kasir                       | "Keranjang masih kosong. Pilih barang untuk memulai."       | Tidak ada          |
+| Pilih barang (hasil pencarian kosong) | "Barang tidak ditemukan."                                   | Tidak ada          |
+| Pencarian pada semua daftar           | "Tidak ada hasil untuk [kata cari]."                        | Hapus pencarian    |
 
 ### Tema Tampilan (Dark Mode)
 
@@ -194,24 +196,24 @@ Form dan konfirmasi tampil dalam **kotak dialog** yang seragam di seluruh aplika
 
 ## 6. Tech-Stack
 
-| Kebutuhan | Pilihan | Penjelasan sederhana |
-|---|---|---|
-| Kerangka aplikasi | TanStack Start + React | Rangka utama aplikasi web |
-| Rendering | SSR (bawaan TanStack Start) | Halaman pertama dibuat di server lalu dikirim ke browser, supaya cepat tampil di HP |
-| Pengambilan data | TanStack Query | Mengambil dan menyegarkan data dari server (*API*, jalur komunikasi tampilan dan database) |
-| Tabel | TanStack Table | Tabel daftar barang, transaksi, utang |
-| Keadaan layar | TanStack Store | Menyimpan keadaan sementara, misal keranjang kasir |
-| Grafik | Recharts | Disiapkan untuk grafik, **belum dipakai di MVP** |
-| Penyimpanan lokal | Dexie (IndexedDB) | Disiapkan untuk fase berikutnya (PWA dan offline), **belum dipakai di MVP** |
-| Form & validasi | Formisch + Valibot | Form input dan pengecekan isian |
-| Login | Better Auth | Sistem login (*autentikasi*) |
-| Tampilan | DaisyUI + Tailwind | Komponen dan gaya visual siap pakai |
-| Ikon | Lucide React | Kumpulan ikon |
-| Server & data | Hono + Drizzle + PostgreSQL | Hono: server API. Drizzle: penghubung ke database. PostgreSQL: penyimpan data |
-| Hosting | Vercel | Tempat aplikasi tayang |
-| Database | Neon (alternatif: Supabase) | Layanan PostgreSQL. Keduanya PostgreSQL, jadi struktur aplikasi tetap sama. Supabase hanya dipakai sebagai database, bukan untuk login |
+| Kebutuhan         | Pilihan                     | Penjelasan sederhana                                                                                                                   |
+| ----------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Kerangka aplikasi | TanStack Start + React      | Rangka utama aplikasi web                                                                                                              |
+| Rendering         | SSR (bawaan TanStack Start) | Halaman pertama dibuat di server lalu dikirim ke browser, supaya cepat tampil di HP                                                    |
+| Pengambilan data  | TanStack Query              | Mengambil dan menyegarkan data dari server (_API_, jalur komunikasi tampilan dan database)                                             |
+| Tabel             | TanStack Table              | Tabel daftar barang, transaksi, utang                                                                                                  |
+| Keadaan layar     | TanStack Store              | Menyimpan keadaan sementara, misal keranjang kasir                                                                                     |
+| Grafik            | Recharts                    | Disiapkan untuk grafik, **belum dipakai di MVP**                                                                                       |
+| Penyimpanan lokal | Dexie (IndexedDB)           | Disiapkan untuk fase berikutnya (PWA dan offline), **belum dipakai di MVP**                                                            |
+| Form & validasi   | Formisch + Valibot          | Form input dan pengecekan isian                                                                                                        |
+| Login             | Better Auth                 | Sistem login (_autentikasi_)                                                                                                           |
+| Tampilan          | DaisyUI + Tailwind          | Komponen dan gaya visual siap pakai                                                                                                    |
+| Ikon              | Lucide React                | Kumpulan ikon                                                                                                                          |
+| Server & data     | Hono + Drizzle + PostgreSQL | Hono: server API. Drizzle: penghubung ke database. PostgreSQL: penyimpan data                                                          |
+| Hosting           | Vercel                      | Tempat aplikasi tayang                                                                                                                 |
+| Database          | Neon (alternatif: Supabase) | Layanan PostgreSQL. Keduanya PostgreSQL, jadi struktur aplikasi tetap sama. Supabase hanya dipakai sebagai database, bukan untuk login |
 
-**Catatan biaya:** semua pustaka gratis (*open source*). Neon dan Supabase punya paket gratis `[cek batasnya sebelum dipakai, termasuk apakah database dijeda saat lama tidak dipakai]`. Paket gratis Vercel (Hobby) resmi untuk pemakaian pribadi non-komersial, jadi `[risiko ketentuan komersial dicatat; jika bermasalah, pindah hosting atau paket berbayar]`.
+**Catatan biaya:** semua pustaka gratis (_open source_). Neon dan Supabase punya paket gratis `[cek batasnya sebelum dipakai, termasuk apakah database dijeda saat lama tidak dipakai]`. Paket gratis Vercel (Hobby) resmi untuk pemakaian pribadi non-komersial, jadi `[risiko ketentuan komersial dicatat; jika bermasalah, pindah hosting atau paket berbayar]`.
 
 ## 7. Di Luar Cakupan MVP
 

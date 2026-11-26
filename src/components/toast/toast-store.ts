@@ -38,7 +38,10 @@ export function pushToast(kind: ToastKind, message: string) {
 
   if (kind !== 'error') {
     const duration = kind === 'peringatan' ? 5000 : 3000
-    timers.set(item.id, setTimeout(() => dismissToast(item.id), duration))
+    timers.set(
+      item.id,
+      setTimeout(() => dismissToast(item.id), duration),
+    )
   }
 }
 

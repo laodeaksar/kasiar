@@ -34,14 +34,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export async function apiFetch<T>(path: string, decode: (payload: unknown) => T, init: RequestInit = {}, cookie?: string): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  decode: (payload: unknown) => T,
+  init: RequestInit = {},
+  cookie?: string,
+): Promise<T> {
   const headers = new Headers(init.headers)
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   let requestUrl = path
   if (typeof window === 'undefined') {
     const request = await getServerRequestInfo()
     const url = new URL(path, request.origin)
-    if (url.origin !== request.origin) throw new Error('API hanya boleh dipanggil pada alamat aplikasi yang sama.')
+    if (url.origin !== request.origin)
+      throw new Error('API hanya boleh dipanggil pada alamat aplikasi yang sama.')
     headers.set('Cookie', cookie ?? request.cookie)
     requestUrl = url.toString()
   }
@@ -59,12 +65,16 @@ export async function apiFetch<T>(path: string, decode: (payload: unknown) => T,
     const source = isRecord(payload) ? payload : {}
     const fields: Record<string, string> = {}
     if (isRecord(source.fields)) {
-      for (const [key, message] of Object.entries(source.fields)) if (typeof message === 'string') fields[key] = message
+      for (const [key, message] of Object.entries(source.fields))
+        if (typeof message === 'string') fields[key] = message
     }
     const details = source.warning ?? source.details
     throw new ApiError({
       status: response.status,
-      message: typeof source.message === 'string' ? source.message : 'Permintaan gagal. Silakan coba lagi.',
+      message:
+        typeof source.message === 'string'
+          ? source.message
+          : 'Permintaan gagal. Silakan coba lagi.',
       fields,
       ...(details === undefined ? {} : { details }),
     })

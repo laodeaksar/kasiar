@@ -20,13 +20,18 @@ export const contohKeys = {
   health: () => [...contohKeys.details(), 'health'] as const,
 }
 
-export const healthQueryOptions = () => queryOptions({
-  queryKey: contohKeys.health(),
-  queryFn: () => apiFetch<HealthStatus>('/api/health', (payload) => v.parse(HealthSchema, payload)),
-})
+export const healthQueryOptions = () =>
+  queryOptions({
+    queryKey: contohKeys.health(),
+    queryFn: () =>
+      apiFetch<HealthStatus>('/api/health', (payload) => v.parse(HealthSchema, payload)),
+  })
 
 // Pola daftar untuk dipakai fitur berparameter: parameter tervalidasi menjadi bagian key dan data lama tetap terlihat saat memuat halaman berikutnya.
-export function contohListQueryOptions<T>(params: ContohQuerySearch, queryFn: (params: ContohQuerySearch) => Promise<T>) {
+export function contohListQueryOptions<T>(
+  params: ContohQuerySearch,
+  queryFn: (params: ContohQuerySearch) => Promise<T>,
+) {
   return queryOptions({
     queryKey: contohKeys.list(params),
     queryFn: () => queryFn(params),
@@ -35,7 +40,10 @@ export function contohListQueryOptions<T>(params: ContohQuerySearch, queryFn: (p
 }
 
 // Pola rincian bersyarat: query tidak berjalan sampai id yang tervalidasi tersedia.
-export function contohDetailQueryOptions<T>(id: string | null, queryFn: (id: string) => Promise<T>) {
+export function contohDetailQueryOptions<T>(
+  id: string | null,
+  queryFn: (id: string) => Promise<T>,
+) {
   return queryOptions({
     queryKey: contohKeys.detail(id),
     queryFn: () => queryFn(id as string),
@@ -48,6 +56,7 @@ export function contohMutasiOptions(send: ContohPengirim) {
     mutationKey: [...contohKeys.all, 'mutasi', 'uji-form'] as const,
     mutationFn: send,
     meta: { errorHandledByForm: true },
-    onSuccess: (_data, _variables, _result, { client }) => client.invalidateQueries({ queryKey: contohKeys.all }),
+    onSuccess: (_data, _variables, _result, { client }) =>
+      client.invalidateQueries({ queryKey: contohKeys.all }),
   })
 }

@@ -24,7 +24,10 @@ export const BarangMasukSchema = v.object({
     v.number('Jumlah wajib berupa angka.'),
     v.minValue(0.1, 'Jumlah harus lebih dari 0.'),
     v.maxValue(214748364.7, 'Jumlah terlalu besar.'),
-    v.check((value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-8, 'Jumlah maksimal satu angka di belakang koma.'),
+    v.check(
+      (value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-8,
+      'Jumlah maksimal satu angka di belakang koma.',
+    ),
   ),
   hargaBeli: v.pipe(
     v.number('Harga beli wajib berupa angka.'),
@@ -32,7 +35,9 @@ export const BarangMasukSchema = v.object({
     v.minValue(0, 'Harga beli tidak boleh negatif.'),
     v.maxValue(2147483647, 'Harga beli terlalu besar.'),
   ),
-  pemasok: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(200, 'Nama pemasok maksimal 200 karakter.'))),
+  pemasok: v.optional(
+    v.pipe(v.string(), v.trim(), v.maxLength(200, 'Nama pemasok maksimal 200 karakter.')),
+  ),
 })
 
 export type BarangMasukInput = v.InferInput<typeof BarangMasukSchema>

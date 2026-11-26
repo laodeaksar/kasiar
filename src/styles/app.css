@@ -1,14 +1,37 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark;
+  themes:
+    light --default,
+    dark --prefersdark;
 }
 
-:root { color-scheme: light dark; }
-html, body { min-height: 100%; }
-body { margin: 0; background: var(--color-base-100); color: var(--color-base-content); }
-button, input, select, textarea { font: inherit; }
+:root {
+  color-scheme: light dark;
+}
+html,
+body {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .kasiar-modal::backdrop {
@@ -16,16 +39,30 @@ button, input, select, textarea { font: inherit; }
 }
 
 @keyframes kasiar-modal-enter {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes kasiar-modal-backdrop-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .kasiar-modal[open] > .modal-box { animation: kasiar-modal-enter 160ms ease-out both; }
-  .kasiar-modal[open]::backdrop { animation: kasiar-modal-backdrop-enter 120ms ease-out both; }
+  .kasiar-modal[open] > .modal-box {
+    animation: kasiar-modal-enter 160ms ease-out both;
+  }
+  .kasiar-modal[open]::backdrop {
+    animation: kasiar-modal-backdrop-enter 120ms ease-out both;
+  }
 }

@@ -31,9 +31,10 @@ function createQueryClient(onUnauthorized: () => void) {
     defaultOptions: {
       queries: {
         staleTime: 30_000,
-        retry: (failureCount, error) => failureCount < 1 && (
-          error instanceof ApiNetworkError || (error instanceof ApiError && error.status >= 500 && error.status < 600)
-        ),
+        retry: (failureCount, error) =>
+          failureCount < 1 &&
+          (error instanceof ApiNetworkError ||
+            (error instanceof ApiError && error.status >= 500 && error.status < 600)),
       },
       mutations: { retry: 0 },
     },
@@ -59,5 +60,7 @@ export function getRouter() {
 }
 
 declare module '@tanstack/react-router' {
-  interface Register { router: ReturnType<typeof getRouter> }
+  interface Register {
+    router: ReturnType<typeof getRouter>
+  }
 }

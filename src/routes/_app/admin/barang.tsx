@@ -6,7 +6,6 @@ import { Plus } from 'lucide-react'
 import { useConfirm } from '../../../components/confirm/use-confirm'
 import {
   DataTable,
-  DataTablePagination,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
@@ -142,6 +141,7 @@ function AdminBarangPage() {
           data={data}
           caption="Daftar barang untuk admin"
           rowKey={(row) => String(row.id)}
+          onPageChange={(halaman) => changeSearch({ halaman })}
         />
       )}
       {empty && searching && (
@@ -160,14 +160,6 @@ function AdminBarangPage() {
               Tambah barang
             </button>
           }
-        />
-      )}
-      {!empty && (
-        <DataTablePagination
-          page={data.page}
-          pageSize={data.pageSize}
-          total={data.total}
-          onPageChange={(halaman) => changeSearch({ halaman })}
         />
       )}
       {editing && (

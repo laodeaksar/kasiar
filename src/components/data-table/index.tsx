@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { flexRender } from '@tanstack/react-table'
 import { useTable } from '@tanstack/react-table'
-import type { ColumnDef, RowData } from '@tanstack/react-table'
+import type { ColumnDef, PaginationState, RowData } from '@tanstack/react-table'
 import type { ListResponse } from '../../types/api'
 import { formatJumlah, formatRupiah, formatTanggal } from '../../lib/format'
 import { EmptyState, ErrorState, Skeleton } from '../feedback'
+import { DataTablePagination } from './pagination'
 import { dataTableFeatures } from './table-features'
 import type { DataTableFeatures } from './table-features'
+
+export { DataTablePagination } from './pagination'
 
 export type { MobilePriority } from './table-features'
 type TableColumn<T extends RowData> = ColumnDef<DataTableFeatures, T, unknown>
@@ -15,6 +18,7 @@ type DataTableProps<T extends RowData> = {
   data: ListResponse<T>
   caption: string
   rowKey?: (row: T, index: number) => string
+  onPageChange?: (page: number) => void
 }
 
 export function DataTable<T extends RowData>({
@@ -22,11 +26,23 @@ export function DataTable<T extends RowData>({
   data,
   caption,
   rowKey,
+  onPageChange,
 }: DataTableProps<T>) {
+  const pagination: PaginationState = {
+    pageIndex: data.page - 1,
+    pageSize: data.pageSize,
+  }
   const table = useTable({
     features: dataTableFeatures,
     data: data.rows,
     columns,
+    state: { pagination },
+    manualPagination: true,
+    pageCount: Math.max(1, Math.ceil(data.total / data.pageSize)),
+    onPaginationChange: (updater) => {
+      const next = typeof updater === 'function' ? updater(pagination) : updater
+      onPageChange?.(next.pageIndex + 1)
+    },
   })
   const rows = table.getRowModel().rows
   if (rows.length === 0) return null
@@ -97,51 +113,8 @@ export function DataTable<T extends RowData>({
           </tbody>
         </table>
       </div>
+      {onPageChange && <DataTablePagination table={table} total={data.total} />}
     </>
-  )
-}
-
-export function DataTablePagination({
-  page,
-  pageSize,
-  total,
-  onPageChange,
-}: {
-  page: number
-  pageSize: number
-  total: number
-  onPageChange: (page: number) => void
-}) {
-  const pages = Math.max(1, Math.ceil(total / pageSize))
-  const first = total ? (page - 1) * pageSize + 1 : 0
-  const last = Math.min(page * pageSize, total)
-  return (
-    <nav className="flex flex-wrap items-center justify-between gap-3" aria-label="Paginasi daftar">
-      <p className="text-sm">
-        {first} sampai {last} dari {total}
-      </p>
-      <div className="join">
-        <button
-          className="btn join-item min-h-11"
-          aria-label="Halaman sebelumnya"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Sebelumnya
-        </button>
-        <span className="btn join-item min-h-11" aria-current="page">
-          {page} / {pages}
-        </span>
-        <button
-          className="btn join-item min-h-11"
-          aria-label="Halaman berikutnya"
-          disabled={page >= pages}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Berikutnya
-        </button>
-      </div>
-    </nav>
   )
 }
 

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   DataTable,
-  DataTablePagination,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
@@ -52,6 +51,7 @@ function BarangPage() {
           data={data}
           caption="Daftar barang aktif"
           rowKey={(row) => String(row.id)}
+          onPageChange={(halaman) => changeSearch({ halaman })}
         />
       )}
       {empty && searching && (
@@ -64,14 +64,6 @@ function BarangPage() {
       )}
       {empty && !searching && (
         <EmptyState title="Belum ada barang. Hubungi admin untuk menambahkan barang." />
-      )}
-      {!empty && (
-        <DataTablePagination
-          page={data.page}
-          pageSize={data.pageSize}
-          total={data.total}
-          onPageChange={(halaman) => changeSearch({ halaman })}
-        />
       )}
     </section>
   )

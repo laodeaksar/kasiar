@@ -6,7 +6,6 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { useConfirm } from '../../components/confirm/confirm-provider'
 import {
   DataTable,
-  DataTablePagination,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
@@ -509,11 +508,10 @@ function TableSamples() {
             }}
           />
         </DataTableToolbar>
-        <DataTable columns={columns} data={data} caption="Daftar contoh untuk pengujian" />
-        <DataTablePagination
-          page={page}
-          pageSize={data.pageSize}
-          total={data.total}
+        <DataTable
+          columns={columns}
+          data={data}
+          caption="Daftar contoh untuk pengujian"
           onPageChange={setPage}
         />
         <DataTableStates

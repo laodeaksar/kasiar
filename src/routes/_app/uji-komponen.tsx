@@ -11,7 +11,7 @@ import { Modal, ModalBody, ModalFooter, useModalClose } from '../../components/m
 import { PageHeader } from '../../components/page-header'
 import { PageHeaderSamples } from '../../components/page-header/page-header-samples'
 import { PasswordRequirementsSamples } from '../../components/form/password-requirements-samples'
-import { useToast } from '../../components/toast/toast-provider'
+import { toast } from '../../components/toast/toast-store'
 import type { ListResponse } from '../../types/api'
 
 export const Route = createFileRoute('/_app/uji-komponen')({ beforeLoad: () => { if (!import.meta.env.DEV) throw notFound() }, component: ComponentTestPage })
@@ -117,8 +117,7 @@ function DirtyModalFields({ value, saving, onChange, onSave }: { value: string; 
 
 function ActionSamples() {
   const confirm = useConfirm()
-  const { showToast } = useToast()
-  return <section className="card border border-base-300 bg-base-100"><div className="card-body"><h2 className="card-title">Konfirmasi dan notifikasi</h2><p>Coba tombol-tombol ini untuk melihat perilaku pesan.</p><div className="flex flex-wrap gap-3"><button className="btn btn-primary min-h-12" onClick={async () => { if (await confirm({ title: 'Yakin?', message: 'Ini contoh konfirmasi untuk pengujian.' })) showToast('sukses', 'Contoh berhasil dikonfirmasi.') }}>Coba konfirmasi</button><button className="btn btn-success min-h-12" onClick={() => showToast('sukses', 'Contoh notifikasi sukses.')}>Toast sukses</button><button className="btn btn-warning min-h-12" onClick={() => showToast('peringatan', 'Contoh notifikasi peringatan.')}>Toast peringatan</button><button className="btn btn-error min-h-12" onClick={() => showToast('error', 'Contoh notifikasi error.')}>Toast error</button></div></div></section>
+  return <section className="card border border-base-300 bg-base-100"><div className="card-body"><h2 className="card-title">Konfirmasi dan notifikasi</h2><p>Coba tombol-tombol ini untuk melihat perilaku pesan.</p><div className="flex flex-wrap gap-3"><button className="btn btn-primary min-h-12" onClick={async () => { if (await confirm({ title: 'Yakin?', message: 'Ini contoh konfirmasi untuk pengujian.' })) toast.success('Contoh berhasil dikonfirmasi.') }}>Coba konfirmasi</button><button className="btn btn-success min-h-12" onClick={() => toast.success('Contoh notifikasi sukses.')}>Toast sukses</button><button className="btn btn-warning min-h-12" onClick={() => toast.warning('Contoh notifikasi peringatan.')}>Toast peringatan</button><button className="btn btn-error min-h-12" onClick={() => toast.error('Contoh notifikasi error.')}>Toast error</button></div></div></section>
 }
 
 function FormSamples() {

@@ -3,7 +3,7 @@ import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from '@tanst
 import { createServerFn } from '@tanstack/react-start'
 import { ConfirmProvider } from '../components/confirm/confirm-provider'
 import { ErrorState } from '../components/feedback'
-import { ToastProvider } from '../components/toast/toast-provider'
+import { Toaster } from '../components/toast/toast-provider'
 import type { RouterContext } from '../types/router'
 import '../styles/app.css'
 
@@ -25,7 +25,7 @@ function RootDocument({ children, theme }: { children: ReactNode; theme: 'terang
   const colorScheme = theme === 'terang' ? 'light' : theme === 'gelap' ? 'dark' : 'light dark'
   return <html lang="id" data-theme={dataTheme} style={{ colorScheme }}>
     <head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><meta name="theme-color" content="light dark"/><HeadContent /></head>
-    <body><ConfirmProvider><ToastProvider>{children}</ToastProvider></ConfirmProvider><Scripts /></body>
+    <body>{children}<Scripts /></body>
   </html>
 }
 
@@ -40,5 +40,5 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootRouteComponent() {
   const { theme } = Route.useLoaderData()
-  return <RootDocument theme={theme}><Outlet /></RootDocument>
+  return <RootDocument theme={theme}><ConfirmProvider><Outlet /><Toaster /><ConfirmProvider/></RootDocument>
 }

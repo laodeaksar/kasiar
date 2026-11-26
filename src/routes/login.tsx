@@ -3,7 +3,7 @@ import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/rea
 import { Form, useField, useForm } from '@formisch/react'
 import { TextField, PasswordField, FormAlert, FormSubmitButton } from '../components/form'
 import { PageHeader } from '../components/page-header'
-import { useToast } from '../components/toast/toast-provider'
+import { toast } from '../components/toast/toast-store'
 import { authClient } from '../lib/auth-client'
 import { LoginSchema } from '../validation/login'
 import { parseLoginSearch, safeReturnTarget } from '../validation/search'
@@ -14,14 +14,13 @@ function LoginPage() {
   const { kembali, sesiBerakhir } = Route.useSearch()
   const router = useRouter()
   const navigate = useNavigate()
-  const { showToast } = useToast()
   const [message, setMessage] = useState('')
 
   useEffect(() => {
     if (sesiBerakhir !== '1') return
-    showToast('peringatan', 'Sesi Anda berakhir. Silakan masuk kembali.')
+    toast.warning('Sesi Anda berakhir. Silakan masuk kembali.')
     void navigate({ to: '/login', search: { kembali: safeReturnTarget(kembali) }, replace: true })
-  }, [kembali, navigate, sesiBerakhir, showToast])
+  }, [kembali, navigate, sesiBerakhir, toast])
 
   const form = useForm({ schema: LoginSchema, initialInput: { username: '', password: '' } })
   const username = useField(form, { path: ['username'] })
@@ -33,7 +32,7 @@ function LoginPage() {
       const result = await authClient.signIn.username({ username: input.username, password: input.password })
       if (result.error) throw new Error(result.error.message)
       await router.invalidate()
-      showToast('sukses', 'Berhasil masuk.')
+      toast.success('Berhasil masuk.')
       await navigate({ to: safeReturnTarget(kembali) })
     } catch (error) {
       setMessage(error instanceof Error ? 'Username atau password salah. Silakan coba lagi.' : 'Tidak dapat masuk. Silakan coba lagi.')

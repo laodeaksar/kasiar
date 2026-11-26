@@ -8,7 +8,7 @@ import { EmptyState } from '../../../components/feedback'
 import { FormAlert, FormSubmitButton, RupiahField, SelectField, TextField } from '../../../components/form'
 import { Modal, ModalBody, ModalFooter, useModalClose } from '../../../components/modal'
 import { HeaderButton, PageHeader } from '../../../components/page-header'
-import { useToast } from '../../../components/toast/use-toast'
+import { toast } from '../../../components/toast/toast-store'
 import { formatRupiah } from '../../../lib/format'
 import { ApiRequestError } from '../../../lib/api'
 import { SATUAN_BARANG } from '../../../lib/konstanta'
@@ -35,17 +35,16 @@ function AdminBarangPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [editing, setEditing] = useState<BarangRow | null>(null)
   const confirm = useConfirm()
-  const { showToast } = useToast()
   const changeSearch = (patch: Partial<typeof search>) => navigate({ search: (old) => ({ ...old, ...patch }) })
 
   async function toggleActive(row: BarangRow) {
     if (row.aktif && !await confirm({ title: 'Yakin?', message: `Nonaktifkan barang “${row.nama}”? Barang nonaktif tidak ditampilkan pada daftar barang.`, confirmText: 'Nonaktifkan', danger: true })) return
     try {
       await ubahBarang(row.id, { aktif: !row.aktif })
-      showToast('sukses', 'Data barang diperbarui.')
+      toast.success('Data barang diperbarui.')
       await router.invalidate()
     } catch {
-      showToast('error', 'Perubahan barang tidak berhasil. Coba lagi.')
+      toast.error('Perubahan barang tidak berhasil. Coba lagi.')
     }
   }
 
@@ -72,7 +71,6 @@ type EditFormStore = ReturnType<typeof useForm<typeof BarangSchema>>
 function EditBarangDialog({ row, onClose, onSaved }: { row: BarangRow; onClose: () => void; onSaved: () => Promise<void> }) {
   const form = useForm({ schema: BarangSchema, initialInput: { nama: row.nama, satuan: row.satuan, hargaJual: row.hargaJual } })
   const confirm = useConfirm()
-  const { showToast } = useToast()
   const [message, setMessage] = useState('')
 
   async function closeGuard() {
@@ -97,7 +95,7 @@ function EditBarangDialog({ row, onClose, onSaved }: { row: BarangRow; onClose: 
     try {
       await ubahBarang(row.id, changes)
       reset(form)
-      showToast('sukses', 'Data barang diperbarui.')
+      toast.success('Data barang diperbarui.')
       await onSaved()
     } catch (error) {
       setMessage(error instanceof ApiRequestError ? error.message : 'Data barang tidak dapat diperbarui.')

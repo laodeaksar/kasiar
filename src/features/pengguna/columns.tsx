@@ -1,8 +1,9 @@
-import type { LegacyColumnDef as ColumnDef } from '@tanstack/react-table/legacy'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { DataTableFeatures } from '../../components/data-table/table-features'
 import type { KasirRow } from './queries'
 export function penggunaColumns(
   action: (row: KasirRow) => React.ReactNode,
-): ColumnDef<KasirRow, unknown>[] {
+): ColumnDef<DataTableFeatures, KasirRow, unknown>[] {
   return [
     { accessorKey: 'username', header: 'Username', meta: { mobilePriority: 'judul' } },
     {

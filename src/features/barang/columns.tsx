@@ -1,11 +1,12 @@
-import type { LegacyColumnDef as ColumnDef } from '@tanstack/react-table/legacy'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { DataTableFeatures } from '../../components/data-table/table-features'
 import { JumlahCell, RupiahCell, StatusBadge } from '../../components/data-table/cells'
 import type { BarangRow } from './queries'
 export function barangColumns(
   admin = false,
   actions?: (row: BarangRow) => React.ReactNode,
-): ColumnDef<BarangRow, unknown>[] {
-  const columns: ColumnDef<BarangRow, unknown>[] = [
+): ColumnDef<DataTableFeatures, BarangRow, unknown>[] {
+  const columns: ColumnDef<DataTableFeatures, BarangRow, unknown>[] = [
     { accessorKey: 'nama', header: 'Nama barang', meta: { mobilePriority: 'judul' } },
     { accessorKey: 'satuan', header: 'Satuan', meta: { mobilePriority: 'detail' } },
     {

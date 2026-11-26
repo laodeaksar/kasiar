@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { Form, useField, useForm } from '@formisch/react'
 import * as v from 'valibot'
-import type { LegacyColumnDef as ColumnDef } from '@tanstack/react-table/legacy'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useConfirm } from '../../components/confirm/confirm-provider'
 import {
   DataTable,
@@ -15,6 +15,7 @@ import {
   StatusBadge,
   TanggalCell,
 } from '../../components/data-table'
+import type { DataTableFeatures } from '../../components/data-table/table-features'
 import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
 import {
   DateField,
@@ -55,7 +56,7 @@ const exampleRows: ExampleRow[] = [
   { name: 'Contoh: Beras eceran', count: 2.5, price: 18000, date: '2026-11-23', status: 'aktif' },
   { name: 'Contoh: Telur', count: 12, price: 30000, date: '2026-11-22', status: 'lunas' },
 ]
-const columns: ColumnDef<ExampleRow, unknown>[] = [
+const columns: ColumnDef<DataTableFeatures, ExampleRow, unknown>[] = [
   {
     accessorKey: 'name',
     header: 'Nama contoh',

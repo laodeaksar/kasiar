@@ -1,8 +1,9 @@
-import type { LegacyColumnDef as ColumnDef } from '@tanstack/react-table/legacy'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { DataTableFeatures } from '../../components/data-table/table-features'
 import { JumlahCell, RupiahCell, TanggalCell } from '../../components/data-table/cells'
 import type { BarangMasukRow } from './queries'
 
-export function barangMasukColumns(): ColumnDef<BarangMasukRow, unknown>[] {
+export function barangMasukColumns(): ColumnDef<DataTableFeatures, BarangMasukRow, unknown>[] {
   return [
     {
       accessorKey: 'tanggal',

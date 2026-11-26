@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
 import { flexRender } from '@tanstack/react-table'
-import type { RowData } from '@tanstack/react-table'
-import {
-  getCoreRowModel,
-  useLegacyTable as useReactTable,
-  type LegacyColumnDef as ColumnDef,
-} from '@tanstack/react-table/legacy'
+import { useTable } from '@tanstack/react-table'
+import type { ColumnDef, RowData } from '@tanstack/react-table'
 import type { ListResponse } from '../../types/api'
 import { formatJumlah, formatRupiah, formatTanggal } from '../../lib/format'
 import { EmptyState, ErrorState, Skeleton } from '../feedback'
+import { dataTableFeatures } from './table-features'
+import type { DataTableFeatures } from './table-features'
 
-export type MobilePriority = 'judul' | 'detail' | 'sembunyi'
-type KasiarColumnMeta = { mobilePriority?: MobilePriority }
-type TableColumn<T extends RowData> = ColumnDef<T, unknown> & { meta?: KasiarColumnMeta }
+export type { MobilePriority } from './table-features'
+type TableColumn<T extends RowData> = ColumnDef<DataTableFeatures, T, unknown>
 type DataTableProps<T extends RowData> = {
   columns: TableColumn<T>[]
   data: ListResponse<T>
@@ -26,12 +23,10 @@ export function DataTable<T extends RowData>({
   caption,
   rowKey,
 }: DataTableProps<T>) {
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
     data: data.rows,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: Math.ceil(data.total / data.pageSize),
   })
   const rows = table.getRowModel().rows
   if (rows.length === 0) return null
@@ -41,11 +36,7 @@ export function DataTable<T extends RowData>({
         {rows.map((row, index) => {
           const cells = row.getVisibleCells()
           const heading =
-            cells.find(
-              (cell) =>
-                (cell.column.columnDef.meta as KasiarColumnMeta | undefined)?.mobilePriority ===
-                'judul',
-            ) ?? cells[0]
+            cells.find((cell) => cell.column.columnDef.meta?.mobilePriority === 'judul') ?? cells[0]
           return (
             <article
               key={rowKey?.(row.original, index) ?? row.id}
@@ -59,8 +50,7 @@ export function DataTable<T extends RowData>({
                   .filter(
                     (cell) =>
                       cell.id !== heading.id &&
-                      (cell.column.columnDef.meta as KasiarColumnMeta | undefined)
-                        ?.mobilePriority !== 'sembunyi',
+                      cell.column.columnDef.meta?.mobilePriority !== 'sembunyi',
                   )
                   .map((cell) => (
                     <div

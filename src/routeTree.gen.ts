@@ -12,11 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppAdminRouteRouteImport } from './routes/_app/admin/route'
 import { Route as AppBarangRouteImport } from './routes/_app/barang'
 import { Route as AppBarangMasukRouteImport } from './routes/_app/barang-masuk'
 import { Route as AppUjiKomponenRouteImport } from './routes/_app/uji-komponen'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as AppAdminIndexRouteImport } from './routes/_app/admin/index'
 import { Route as AppAdminBarangRouteImport } from './routes/_app/admin/barang'
 import { Route as AppAdminPenggunaRouteImport } from './routes/_app/admin/pengguna'
 
@@ -32,11 +32,6 @@ const LoginRoute = LoginRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAdminRouteRoute = AppAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBarangRoute = AppBarangRouteImport.update({
@@ -59,31 +54,35 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminIndexRoute = AppAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminBarangRoute = AppAdminBarangRouteImport.update({
-  id: '/barang',
-  path: '/barang',
-  getParentRoute: () => AppAdminRouteRoute,
+  id: '/admin/barang',
+  path: '/admin/barang',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAdminPenggunaRoute = AppAdminPenggunaRouteImport.update({
-  id: '/pengguna',
-  path: '/pengguna',
-  getParentRoute: () => AppAdminRouteRoute,
+  id: '/admin/pengguna',
+  path: '/admin/pengguna',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/admin': typeof AppAdminRouteRouteWithChildren
   '/barang': typeof AppBarangRoute
   '/barang-masuk': typeof AppBarangMasukRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
   '/api/$': typeof ApiSplatRoute
   '/admin/barang': typeof AppAdminBarangRoute
   '/admin/pengguna': typeof AppAdminPenggunaRoute
+  '/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/admin': typeof AppAdminRouteRouteWithChildren
   '/barang': typeof AppBarangRoute
   '/barang-masuk': typeof AppBarangMasukRoute
   '/uji-komponen': typeof AppUjiKomponenRoute
@@ -91,12 +90,12 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/admin/barang': typeof AppAdminBarangRoute
   '/admin/pengguna': typeof AppAdminPenggunaRoute
+  '/admin': typeof AppAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/_app/admin': typeof AppAdminRouteRouteWithChildren
   '/_app/barang': typeof AppBarangRoute
   '/_app/barang-masuk': typeof AppBarangMasukRoute
   '/_app/uji-komponen': typeof AppUjiKomponenRoute
@@ -104,23 +103,23 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/admin/barang': typeof AppAdminBarangRoute
   '/_app/admin/pengguna': typeof AppAdminPenggunaRoute
+  '/_app/admin/': typeof AppAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
-    | '/admin'
     | '/barang'
     | '/barang-masuk'
     | '/uji-komponen'
     | '/api/$'
     | '/admin/barang'
     | '/admin/pengguna'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/admin'
     | '/barang'
     | '/barang-masuk'
     | '/uji-komponen'
@@ -128,11 +127,11 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/barang'
     | '/admin/pengguna'
+    | '/admin'
   id:
     | '__root__'
     | '/_app'
     | '/login'
-    | '/_app/admin'
     | '/_app/barang'
     | '/_app/barang-masuk'
     | '/_app/uji-komponen'
@@ -140,6 +139,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/admin/barang'
     | '/_app/admin/pengguna'
+    | '/_app/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,13 +171,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin': {
-      id: '/_app/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AppAdminRouteRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/barang': {
       id: '/_app/barang'
       path: '/barang'
@@ -206,51 +199,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/admin/': {
+      id: '/_app/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AppAdminIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/barang': {
       id: '/_app/admin/barang'
-      path: '/barang'
+      path: '/admin/barang'
       fullPath: '/admin/barang'
       preLoaderRoute: typeof AppAdminBarangRouteImport
-      parentRoute: typeof AppAdminRouteRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/admin/pengguna': {
       id: '/_app/admin/pengguna'
-      path: '/pengguna'
+      path: '/admin/pengguna'
       fullPath: '/admin/pengguna'
       preLoaderRoute: typeof AppAdminPenggunaRouteImport
-      parentRoute: typeof AppAdminRouteRoute
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface AppAdminRouteRouteChildren {
-  AppAdminBarangRoute: typeof AppAdminBarangRoute
-  AppAdminPenggunaRoute: typeof AppAdminPenggunaRoute
-}
-
-const AppAdminRouteRouteChildren: AppAdminRouteRouteChildren = {
-  AppAdminBarangRoute: AppAdminBarangRoute,
-  AppAdminPenggunaRoute: AppAdminPenggunaRoute,
-}
-
-const AppAdminRouteRouteWithChildren = AppAdminRouteRoute._addFileChildren(
-  AppAdminRouteRouteChildren,
-)
-
 interface AppRouteChildren {
-  AppAdminRouteRoute: typeof AppAdminRouteRouteWithChildren
   AppBarangRoute: typeof AppBarangRoute
   AppBarangMasukRoute: typeof AppBarangMasukRoute
   AppUjiKomponenRoute: typeof AppUjiKomponenRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppAdminBarangRoute: typeof AppAdminBarangRoute
+  AppAdminPenggunaRoute: typeof AppAdminPenggunaRoute
+  AppAdminIndexRoute: typeof AppAdminIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAdminRouteRoute: AppAdminRouteRouteWithChildren,
   AppBarangRoute: AppBarangRoute,
   AppBarangMasukRoute: AppBarangMasukRoute,
   AppUjiKomponenRoute: AppUjiKomponenRoute,
   AppIndexRoute: AppIndexRoute,
+  AppAdminBarangRoute: AppAdminBarangRoute,
+  AppAdminPenggunaRoute: AppAdminPenggunaRoute,
+  AppAdminIndexRoute: AppAdminIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

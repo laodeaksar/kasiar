@@ -1,19 +1,19 @@
-import { Form, isDirty, reset, useField, useForm } from '@formisch/react'
+import { Form, isDirty, reset, setErrors, useField, useForm } from '@formisch/react'
+import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useConfirm } from '../../components/confirm/use-confirm'
 import { FormAlert, FormSubmitButton, PasswordField, TextField } from '../../components/form'
 import { Modal, ModalBody, ModalFooter, useModalClose } from '../../components/modal'
-import { useToast } from '../../components/toast/use-toast'
+import { toast } from '../../components/toast/toast-store'
 import { ApiRequestError } from '../../lib/api'
 import { PenggunaSchema, type PenggunaInput } from '../../validation/pengguna'
-import { buatKasir } from './queries'
+import { buatKasirMutationOptions } from './queries'
 
 export function PenggunaForm({ onSaved, onClose }: { onSaved: () => void; onClose: () => void }) {
   const form = useForm({ schema: PenggunaSchema, initialInput: { username: '', password: '' } })
   const confirm = useConfirm()
+  const mutation = useMutation(buatKasirMutationOptions())
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
-  const { showToast } = useToast()
 
   async function closeGuard() {
     if (!isDirty(form)) return true
@@ -22,21 +22,24 @@ export function PenggunaForm({ onSaved, onClose }: { onSaved: () => void; onClos
 
   async function submit(input: PenggunaInput) {
     setMessage('')
-    setLoading(true)
+    setErrors(form, { path: ['username'], errors: null })
+    setErrors(form, { path: ['password'], errors: null })
     try {
-      await buatKasir(input)
+      await mutation.mutateAsync(input)
       reset(form)
-      showToast('sukses', 'Akun kasir dibuat.')
+      toast.success('Akun kasir dibuat.')
       onSaved()
     } catch (error) {
-      setMessage(error instanceof ApiRequestError ? error.message : 'Akun kasir tidak dapat dibuat. Periksa koneksi lalu coba lagi.')
-    } finally {
-      setLoading(false)
+      if (error instanceof ApiRequestError) {
+        if (error.fields.username) setErrors(form, { path: ['username'], errors: [error.fields.username] })
+        if (error.fields.password) setErrors(form, { path: ['password'], errors: [error.fields.password] })
+        setMessage(error.message)
+      } else setMessage('Akun kasir tidak dapat dibuat. Periksa koneksi lalu coba lagi.')
     }
   }
 
-  return <Modal open onClose={onClose} title="Buat akun kasir" size="sedang" canClose={!loading} closeGuard={closeGuard}>
-    <PenggunaFormFields form={form} message={message} loading={loading} onSubmit={submit}/>
+  return <Modal open onClose={onClose} title="Buat akun kasir" size="sedang" canClose={!mutation.isPending} closeGuard={closeGuard}>
+    <PenggunaFormFields form={form} message={message} loading={mutation.isPending} onSubmit={submit}/>
   </Modal>
 }
 

@@ -1,24 +1,27 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataTableToolbar } from '../../components/data-table'
-import { EmptyState } from '../../components/feedback'
+import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
 import { PageHeader } from '../../components/page-header'
 import { BarangMasukForm } from '../../features/barang-masuk/barang-masuk-form'
 import { barangMasukColumns } from '../../features/barang-masuk/columns'
-import { getBarangMasuk } from '../../features/barang-masuk/queries'
+import { barangMasukListOptions } from '../../features/barang-masuk/queries'
 import { parseBarangMasukSearch } from '../../validation/search'
 
 export const Route = createFileRoute('/_app/barang-masuk')({
   validateSearch: (search) => parseBarangMasukSearch(search),
   loaderDeps: ({ search }) => ({ q: search.q, dari: search.dari, sampai: search.sampai, halaman: search.halaman }),
-  loader: ({ deps }) => getBarangMasuk(deps),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangMasukListOptions(deps)),
   component: BarangMasukPage,
 })
 
 function BarangMasukPage() {
-  const data = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
+  const { data, isPending, isError, refetch } = useQuery(barangMasukListOptions(search))
   const changeSearch = (patch: Partial<typeof search>) => navigate({ search: (old) => ({ ...old, ...patch }) })
+  if (isError) return <ErrorState onRetry={() => { void refetch() }}/>
+  if (isPending && !data) return <Skeleton variant="table-rows" count={5}/>
   const empty = data.rows.length === 0
   const filtering = Boolean(search.q || search.dari || search.sampai)
   const clearFilters = () => changeSearch({ q: '', dari: '', sampai: '', halaman: 1 })

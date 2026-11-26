@@ -12,9 +12,15 @@ import { PageHeader } from '../../components/page-header'
 import { PageHeaderSamples } from '../../components/page-header/page-header-samples'
 import { PasswordRequirementsSamples } from '../../components/form/password-requirements-samples'
 import { toast } from '../../components/toast/toast-store'
+import { MutationQuerySample } from '../../features/contoh/mutation-query-sample'
+import { healthQueryOptions } from '../../features/contoh/queries'
 import type { ListResponse } from '../../types/api'
 
-export const Route = createFileRoute('/_app/uji-komponen')({ beforeLoad: () => { if (!import.meta.env.DEV) throw notFound() }, component: ComponentTestPage })
+export const Route = createFileRoute('/_app/uji-komponen')({
+  beforeLoad: () => { if (!import.meta.env.DEV) throw notFound() },
+  loader: ({ context }) => context.queryClient.ensureQueryData(healthQueryOptions()),
+  component: ComponentTestPage,
+})
 const DemoSchema = v.object({ nama: v.pipe(v.string(), v.minLength(1, 'Nama wajib diisi.')), password: v.string(), jumlah: v.number(), harga: v.number(), satuan: v.string(), tanggal: v.string() })
 type ExampleRow = { name: string; count: number; price: number; date: string; status: string }
 const exampleRows: ExampleRow[] = [
@@ -33,7 +39,7 @@ type ModalKind = 'kecil' | 'sedang' | 'besar' | 'panjang' | 'form'
 function ComponentTestPage() {
   return <div className="space-y-8">
     <div className="space-y-2"><p className="badge badge-primary badge-outline">Khusus mode pengembangan</p><PageHeader title="Uji komponen bersama" description="Contoh tampilan ini hanya untuk pengujian, bukan data toko."/></div>
-    <PageHeaderSamples/><PasswordRequirementsSamples/><ModalSamples/><ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
+    <PageHeaderSamples/><MutationQuerySample/><PasswordRequirementsSamples/><ModalSamples/><ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
   </div>
 }
 

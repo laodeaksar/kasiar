@@ -1,18 +1,26 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataTableToolbar } from '../../components/data-table'
-import { EmptyState } from '../../components/feedback'
+import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
 import { PageHeader } from '../../components/page-header'
 import { barangColumns } from '../../features/barang/columns'
-import { getBarang } from '../../features/barang/queries'
+import { barangListOptions } from '../../features/barang/queries'
 import { parseBarangListSearch } from '../../validation/barang'
 
-export const Route = createFileRoute('/_app/barang')({ validateSearch: (search) => parseBarangListSearch(search), loaderDeps: ({ search }) => ({ q: search.q, halaman: search.halaman }), loader: ({ deps }) => getBarang(deps), component: BarangPage })
+export const Route = createFileRoute('/_app/barang')({
+  validateSearch: (search) => parseBarangListSearch(search),
+  loaderDeps: ({ search }) => ({ q: search.q, halaman: search.halaman }),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangListOptions(deps)),
+  component: BarangPage,
+})
 
 function BarangPage() {
-  const data = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
+  const { data, isPending, isError, refetch } = useQuery(barangListOptions(search))
   const changeSearch = (patch: Partial<typeof search>) => navigate({ search: (old) => ({ ...old, ...patch }) })
+  if (isError) return <ErrorState onRetry={() => { void refetch() }}/>
+  if (isPending && !data) return <Skeleton variant="table-rows" count={5}/>
   const empty = data.rows.length === 0
   const searching = Boolean(search.q) && empty
   const description = 'Barang aktif dan stoknya. Untuk menambah atau mengubah barang, hubungi admin.'

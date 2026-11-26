@@ -1,13 +1,14 @@
-import { Form, isDirty, reset, useField, useForm } from '@formisch/react'
+import { Form, isDirty, reset, setErrors, useField, useForm } from '@formisch/react'
+import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useConfirm } from '../../components/confirm/use-confirm'
 import { FormAlert, FormSubmitButton, RupiahField, SelectField, TextField } from '../../components/form'
 import { Modal, ModalBody, ModalFooter, useModalClose } from '../../components/modal'
-import { useToast } from '../../components/toast/use-toast'
+import { toast } from '../../components/toast/toast-store'
 import { ApiRequestError } from '../../lib/api'
 import { SATUAN_BARANG } from '../../lib/konstanta'
 import { BarangSchema, type BarangInput } from '../../validation/barang'
-import { tambahBarang } from './queries'
+import { tambahBarangMutationOptions } from './queries'
 
 const satuanOptions = SATUAN_BARANG.map((value) => ({ value, label: value === 'kg' ? 'Kilogram (kg)' : value }))
 
@@ -15,8 +16,8 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
   const initialInput = { nama: '', satuan: 'pcs', hargaJual: 0 }
   const form = useForm({ schema: BarangSchema, initialInput })
   const confirm = useConfirm()
+  const mutation = useMutation(tambahBarangMutationOptions())
   const [message, setMessage] = useState('')
-  const { showToast } = useToast()
 
   async function closeGuard() {
     if (!isDirty(form)) return true
@@ -25,18 +26,27 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
 
   async function submit(input: BarangInput) {
     setMessage('')
+    setErrors(form, { path: ['nama'], errors: null })
+    setErrors(form, { path: ['satuan'], errors: null })
+    setErrors(form, { path: ['hargaJual'], errors: null })
     try {
-      await tambahBarang(input)
+      await mutation.mutateAsync(input)
       reset(form)
-      showToast('sukses', 'Barang ditambahkan.')
+      toast.success('Barang ditambahkan.')
       onSaved()
     } catch (error) {
-      setMessage(error instanceof ApiRequestError ? error.message : 'Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.')
+      if (error instanceof ApiRequestError) {
+        for (const field of ['nama', 'satuan', 'hargaJual'] as const) {
+          const fieldMessage = error.fields[field]
+          if (fieldMessage) setErrors(form, { path: [field], errors: [fieldMessage] })
+        }
+        setMessage(error.message)
+      } else setMessage('Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.')
     }
   }
 
-  return <Modal open onClose={onClose} title="Barang baru" size="sedang" canClose={!form.isSubmitting} closeGuard={closeGuard}>
-    <BarangFormFields form={form} message={message} loading={form.isSubmitting} onSubmit={submit}/>
+  return <Modal open onClose={onClose} title="Barang baru" size="sedang" canClose={!mutation.isPending} closeGuard={closeGuard}>
+    <BarangFormFields form={form} message={message} loading={mutation.isPending} onSubmit={submit}/>
   </Modal>
 }
 

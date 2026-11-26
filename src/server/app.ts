@@ -17,6 +17,7 @@ export const requireAdmin = createMiddleware<Env>(async (c, next) => {
 })
 export const app = new Hono<Env>()
 app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
+app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.use('/api/*', requireLogin)
 app.get('/api/session', (c) => c.json({ user: c.get('user') }))
 app.use('/api/admin/*', requireAdmin)

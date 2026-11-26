@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Form, useField, useForm } from '@formisch/react'
 import { TextField, PasswordField, FormAlert, FormSubmitButton } from '../components/form'
 import { PageHeader } from '../components/page-header'
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/login')({ validateSearch: (search) => par
 function LoginPage() {
   const { kembali, sesiBerakhir } = Route.useSearch()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [message, setMessage] = useState('')
 
@@ -31,6 +33,7 @@ function LoginPage() {
     try {
       const result = await authClient.signIn.username({ username: input.username, password: input.password })
       if (result.error) throw new Error(result.error.message)
+      queryClient.clear()
       await router.invalidate()
       toast.success('Berhasil masuk.')
       await navigate({ to: safeReturnTarget(kembali) })

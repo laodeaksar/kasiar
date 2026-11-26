@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { ConfirmProvider } from '../components/confirm/confirm-provider'
 import { ErrorState } from '../components/feedback'
-import { Toaster } from '../components/toast/toast-provider'
+import { ToastProvider } from '../components/toast/toast-provider'
 import type { RouterContext } from '../types/router'
 import '../styles/app.css'
 
@@ -29,16 +30,32 @@ function RootDocument({ children, theme }: { children: ReactNode; theme: 'terang
   </html>
 }
 
+function RootProviders({ queryClient, children }: { queryClient: RouterContext['queryClient']; children: ReactNode }) {
+  return <QueryClientProvider client={queryClient}><ToastProvider><ConfirmProvider>{children}</ConfirmProvider></ToastProvider></QueryClientProvider>
+}
+
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => loadSession(),
   loader: async () => ({ theme: await loadTheme() }),
   head: () => ({ meta: [{ title: 'Kasiar — Catatan Stok Sembako' }] }),
+  headers: () => ({ 'Cache-Control': 'private, no-store' }),
   component: RootRouteComponent,
-  errorComponent: ({ reset }) => <RootDocument theme={null}><main className="mx-auto max-w-2xl p-6"><ErrorState onRetry={reset}/></main></RootDocument>,
-  notFoundComponent: () => <RootDocument theme={null}><main className="mx-auto max-w-2xl p-6"><h1 className="text-2xl font-bold">Halaman tidak ditemukan.</h1></main></RootDocument>,
+  errorComponent: ({ reset }) => <RootErrorPage reset={reset}/>,
+  notFoundComponent: () => <RootNotFoundPage/>,
 })
 
 function RootRouteComponent() {
   const { theme } = Route.useLoaderData()
-  return <RootDocument theme={theme}><ConfirmProvider><Outlet /><Toaster /><ConfirmProvider/></RootDocument>
+  const queryClient = Route.useRouteContext({ select: (context) => context.queryClient })
+  return <RootDocument theme={theme}><RootProviders queryClient={queryClient}><Outlet/></RootProviders></RootDocument>
+}
+
+function RootErrorPage({ reset }: { reset: () => void }) {
+  const queryClient = Route.useRouteContext({ select: (context) => context.queryClient })
+  return <RootDocument theme={null}><RootProviders queryClient={queryClient}><main className="mx-auto max-w-2xl p-6"><ErrorState onRetry={reset}/></main></RootProviders></RootDocument>
+}
+
+function RootNotFoundPage() {
+  const queryClient = Route.useRouteContext({ select: (context) => context.queryClient })
+  return <RootDocument theme={null}><RootProviders queryClient={queryClient}><main className="mx-auto max-w-2xl p-6"><h1 className="text-2xl font-bold">Halaman tidak ditemukan.</h1></main></RootProviders></RootDocument>
 }

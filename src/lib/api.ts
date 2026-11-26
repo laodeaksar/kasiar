@@ -1,16 +1,27 @@
 import { createServerFn } from '@tanstack/react-start'
-import type { ApiError } from '../types/api'
+import type { ApiError as ApiErrorContract } from '../types/api'
 
-export class ApiRequestError extends Error {
+export class ApiError extends Error implements ApiErrorContract {
   readonly status: number
   readonly fields: Record<string, string>
-  readonly details: unknown
-  constructor(error: ApiError, status: number, details?: unknown) {
+  readonly details?: unknown
+
+  constructor(error: ApiErrorContract) {
     super(error.message)
-    this.name = 'ApiRequestError'
-    this.status = status
+    this.name = 'ApiError'
+    this.status = error.status
     this.fields = error.fields
-    this.details = details
+    this.details = error.details
+  }
+}
+
+// Alias kompatibilitas untuk komponen lama selama pola Query diterapkan.
+export { ApiError as ApiRequestError }
+
+export class ApiNetworkError extends Error {
+  constructor() {
+    super('Koneksi internet terputus. Periksa jaringan Anda.')
+    this.name = 'ApiNetworkError'
   }
 }
 
@@ -34,7 +45,15 @@ export async function apiFetch<T>(path: string, decode: (payload: unknown) => T,
     headers.set('Cookie', cookie ?? request.cookie)
     requestUrl = url.toString()
   }
-  const response = await fetch(requestUrl, { ...init, headers, credentials: 'same-origin' })
+
+  let response: Response
+  try {
+    response = await fetch(requestUrl, { ...init, headers, credentials: 'same-origin' })
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') throw error
+    throw new ApiNetworkError()
+  }
+
   const payload: unknown = await response.json().catch(() => null)
   if (!response.ok) {
     const source = isRecord(payload) ? payload : {}
@@ -42,7 +61,13 @@ export async function apiFetch<T>(path: string, decode: (payload: unknown) => T,
     if (isRecord(source.fields)) {
       for (const [key, message] of Object.entries(source.fields)) if (typeof message === 'string') fields[key] = message
     }
-    throw new ApiRequestError({ message: typeof source.message === 'string' ? source.message : 'Permintaan gagal. Silakan coba lagi.', fields }, response.status, source.warning)
+    const details = source.warning ?? source.details
+    throw new ApiError({
+      status: response.status,
+      message: typeof source.message === 'string' ? source.message : 'Permintaan gagal. Silakan coba lagi.',
+      fields,
+      ...(details === undefined ? {} : { details }),
+    })
   }
   return decode(payload)
 }

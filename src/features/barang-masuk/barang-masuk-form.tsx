@@ -1,13 +1,13 @@
-import { Form, reset, useField, useForm } from '@formisch/react'
+import { Form, reset, setErrors, useField, useForm } from '@formisch/react'
+import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
 import { FormAlert, FormSubmitButton, DateField, NumberField, RupiahField, TextField } from '../../components/form'
 import { useConfirm } from '../../components/confirm/use-confirm'
-import { useToast } from '../../components/toast/use-toast'
+import { toast } from '../../components/toast/toast-store'
 import { ApiRequestError } from '../../lib/api'
 import { formatRupiah } from '../../lib/format'
 import { BarangMasukSchema, isJumlahValidUntukSatuan, type BarangMasukInput } from '../../validation/barang-masuk'
-import { simpanBarangMasuk, type PilihanBarang } from './queries'
+import { simpanBarangMasukMutationOptions, type PilihanBarang } from './queries'
 import { BarangSelectField } from '../barang/barang-select-field'
 
 function tanggalHariIniLokal() {
@@ -22,9 +22,8 @@ function isPriceWarning(value: unknown): value is { type: 'harga-beli-di-atas-ju
 }
 
 export function BarangMasukForm() {
-  const router = useRouter()
   const confirm = useConfirm()
-  const { showToast } = useToast()
+  const mutation = useMutation(simpanBarangMasukMutationOptions())
   const form = useForm({ schema: BarangMasukSchema, initialInput: { tanggal: '', barangId: 0, jumlah: 0, hargaBeli: 0, pemasok: '' } })
   const tanggal = useField(form, { path: ['tanggal'] })
   const barangField = useField(form, { path: ['barangId'] })
@@ -34,21 +33,24 @@ export function BarangMasukForm() {
   const selectRef = useRef<HTMLInputElement>(null)
   const [selected, setSelected] = useState<PilihanBarang | null>(null)
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
 
   // Tanggal bawaan dihitung di browser agar zona waktu tidak menimbulkan perbedaan SSR.
   useEffect(() => { if (!tanggal.input) tanggal.onChange(tanggalHariIniLokal()) }, [tanggal])
 
   async function submit(input: BarangMasukInput) {
     setMessage('')
+    setErrors(form, { path: ['tanggal'], errors: null })
+    setErrors(form, { path: ['barangId'], errors: null })
+    setErrors(form, { path: ['jumlah'], errors: null })
+    setErrors(form, { path: ['hargaBeli'], errors: null })
+    setErrors(form, { path: ['pemasok'], errors: null })
     if (!selected || selected.id !== input.barangId) { setMessage('Pilih barang yang tersedia.'); selectRef.current?.focus(); return }
     if (!isJumlahValidUntukSatuan(input.jumlah, selected.satuan)) { setMessage('Jumlah untuk satuan ini harus bilangan bulat.'); return }
-    setLoading(true)
     try {
       let hargaJualDikonfirmasi: number | undefined
       while (true) {
         try {
-          await simpanBarangMasuk(input, hargaJualDikonfirmasi)
+          await mutation.mutateAsync({ input, hargaJualDikonfirmasi })
           break
         } catch (error) {
           if (!(error instanceof ApiRequestError) || !isPriceWarning(error.details)) throw error
@@ -63,8 +65,7 @@ export function BarangMasukForm() {
           hargaJualDikonfirmasi = warning.hargaJual
         }
       }
-      await router.invalidate()
-      showToast('sukses', 'Barang masuk tersimpan.')
+      toast.success('Barang masuk tersimpan.')
       reset(form)
       tanggal.onChange(tanggalHariIniLokal())
       setSelected(null)
@@ -72,12 +73,14 @@ export function BarangMasukForm() {
       window.setTimeout(() => selectRef.current?.focus(), 0)
     } catch (error) {
       if (error instanceof ApiRequestError) {
-        const fields = Object.entries(error.fields).map(([name, text]) => `${name}: ${text}`).join(' ')
-        setMessage(fields ? `${error.message} ${fields}` : error.message)
+        if (error.fields.tanggal) setErrors(form, { path: ['tanggal'], errors: [error.fields.tanggal] })
+        if (error.fields.barangId) setErrors(form, { path: ['barangId'], errors: [error.fields.barangId] })
+        if (error.fields.jumlah) setErrors(form, { path: ['jumlah'], errors: [error.fields.jumlah] })
+        if (error.fields.hargaBeli) setErrors(form, { path: ['hargaBeli'], errors: [error.fields.hargaBeli] })
+        if (error.fields.pemasok) setErrors(form, { path: ['pemasok'], errors: [error.fields.pemasok] })
+        setMessage(error.message)
       }
       else setMessage('Barang masuk tidak dapat disimpan. Periksa koneksi lalu coba lagi.')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -92,7 +95,7 @@ export function BarangMasukForm() {
         <TextField field={pemasok} label="Pemasok" placeholder="Nama pemasok (opsional)"/>
       </div>
       <FormAlert message={message}/>
-      <div className="flex justify-end"><FormSubmitButton loading={loading}>Simpan barang masuk</FormSubmitButton></div>
+      <div className="flex justify-end"><FormSubmitButton loading={mutation.isPending}>Simpan barang masuk</FormSubmitButton></div>
     </div>
   </Form>
 }

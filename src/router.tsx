@@ -1,10 +1,10 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
-import { toast } from './components/toast/toast-store'
-import { ApiError, ApiNetworkError } from './lib/api'
-import { routeTree } from './routeTree.gen'
-import type { RouterContext } from './types/router'
+import { toast } from '~/components/toast/toast-store'
+import { ApiError, ApiNetworkError } from '~/lib/api'
+import { routeTree } from '~/routeTree.gen'
+import type { RouterContext } from '~/types/router'
 
 function createQueryClient(onUnauthorized: () => void) {
   let unauthorizedHandled = false

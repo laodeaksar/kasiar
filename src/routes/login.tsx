@@ -16,7 +16,6 @@ function LoginPage() {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (sesiBerakhir !== '1') return
@@ -30,7 +29,6 @@ function LoginPage() {
 
   async function submit(input: { username: string; password: string }) {
     setMessage('')
-    setLoading(true)
     try {
       const result = await authClient.signIn.username({ username: input.username, password: input.password })
       if (result.error) throw new Error(result.error.message)
@@ -39,10 +37,8 @@ function LoginPage() {
       await navigate({ to: safeReturnTarget(kembali) })
     } catch (error) {
       setMessage(error instanceof Error ? 'Username atau password salah. Silakan coba lagi.' : 'Tidak dapat masuk. Silakan coba lagi.')
-    } finally {
-      setLoading(false)
     }
   }
 
-  return <main className="grid min-h-screen place-items-center bg-base-200 p-4"><section className="card w-full max-w-md border border-base-300 bg-base-100 shadow-xl"><div className="card-body gap-5"><div><p className="badge badge-primary badge-outline">Kasiar</p><PageHeader className="mt-3" title="Masuk" description="Masuk untuk melanjutkan ke pencatatan toko."/></div><Form of={form} onSubmit={submit} className="space-y-4"><TextField field={username} label="Username" required/><PasswordField field={password} label="Password" required/><FormAlert message={message}/><FormSubmitButton loading={loading}>Masuk</FormSubmitButton></Form></div></section></main>
+  return <main className="grid min-h-screen place-items-center bg-base-200 p-4"><section className="card w-full max-w-md border border-base-300 bg-base-100 shadow-xl"><div className="card-body gap-5"><div><p className="badge badge-primary badge-outline">Kasiar</p><PageHeader className="mt-3" title="Masuk" description="Masuk untuk melanjutkan ke pencatatan toko."/></div><Form of={form} onSubmit={submit} className="space-y-4"><TextField field={username} label="Username" required/><PasswordField field={password} label="Password" required/><FormAlert message={message}/><FormSubmitButton loading={form.isSubmitting}>Masuk</FormSubmitButton></Form></div></section></main>
 }

@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react'
 import type { FieldElementProps } from '@formisch/react'
 import { Eye, EyeOff } from 'lucide-react'
 import { formatRupiah } from '../../lib/format'
@@ -25,6 +25,46 @@ type FieldProps = {
   inputMode?: 'text' | 'numeric' | 'decimal' | 'email'
   autoComplete?: string
 }
+function errorText(field: FormFieldStore) {
+  return field.isTouched ? (field.errors?.[0] ?? '') : ''
+}
+
+function useValidity<T extends HTMLInputElement>(message: string) {
+  const ref = useRef<T>(null)
+  useEffect(() => {
+    ref.current?.setCustomValidity(message)
+  }, [message])
+  return ref
+}
+
+export function FieldShell({
+  label,
+  hint,
+  message,
+  children,
+}: {
+  label?: string
+  hint?: string
+  message: string
+  children: ReactNode
+}) {
+  return (
+    <fieldset className="fieldset min-w-0">
+      {label ? <legend className="fieldset-legend">{label}</legend> : null}
+      {children}
+      <p
+        role={message ? 'alert' : undefined}
+        className={`validator-hint ${message ? 'mt-0! block! visible! text-error wrap-anywhere' : 'hidden'}`}
+      >
+        {message}
+      </p>
+      {hint && !message ? (
+        <p className="label h-auto max-w-full whitespace-normal wrap-anywhere">{hint}</p>
+      ) : null}
+    </fieldset>
+  )
+}
+
 export function FormField({
   field,
   label,
@@ -32,56 +72,75 @@ export function FormField({
   required,
   children,
 }: FieldProps & { children: ReactNode }) {
-  const id = `field-${field.path.map(String).join('-')}`
-  const errorId = `${id}-error`
-  const hintId = `${id}-hint`
-  const error = field.isTouched ? field.errors?.[0] : undefined
   return (
-    <div className="form-control w-full gap-1.5">
-      <label className="label py-0" htmlFor={id}>
-        <span className="label-text font-medium">
-          {label}
-          {required && <span aria-hidden="true"> *</span>}
-        </span>
-      </label>
+    <FieldShell label={`${label}${required ? ' *' : ''}`} hint={hint} message={errorText(field)}>
       {children}
-      {hint && (
-        <span id={hintId} className="label-text-alt text-base-content/70">
-          {hint}
-        </span>
-      )}
-      {error && (
-        <span id={errorId} className="label-text-alt text-error" role="alert">
-          {error}
-        </span>
-      )}
-    </div>
+    </FieldShell>
   )
 }
-function ids(field: FormFieldStore) {
+function ids(field: FormFieldStore, hint?: string) {
   const id = `field-${field.path.map(String).join('-')}`
-  return { id, describedBy: field.isTouched && field.errors?.[0] ? `${id}-error` : undefined }
+  const message = errorText(field)
+  return {
+    id,
+    describedBy:
+      [message ? `${id}-error` : undefined, hint ? `${id}-hint` : undefined]
+        .filter(Boolean)
+        .join(' ') || undefined,
+  }
 }
 
-export function TextField(props: FieldProps) {
-  const { field, required, placeholder, type = 'text', inputMode, autoComplete } = props
-  const attr = ids(field)
+type InputExtra = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange' | 'onBlur' | 'name' | 'id'
+>
+
+export function TextField({
+  label,
+  field,
+  hint,
+  icon,
+  trailing,
+  ...rest
+}: {
+  label: string
+  field: FormFieldStore
+  hint?: string
+  icon?: ReactNode
+  trailing?: ReactNode
+} & InputExtra) {
+  const message = errorText(field)
+  const ref = useValidity<HTMLInputElement>(message)
+  const attr = ids(field, hint)
+  const wrapped = !!(icon || trailing)
+  const describedBy =
+    [attr.describedBy, rest['aria-describedby']].filter(Boolean).join(' ') || undefined
+  const input = (
+    <input
+      {...rest}
+      {...field.props}
+      ref={ref}
+      id={attr.id}
+      value={String(field.input ?? '')}
+      onBlur={field.props.onBlur}
+      onChange={(event) => field.onChange(event.target.value)}
+      aria-invalid={!!message}
+      aria-describedby={describedBy}
+      className={wrapped ? 'grow' : `input validator w-full ${message ? 'input-error' : ''}`}
+    />
+  )
   return (
-    <FormField {...props}>
-      <input
-        {...field.props}
-        id={attr.id}
-        className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
-        type={type}
-        value={String(field.input ?? '')}
-        placeholder={placeholder}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        required={required}
-        aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={attr.describedBy ?? (props.hint ? `${attr.id}-hint` : undefined)}
-      />
-    </FormField>
+    <FieldShell label={`${label}${rest.required ? ' *' : ''}`} hint={hint} message={message}>
+      {wrapped ? (
+        <label className={`input validator w-full ${message ? 'input-error' : ''}`}>
+          {icon}
+          {input}
+          {trailing}
+        </label>
+      ) : (
+        input
+      )}
+    </FieldShell>
   )
 }
 
@@ -111,12 +170,12 @@ export function PasswordStrengthIndicator({
   )
 }
 
-export function PasswordField(props: FieldProps) {
-  const { field, required, showStrength, username } = props
+export function PasswordField(props: FieldProps & InputExtra) {
+  const { field, showStrength, username, ...textProps } = props
   const [visible, setVisible] = useState(false)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const attr = ids(field)
+  const attr = ids(field, props.hint)
   const password = typeof field.input === 'string' ? field.input : ''
   const requirementsId = `${attr.id}-requirements`
   const describedBy =
@@ -141,30 +200,24 @@ export function PasswordField(props: FieldProps) {
       }}
       onBlurCapture={handleBlur}
     >
-      <FormField {...props}>
-        <div className="join w-full">
-          <input
-            {...field.props}
-            id={attr.id}
-            className={`input input-bordered join-item min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
-            value={password}
-            type={visible ? 'text' : 'password'}
-            autoComplete="new-password"
-            required={required}
-            aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-            aria-describedby={describedBy}
-          />
+      <TextField
+        {...textProps}
+        field={field}
+        type={visible ? 'text' : 'password'}
+        autoComplete="new-password"
+        aria-describedby={describedBy}
+        trailing={
           <button
             type="button"
-            className="btn btn-outline join-item min-h-12"
-            aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'}
             onClick={() => setVisible((value) => !value)}
+            aria-label={visible ? 'Sembunyikan password' : 'Tampilkan password'}
+            className="btn btn-circle btn-ghost btn-xs"
           >
-            {visible ? <EyeOff /> : <Eye />}
+            {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
-        </div>
-        {showStrength && <PasswordStrengthIndicator password={password} username={username} />}
-      </FormField>
+        }
+      />
+      {showStrength && <PasswordStrengthIndicator password={password} username={username} />}
       {showStrength && (
         <PasswordRequirementsPopover
           password={password}

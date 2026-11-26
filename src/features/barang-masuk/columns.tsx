@@ -1,10 +1,11 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import type { DataTableFeatures } from '../../components/data-table/table-features'
 import { JumlahCell, RupiahCell, TanggalCell } from '../../components/data-table/cells'
+import { columnHelperFor } from '../../components/data-table/table-features'
 import type { BarangMasukRow } from './queries'
 
-export function barangMasukColumns(): ColumnDef<DataTableFeatures, BarangMasukRow, unknown>[] {
-  return [
+const col = columnHelperFor<BarangMasukRow>()
+
+export function barangMasukColumns() {
+  return col.columns([
     {
       accessorKey: 'tanggal',
       header: 'Tanggal',
@@ -34,5 +35,5 @@ export function barangMasukColumns(): ColumnDef<DataTableFeatures, BarangMasukRo
       meta: { mobilePriority: 'detail' },
     },
     { accessorKey: 'namaPengguna', header: 'Dicatat oleh', meta: { mobilePriority: 'sembunyi' } },
-  ]
+  ])
 }

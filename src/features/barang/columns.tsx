@@ -1,12 +1,11 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import type { DataTableFeatures } from '../../components/data-table/table-features'
 import { JumlahCell, RupiahCell, StatusBadge } from '../../components/data-table/cells'
+import { columnHelperFor } from '../../components/data-table/table-features'
 import type { BarangRow } from './queries'
-export function barangColumns(
-  admin = false,
-  actions?: (row: BarangRow) => React.ReactNode,
-): ColumnDef<DataTableFeatures, BarangRow, unknown>[] {
-  const columns: ColumnDef<DataTableFeatures, BarangRow, unknown>[] = [
+
+const col = columnHelperFor<BarangRow>()
+
+export function barangColumns(admin = false, actions?: (row: BarangRow) => React.ReactNode) {
+  const columns = col.columns([
     { accessorKey: 'nama', header: 'Nama barang', meta: { mobilePriority: 'judul' } },
     { accessorKey: 'satuan', header: 'Satuan', meta: { mobilePriority: 'detail' } },
     {
@@ -24,20 +23,23 @@ export function barangColumns(
       },
       meta: { mobilePriority: 'detail' },
     },
-  ]
+  ])
   if (admin)
-    columns.push({
-      accessorKey: 'aktif',
-      header: 'Status',
-      cell: (info) => <StatusBadge status={info.getValue<boolean>() ? 'aktif' : 'nonaktif'} />,
-      meta: { mobilePriority: 'detail' },
-    })
+    columns.push(
+      col.accessor('aktif', {
+        header: 'Status',
+        cell: (info) => <StatusBadge status={info.getValue<boolean>() ? 'aktif' : 'nonaktif'} />,
+        meta: { mobilePriority: 'detail' },
+      }),
+    )
   if (admin && actions)
-    columns.push({
-      id: 'aksi',
-      header: 'Aksi',
-      cell: (info) => actions(info.row.original),
-      meta: { mobilePriority: 'detail' },
-    })
+    columns.push(
+      col.display({
+        id: 'aksi',
+        header: 'Aksi',
+        cell: (info) => actions(info.row.original),
+        meta: { mobilePriority: 'detail' },
+      }),
+    )
   return columns
 }

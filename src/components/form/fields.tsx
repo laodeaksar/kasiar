@@ -39,27 +39,40 @@ function useValidity<T extends HTMLInputElement | HTMLSelectElement>(message: st
 
 export function FieldShell({
   label,
+  labelId,
   hint,
+  hintId,
   message,
+  errorId,
   children,
 }: {
   label?: string
+  labelId?: string
   hint?: string
+  hintId?: string
   message: string
+  errorId?: string
   children: ReactNode
 }) {
   return (
     <fieldset className="fieldset min-w-0">
-      {label ? <legend className="fieldset-legend">{label}</legend> : null}
+      {label ? (
+        <legend id={labelId} className="fieldset-legend">
+          {label}
+        </legend>
+      ) : null}
       {children}
       <p
+        id={message ? errorId : undefined}
         role={message ? 'alert' : undefined}
         className={`validator-hint ${message ? 'mt-0! block! visible! text-error wrap-anywhere' : 'hidden'}`}
       >
         {message}
       </p>
       {hint && !message ? (
-        <p className="label h-auto max-w-full whitespace-normal wrap-anywhere">{hint}</p>
+        <p id={hintId} className="label h-auto max-w-full whitespace-normal wrap-anywhere">
+          {hint}
+        </p>
       ) : null}
     </fieldset>
   )
@@ -72,8 +85,16 @@ export function FormField({
   required,
   children,
 }: FieldProps & { children: ReactNode }) {
+  const attr = ids(field, hint)
   return (
-    <FieldShell label={`${label}${required ? ' *' : ''}`} hint={hint} message={errorText(field)}>
+    <FieldShell
+      label={`${label}${required ? ' *' : ''}`}
+      labelId={attr.labelId}
+      hint={hint}
+      hintId={attr.hintId}
+      message={errorText(field)}
+      errorId={attr.errorId}
+    >
       {children}
     </FieldShell>
   )
@@ -83,10 +104,10 @@ function ids(field: FormFieldStore, hint?: string) {
   const message = errorText(field)
   return {
     id,
-    describedBy:
-      [message ? `${id}-error` : undefined, hint ? `${id}-hint` : undefined]
-        .filter(Boolean)
-        .join(' ') || undefined,
+    labelId: `${id}-label`,
+    hintId: hint ? `${id}-hint` : undefined,
+    errorId: message ? `${id}-error` : undefined,
+    describedBy: message ? `${id}-error` : hint ? `${id}-hint` : undefined,
   }
 }
 
@@ -121,6 +142,7 @@ export function TextField({
       {...field.props}
       ref={ref}
       id={attr.id}
+      aria-labelledby={attr.labelId}
       value={String(field.input ?? '')}
       onBlur={field.props.onBlur}
       onChange={(event) => field.onChange(event.target.value)}
@@ -130,7 +152,14 @@ export function TextField({
     />
   )
   return (
-    <FieldShell label={`${label}${rest.required ? ' *' : ''}`} hint={hint} message={message}>
+    <FieldShell
+      label={`${label}${rest.required ? ' *' : ''}`}
+      labelId={attr.labelId}
+      hint={hint}
+      hintId={attr.hintId}
+      message={message}
+      errorId={attr.errorId}
+    >
       {wrapped ? (
         <label className={`input validator w-full ${message ? 'input-error' : ''}`}>
           {icon}
@@ -238,12 +267,13 @@ export function NumberField({
   hint,
   required,
 }: FieldProps & { decimals?: 0 | 1 }) {
-  const attr = ids(field)
+  const attr = ids(field, hint)
   return (
     <FormField field={field} label={label} hint={hint} required={required}>
       <input
         {...field.props}
         id={attr.id}
+        aria-labelledby={attr.labelId}
         value={typeof field.input === 'number' ? field.input : ''}
         onChange={(event) =>
           field.onChange(event.target.value === '' ? undefined : Number(event.target.value))
@@ -254,17 +284,14 @@ export function NumberField({
         className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
         required={required}
         aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={
-          [attr.describedBy, hint ? `${attr.id}-hint` : undefined].filter(Boolean).join(' ') ||
-          undefined
-        }
+        aria-describedby={attr.describedBy}
       />
     </FormField>
   )
 }
 
 export function RupiahField({ field, label, hint, required }: FieldProps) {
-  const attr = ids(field)
+  const attr = ids(field, hint)
   const raw =
     typeof field.input === 'number'
       ? field.input
@@ -281,6 +308,7 @@ export function RupiahField({ field, label, hint, required }: FieldProps) {
         <input
           {...field.props}
           id={attr.id}
+          aria-labelledby={attr.labelId}
           className={`input input-bordered join-item min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
           type="text"
           inputMode="numeric"
@@ -290,12 +318,8 @@ export function RupiahField({ field, label, hint, required }: FieldProps) {
             field.onChange(digits === '' ? '' : Number(digits))
           }}
           required={required}
-          aria-label={`${label}, dalam rupiah`}
           aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-          aria-describedby={
-            [attr.describedBy, hint ? `${attr.id}-hint` : undefined].filter(Boolean).join(' ') ||
-            undefined
-          }
+          aria-describedby={attr.describedBy}
         />
       </div>
     </FormField>
@@ -313,11 +337,19 @@ export function SelectField({
   const ref = useValidity<HTMLSelectElement>(message)
   const attr = ids(field, hint)
   return (
-    <FieldShell label={`${label}${required ? ' *' : ''}`} hint={hint} message={message}>
+    <FieldShell
+      label={`${label}${required ? ' *' : ''}`}
+      labelId={attr.labelId}
+      hint={hint}
+      hintId={attr.hintId}
+      message={message}
+      errorId={attr.errorId}
+    >
       <select
         {...field.props}
         ref={ref}
         id={attr.id}
+        aria-labelledby={attr.labelId}
         value={String(field.input ?? '')}
         onChange={(event) => field.onChange(event.target.value)}
         className={`select validator w-full ${message ? 'select-error' : ''}`}
@@ -350,7 +382,7 @@ export function CheckboxField({
   const ref = useValidity<HTMLInputElement>(message)
   const attr = ids(field, hint)
   return (
-    <FieldShell hint={hint} message={message}>
+    <FieldShell hint={hint} hintId={attr.hintId} message={message} errorId={attr.errorId}>
       <label className="label min-h-12 cursor-pointer justify-start gap-3 px-0">
         <input
           {...rest}
@@ -375,21 +407,19 @@ export function CheckboxField({
 }
 
 export function DateField({ field, label, hint, required }: FieldProps) {
-  const attr = ids(field)
+  const attr = ids(field, hint)
   return (
     <FormField field={field} label={label} hint={hint} required={required}>
       <input
         {...field.props}
         id={attr.id}
+        aria-labelledby={attr.labelId}
         value={String(field.input ?? '')}
         type="date"
         className={`input input-bordered min-h-12 w-full ${field.isTouched && field.errors?.length ? 'input-error' : ''}`}
         required={required}
         aria-invalid={Boolean(field.isTouched && field.errors?.length)}
-        aria-describedby={
-          [attr.describedBy, hint ? `${attr.id}-hint` : undefined].filter(Boolean).join(' ') ||
-          undefined
-        }
+        aria-describedby={attr.describedBy}
       />
     </FormField>
   )

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataTableToolbar } from '../../components/data-table'
 import { EmptyState } from '../../components/feedback'
+import { PageHeader } from '../../components/page-header'
 import { BarangMasukForm } from '../../features/barang-masuk/barang-masuk-form'
 import { barangMasukColumns } from '../../features/barang-masuk/columns'
 import { getBarangMasuk } from '../../features/barang-masuk/queries'
@@ -23,7 +24,7 @@ function BarangMasukPage() {
   const clearFilters = () => changeSearch({ q: '', dari: '', sampai: '', halaman: 1 })
 
   return <section className="space-y-7">
-    <header><h1 className="text-2xl font-bold">Barang masuk</h1><p className="mt-1 text-base-content/70">Catat barang yang diterima agar stok bertambah dengan benar.</p></header>
+    <PageHeader title="Barang masuk" description="Catat barang yang diterima agar stok bertambah dengan benar."/>
     <BarangMasukForm/>
     <section className="space-y-4" aria-labelledby="riwayat-barang-masuk">
       <h2 id="riwayat-barang-masuk" className="text-xl font-semibold">Riwayat barang masuk</h2>

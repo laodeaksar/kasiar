@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { UserPlus } from 'lucide-react'
 import { DataTable } from '../../../components/data-table'
 import { EmptyState } from '../../../components/feedback'
+import { HeaderButton, PageHeader } from '../../../components/page-header'
 import { PenggunaForm } from '../../../features/pengguna/pengguna-form'
 import { penggunaColumns } from '../../../features/pengguna/columns'
 import { getKasir, type KasirRow } from '../../../features/pengguna/queries'
@@ -11,6 +13,7 @@ export const Route = createFileRoute('/_app/admin/pengguna')({ validateSearch: (
 
 function AdminPenggunaPage() {
   const rows = Route.useLoaderData()
+  const isAdmin = Route.useRouteContext().session?.peran === 'admin'
   const router = useRouter()
   const [creating, setCreating] = useState(false)
   const [resetting, setResetting] = useState<KasirRow | null>(null)
@@ -18,7 +21,7 @@ function AdminPenggunaPage() {
   const data = { rows, total: rows.length, page: 1, pageSize: Math.max(1, rows.length) }
 
   return <section className="space-y-5">
-    <header className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-base-content/70">Admin</p><h1 className="text-2xl font-bold">Akun kasir</h1><p className="mt-1">Buat akun untuk kasir toko dan reset password jika diperlukan.</p></div><button className="btn btn-primary min-h-12" onClick={() => setCreating(true)}>Buat akun kasir</button></header>
+    <PageHeader title="Pengguna" description="Buat akun untuk kasir toko dan reset password jika diperlukan." actions={isAdmin ? <HeaderButton icon={UserPlus} label="Buat akun kasir" variant="utama" onClick={() => setCreating(true)}/> : undefined}/>
     <section className="card border border-base-300 bg-base-100"><div className="card-body"><h2 className="card-title">Daftar akun kasir</h2>{rows.length ? <DataTable columns={columns} data={data} caption="Daftar akun kasir" rowKey={(row) => row.id}/> : <EmptyState title="Belum ada akun kasir." description="Buat akun kasir melalui tombol di atas."/>}</div></section>
     {creating && <PenggunaForm onClose={() => setCreating(false)} onSaved={() => { setCreating(false); void router.invalidate() }}/>}
     {resetting && <ResetPasswordForm key={resetting.id} kasir={resetting} onDone={() => { setResetting(null); void router.invalidate() }}/>}

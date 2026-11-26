@@ -8,6 +8,8 @@ import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataT
 import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
 import { DateField, FormAlert, FormSubmitButton, NumberField, PasswordField, RupiahField, SelectField, TextField } from '../../components/form'
 import { Modal, ModalBody, ModalFooter, useModalClose } from '../../components/modal'
+import { PageHeader } from '../../components/page-header'
+import { PageHeaderSamples } from '../../components/page-header/page-header-samples'
 import { PasswordRequirementsSamples } from '../../components/form/password-requirements-samples'
 import { useToast } from '../../components/toast/toast-provider'
 import type { ListResponse } from '../../types/api'
@@ -30,8 +32,8 @@ type ModalKind = 'kecil' | 'sedang' | 'besar' | 'panjang' | 'form'
 
 function ComponentTestPage() {
   return <div className="space-y-8">
-    <header className="space-y-2"><p className="badge badge-primary badge-outline">Khusus mode pengembangan</p><h1 className="text-3xl font-bold">Uji komponen bersama</h1><p>Contoh data di halaman ini hanya untuk uji tampilan, bukan data toko.</p></header>
-    <PasswordRequirementsSamples/><ModalSamples/><ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
+    <div className="space-y-2"><p className="badge badge-primary badge-outline">Khusus mode pengembangan</p><PageHeader title="Uji komponen bersama" description="Contoh tampilan ini hanya untuk pengujian, bukan data toko."/></div>
+    <PageHeaderSamples/><PasswordRequirementsSamples/><ModalSamples/><ActionSamples/><FormSamples/><FeedbackSamples/><TableSamples/>
   </div>
 }
 

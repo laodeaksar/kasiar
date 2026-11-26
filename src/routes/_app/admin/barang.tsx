@@ -1,11 +1,13 @@
 import { Form, isDirty, reset, useField, useForm } from '@formisch/react'
 import { useState } from 'react'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { Plus } from 'lucide-react'
 import { useConfirm } from '../../../components/confirm/use-confirm'
 import { DataTable, DataTablePagination, DataTableSearch, DataTableStates, DataTableToolbar } from '../../../components/data-table'
 import { EmptyState } from '../../../components/feedback'
 import { FormAlert, FormSubmitButton, RupiahField, SelectField, TextField } from '../../../components/form'
 import { Modal, ModalBody, ModalFooter, useModalClose } from '../../../components/modal'
+import { HeaderButton, PageHeader } from '../../../components/page-header'
 import { useToast } from '../../../components/toast/use-toast'
 import { formatRupiah } from '../../../lib/format'
 import { ApiRequestError } from '../../../lib/api'
@@ -26,6 +28,7 @@ export const Route = createFileRoute('/_app/admin/barang')({
 
 function AdminBarangPage() {
   const data = Route.useLoaderData()
+  const isAdmin = Route.useRouteContext().session?.peran === 'admin'
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const router = useRouter()
@@ -51,7 +54,7 @@ function AdminBarangPage() {
   const searching = Boolean(search.q) && empty
 
   return <section className="space-y-5">
-    <header className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-base-content/70">Admin</p><h1 className="text-2xl font-bold">Kelola barang</h1><p className="mt-1">Tambah barang dan atur nama, satuan, harga jual, serta statusnya.</p></div><button className="btn btn-primary min-h-12" onClick={() => setShowAdd(true)}>Tambah barang</button></header>
+    <PageHeader title="Kelola Barang" description="Tambah barang dan atur nama, satuan, harga jual, serta statusnya." actions={isAdmin ? <HeaderButton icon={Plus} label="Tambah barang" variant="utama" onClick={() => setShowAdd(true)}/> : undefined}/>
     {showAdd && <BarangForm onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); void router.invalidate() }}/>}
     <DataTableToolbar><DataTableSearch value={search.q} onChange={(q) => changeSearch({ q, halaman: 1 })}/><label className="form-control w-full max-w-xs"><span className="label-text mb-1">Status barang</span><select className="select select-bordered min-h-12" value={search.status} onChange={(event) => changeSearch({ status: event.target.value as typeof search.status, halaman: 1 })}><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option><option value="semua">Semua</option></select></label></DataTableToolbar>
     {!empty && <DataTable columns={columns} data={data} caption="Daftar barang untuk admin" rowKey={(row) => String(row.id)}/>}

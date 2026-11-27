@@ -1,4 +1,8 @@
-import { keepPreviousData, mutationOptions, queryOptions } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  mutationOptions,
+  queryOptions,
+} from "@tanstack/react-query";
 import * as v from "valibot";
 
 import type { ListResponse } from "~/types/api";
@@ -50,7 +54,11 @@ const SavedSchema = v.object({
 });
 
 export type UtangRow = v.InferOutput<typeof UtangRowSchema>;
-export type UtangParams = { q: string; status: "belum-lunas" | "semua"; halaman: number };
+export type UtangParams = {
+  q: string;
+  status: "belum-lunas" | "semua";
+  halaman: number;
+};
 export type UtangDetail = v.InferOutput<typeof DetailSchema>;
 export type SimpanPelunasan = v.InferInput<typeof PelunasanSchema>;
 export const utangKeys = {
@@ -80,16 +88,22 @@ export function utangDetailOptions(id?: number) {
   return queryOptions({
     queryKey: utangKeys.detail(id),
     queryFn: () =>
-      apiFetch<UtangDetail>(`/api/utang/${id}`, (value) => v.parse(DetailSchema, value)),
+      apiFetch<UtangDetail>(`/api/utang/${id}`, (value) =>
+        v.parse(DetailSchema, value),
+      ),
     enabled: id !== undefined,
   });
 }
 export function simpanPelunasan(input: SimpanPelunasan) {
   const valid = v.parse(PelunasanSchema, input);
-  return apiFetch("/api/utang/pelunasan", (value) => v.parse(SavedSchema, value), {
-    method: "POST",
-    body: JSON.stringify(valid),
-  });
+  return apiFetch(
+    "/api/utang/pelunasan",
+    (value) => v.parse(SavedSchema, value),
+    {
+      method: "POST",
+      body: JSON.stringify(valid),
+    },
+  );
 }
 export const simpanPelunasanMutationOptions = () =>
   mutationOptions({
@@ -98,7 +112,9 @@ export const simpanPelunasanMutationOptions = () =>
     meta: { errorHandledByForm: true },
     onSuccess: async (_data, _variables, _result, { client }) => {
       await Promise.all([
-        client.invalidateQueries({ queryKey: utangKeys.all }),
+        client.invalidateQueries({
+          queryKey: utangKeys.all,
+        }),
         client.invalidateQueries({ queryKey: ["pembeli"] }),
       ]);
     },

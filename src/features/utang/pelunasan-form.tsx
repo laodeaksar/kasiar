@@ -2,24 +2,37 @@ import { Form, reset, setErrors, useField, useForm } from "@formisch/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+import type { PelunasanInput } from "~/validation/pelunasan";
+
 import { useConfirm } from "~/components/confirm";
 import { FormAlert, FormSubmitButton, RupiahField } from "~/components/form";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
 import { formatRupiah } from "~/lib/format";
-import { PelunasanSchema, type PelunasanInput } from "~/validation/pelunasan";
+import { PelunasanSchema } from "~/validation/pelunasan";
 
 import { PembeliField } from "./pembeli-field";
 import { simpanPelunasanMutationOptions, utangDetailOptions } from "./queries";
 
-export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void }) {
+export function PelunasanForm({
+  onSaved,
+}: {
+  onSaved?: (buyerId: number) => void;
+}) {
   const confirm = useConfirm();
   const mutation = useMutation(simpanPelunasanMutationOptions());
-  const [selected, setSelected] = useState<{ id: number; nama: string } | null>(null);
+  const [selected, setSelected] = useState<{
+    id: number;
+    nama: string;
+  } | null>(null);
   const [message, setMessage] = useState("");
   const form = useForm({
     schema: PelunasanSchema,
-    initialInput: { pembeliNama: "", pembeliId: 0, nominal: 0 },
+    initialInput: {
+      pembeliNama: "",
+      pembeliId: 0,
+      nominal: 0,
+    },
   });
   const nama = useField(form, { path: ["pembeliNama"] });
   const pembeliId = useField(form, { path: ["pembeliId"] });
@@ -37,7 +50,10 @@ export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void
       return;
     }
     if (input.nominal > detail.sisaUtang) {
-      setErrors(form, { path: ["nominal"], errors: ["Nominal tidak boleh melebihi sisa utang."] });
+      setErrors(form, {
+        path: ["nominal"],
+        errors: ["Nominal tidak boleh melebihi sisa utang."],
+      });
       return;
     }
     const after = detail.sisaUtang - input.nominal;
@@ -47,6 +63,7 @@ export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void
       confirmText: "Catat pembayaran",
     });
     if (!accepted) return;
+
     try {
       await mutation.mutateAsync(input);
       toast.success("Pembayaran tercatat.");
@@ -61,9 +78,15 @@ export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void
             errors: [error.fields.pembeliId ?? error.fields.pembeliNama],
           });
         if (error.fields.nominal)
-          setErrors(form, { path: ["nominal"], errors: [error.fields.nominal] });
+          setErrors(form, {
+            path: ["nominal"],
+            errors: [error.fields.nominal],
+          });
         setMessage(error.message);
-      } else setMessage("Pembayaran tidak dapat disimpan. Periksa koneksi lalu coba lagi.");
+      } else
+        setMessage(
+          "Pembayaran tidak dapat disimpan. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
 
@@ -84,7 +107,8 @@ export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void
         />
         {selected && (
           <p className="text-sm">
-            Sisa utang saat ini: {detail ? formatRupiah(detail.sisaUtang) : "Memuat saldo..."}
+            Sisa utang saat ini:{" "}
+            {detail ? formatRupiah(detail.sisaUtang) : "Memuat saldo..."}
           </p>
         )}
         <RupiahField
@@ -94,7 +118,9 @@ export function PelunasanForm({ onSaved }: { onSaved?: (buyerId: number) => void
         />
         <FormAlert message={message} />
         <div className="flex justify-end">
-          <FormSubmitButton loading={mutation.isPending}>Catat pembayaran</FormSubmitButton>
+          <FormSubmitButton loading={mutation.isPending}>
+            Catat pembayaran
+          </FormSubmitButton>
         </div>
       </div>
     </Form>

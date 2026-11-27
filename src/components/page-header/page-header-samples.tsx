@@ -65,8 +65,8 @@ export function PageHeaderSamples() {
       <div>
         <h2 className="text-2xl font-bold">Judul halaman dan tombol aksi</h2>
         <p className="mt-1 text-base-content/70">
-          Bandingkan tampilan terang dan gelap. Ubah ukuran jendela untuk melihat ikon saja di HP
-          serta ikon dan label mulai 640 px.
+          Bandingkan tampilan terang dan gelap. Ubah ukuran jendela untuk
+          melihat ikon saja di HP serta ikon dan label mulai 640 px.
         </p>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">

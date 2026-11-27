@@ -44,11 +44,18 @@ function applyTheme(mode: ThemeChoice) {
   const root = document.documentElement;
   if (theme) root.dataset.theme = theme === "terang" ? "light" : "dark";
   else delete root.dataset.theme;
-  root.style.colorScheme = theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
+  root.style.colorScheme =
+    theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
 }
 
-function useThemeMode({ initialTheme = null, mode, onModeChange }: ThemeToggleProps) {
-  const [localMode, setLocalMode] = useState<ThemeChoice>(initialTheme ?? "sistem");
+function useThemeMode({
+  initialTheme = null,
+  mode,
+  onModeChange,
+}: ThemeToggleProps) {
+  const [localMode, setLocalMode] = useState<ThemeChoice>(
+    initialTheme ?? "sistem",
+  );
   const currentMode = mode ?? localMode;
 
   function setMode(value: ThemeChoice) {
@@ -91,7 +98,9 @@ export function ThemeToggle(props: ThemeToggleProps) {
           type="button"
           onClick={() => setMode(mode)}
           className={`join-item btn btn-sm flex-1 gap-1 ${
-            currentMode === mode ? "btn-primary" : "btn-ghost border border-base-300"
+            currentMode === mode
+              ? "btn-primary"
+              : "btn-ghost border border-base-300"
           }`}
           aria-pressed={currentMode === mode}
           aria-label={LABELS[mode]}

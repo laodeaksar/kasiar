@@ -8,7 +8,11 @@ import { TransaksiSchema } from "~/validation/transaksi";
 export class TransaksiError extends Error {
   readonly fields: Record<string, string>;
   readonly status: 400 | 404 | 409;
-  constructor(message: string, fields: Record<string, string> = {}, status: 400 | 404 | 409 = 400) {
+  constructor(
+    message: string,
+    fields: Record<string, string> = {},
+    status: 400 | 404 | 409 = 400,
+  ) {
     super(message);
     this.name = "TransaksiError";
     this.fields = fields;
@@ -28,7 +32,11 @@ export async function cariPembeli(q: unknown) {
   return db
     .select({ id: pembeli.id, nama: pembeli.nama })
     .from(pembeli)
-    .where(value ? ilike(pembeli.nama, `%${value.replace(/[\\%_]/g, "\\$&")}%`) : undefined)
+    .where(
+      value
+        ? ilike(pembeli.nama, `%${value.replace(/[\\%_]/g, "\\$&")}%`)
+        : undefined,
+    )
     .orderBy(pembeli.nama)
     .limit(20);
 }
@@ -42,9 +50,12 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
   const value = parsed.output;
   const ids = value.items.map((item) => item.barangId);
   if (new Set(ids).size !== ids.length)
-    throw new TransaksiError("Barang yang sama hanya boleh muncul sekali di keranjang.", {
-      items: "Periksa keranjang.",
-    });
+    throw new TransaksiError(
+      "Barang yang sama hanya boleh muncul sekali di keranjang.",
+      {
+        items: "Periksa keranjang.",
+      },
+    );
   return db.transaction(async (tx) => {
     const rows = await tx
       .select({
@@ -68,9 +79,15 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
     const priced = value.items.map((item) => {
       const row = rows.find((entry) => entry.id === item.barangId)!;
       if (!row.aktif)
-        throw new TransaksiError(`Barang “${row.nama}” sudah nonaktif.`, { items: row.nama }, 409);
+        throw new TransaksiError(
+          `Barang “${row.nama}” sudah nonaktif.`,
+          { items: row.nama },
+          409,
+        );
       if (row.satuan !== "kg" && !Number.isInteger(item.jumlah))
-        throw new TransaksiError(`Jumlah “${row.nama}” harus bilangan bulat.`, { items: row.nama });
+        throw new TransaksiError(`Jumlah “${row.nama}” harus bilangan bulat.`, {
+          items: row.nama,
+        });
       const quantity = Math.round(item.jumlah * 10);
       if (row.stok < quantity)
         throw new TransaksiError(
@@ -80,12 +97,21 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
         );
       const rawSubtotal = row.hargaJual * quantity;
       if (rawSubtotal % 10 !== 0)
-        throw new TransaksiError(`Harga dan jumlah “${row.nama}” menghasilkan pecahan rupiah.`, {
-          items: "Periksa jumlah.",
-        });
+        throw new TransaksiError(
+          `Harga dan jumlah “${row.nama}” menghasilkan pecahan rupiah.`,
+          {
+            items: "Periksa jumlah.",
+          },
+        );
       const subtotal = rawSubtotal / 10;
       total += subtotal;
-      return { ...item, quantity, hargaSatuan: row.hargaJual, subtotal, row };
+      return {
+        ...item,
+        quantity,
+        hargaSatuan: row.hargaJual,
+        subtotal,
+        row,
+      };
     });
     if (value.jumlahDibayar > total)
       throw new TransaksiError("Jumlah dibayar tidak boleh melebihi total.", {
@@ -94,9 +120,12 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
     const sisa = total - value.jumlahDibayar;
     const nama = value.pembeliNama?.trim() || null;
     if (sisa > 0 && !nama)
-      throw new TransaksiError("Nama pembeli wajib diisi jika masih ada utang.", {
-        pembeliNama: "Nama pembeli wajib diisi.",
-      });
+      throw new TransaksiError(
+        "Nama pembeli wajib diisi jika masih ada utang.",
+        {
+          pembeliNama: "Nama pembeli wajib diisi.",
+        },
+      );
     let pembeliId: number | null = null;
     if (sisa > 0 && nama) {
       const existing = await tx
@@ -107,7 +136,12 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
         .limit(1);
       pembeliId =
         existing[0]?.id ??
-        (await tx.insert(pembeli).values({ nama }).returning({ id: pembeli.id }))[0].id;
+        (
+          await tx
+            .insert(pembeli)
+            .values({ nama })
+            .returning({ id: pembeli.id })
+        )[0].id;
     }
     const [saved] = await tx
       .insert(transaksi)
@@ -131,8 +165,15 @@ export async function simpanTransaksi(input: unknown, kasirId: string) {
     for (const item of priced)
       await tx
         .update(barang)
-        .set({ stok: sql`${barang.stok} - ${item.quantity}` })
-        .where(and(eq(barang.id, item.barangId), sql`${barang.stok} >= ${item.quantity}`));
+        .set({
+          stok: sql`${barang.stok} - ${item.quantity}`,
+        })
+        .where(
+          and(
+            eq(barang.id, item.barangId),
+            sql`${barang.stok} >= ${item.quantity}`,
+          ),
+        );
     return {
       id: saved.id,
       status: sisa ? ("utang" as const) : ("lunas" as const),

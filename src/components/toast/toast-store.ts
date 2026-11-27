@@ -1,7 +1,11 @@
 import { useSyncExternalStore } from "react";
 
 export type ToastKind = "sukses" | "info" | "peringatan" | "error";
-export type ToastItem = { id: number; kind: ToastKind; message: string };
+export type ToastItem = {
+  id: number;
+  kind: ToastKind;
+  message: string;
+};
 
 const EMPTY: ToastItem[] = [];
 let items: ToastItem[] = EMPTY;

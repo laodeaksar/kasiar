@@ -1,4 +1,11 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import {
+  Form,
+  isDirty,
+  reset,
+  setErrors,
+  useField,
+  useForm,
+} from "@formisch/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -19,7 +26,12 @@ import {
   SelectField,
   TextField,
 } from "~/components/form";
-import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useModalClose,
+} from "~/components/modal";
 import { HeaderButton, PageHeader } from "~/components/page-header";
 import { toast } from "~/components/toast";
 import { BarangForm } from "~/features/barang/barang-form";
@@ -32,7 +44,11 @@ import {
 import { ApiError } from "~/lib/api";
 import { formatRupiah } from "~/lib/format";
 import { SATUAN_BARANG } from "~/lib/konstanta";
-import { BarangSchema, parseBarangSearch, type BarangInput } from "~/validation/barang";
+import {
+  BarangSchema,
+  parseBarangSearch,
+  type BarangInput,
+} from "~/validation/barang";
 
 const satuanOptions = SATUAN_BARANG.map((value) => ({
   value,
@@ -44,8 +60,13 @@ export const Route = createFileRoute("/_app/admin/barang")({
   beforeLoad: ({ context }) => {
     if (context.session?.peran !== "admin") throw redirect({ to: "/" });
   },
-  loaderDeps: ({ search }) => ({ q: search.q, halaman: search.halaman, status: search.status }),
-  loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangListOptions(deps, true)),
+  loaderDeps: ({ search }) => ({
+    q: search.q,
+    halaman: search.halaman,
+    status: search.status,
+  }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(barangListOptions(deps, true)),
   component: AdminBarangPage,
 });
 
@@ -53,7 +74,9 @@ function AdminBarangPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const isAdmin = Route.useRouteContext().session?.peran === "admin";
-  const { data, isPending, isError, refetch } = useQuery(barangListOptions(search, true));
+  const { data, isPending, isError, refetch } = useQuery(
+    barangListOptions(search, true),
+  );
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<BarangRow | null>(null);
   const confirm = useConfirm();
@@ -73,7 +96,10 @@ function AdminBarangPage() {
     )
       return;
     try {
-      await toggleMutation.mutateAsync({ id: row.id, input: { aktif: !row.aktif } });
+      await toggleMutation.mutateAsync({
+        id: row.id,
+        input: { aktif: !row.aktif },
+      });
       toast.success("Data barang diperbarui.");
     } catch {
       toast.error("Perubahan barang tidak berhasil. Coba lagi.");
@@ -139,7 +165,10 @@ function AdminBarangPage() {
             className="select select-bordered"
             value={search.status}
             onChange={(event) =>
-              changeSearch({ status: event.target.value as typeof search.status, halaman: 1 })
+              changeSearch({
+                status: event.target.value as typeof search.status,
+                halaman: 1,
+              })
             }
           >
             <option value="aktif">Aktif</option>
@@ -203,7 +232,11 @@ function EditBarangDialog({
 }) {
   const form = useForm({
     schema: BarangSchema,
-    initialInput: { nama: row.nama, satuan: row.satuan, hargaJual: row.hargaJual },
+    initialInput: {
+      nama: row.nama,
+      satuan: row.satuan,
+      hargaJual: row.hargaJual,
+    },
   });
   const confirm = useConfirm();
   const mutation = useMutation(ubahBarangMutationOptions());
@@ -241,6 +274,7 @@ function EditBarangDialog({
       }))
     )
       return;
+
     if (priceChanged) {
       const warning =
         row.hargaBeliTerakhir !== null &&
@@ -248,6 +282,7 @@ function EditBarangDialog({
         input.hargaJual < row.hargaBeliTerakhir
           ? ` Peringatan: harga jual baru ${formatRupiah(input.hargaJual)} lebih rendah dari harga beli terakhir ${formatRupiah(row.hargaBeliTerakhir)}.`
           : "";
+
       if (
         !(await confirm({
           title: "Yakin?",
@@ -257,11 +292,16 @@ function EditBarangDialog({
       )
         return;
     }
+
     if (input.nama !== row.nama) changes.nama = input.nama;
     if (input.satuan !== row.satuan) changes.satuan = input.satuan;
     if (priceChanged) changes.hargaJual = input.hargaJual;
+
     try {
-      await mutation.mutateAsync({ id: row.id, input: changes });
+      await mutation.mutateAsync({
+        id: row.id,
+        input: changes,
+      });
       reset(form);
       toast.success("Data barang diperbarui.");
       onSaved();
@@ -269,10 +309,18 @@ function EditBarangDialog({
       if (error instanceof ApiError) {
         for (const field of ["nama", "satuan", "hargaJual"] as const) {
           const fieldMessage = error.fields[field];
-          if (fieldMessage) setErrors(form, { path: [field], errors: [fieldMessage] });
+          if (fieldMessage)
+            setErrors(form, {
+              path: [field],
+              errors: [fieldMessage],
+            });
         }
       }
-      setMessage(error instanceof ApiError ? error.message : "Data barang tidak dapat diperbarui.");
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Data barang tidak dapat diperbarui.",
+      );
     }
   }
 
@@ -340,7 +388,7 @@ function EditBarangFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn"
           disabled={loading}
           onClick={close}
         >

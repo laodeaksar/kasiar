@@ -1,11 +1,28 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import {
+  Form,
+  isDirty,
+  reset,
+  setErrors,
+  useField,
+  useForm,
+} from "@formisch/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useConfirm } from "~/components/confirm";
 import { ErrorState, Skeleton } from "~/components/feedback";
-import { FormAlert, FormSubmitButton, SelectField, TextField } from "~/components/form";
-import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import {
+  FormAlert,
+  FormSubmitButton,
+  SelectField,
+  TextField,
+} from "~/components/form";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useModalClose,
+} from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiError } from "~/lib/api";
 import { ContohMutationSchema } from "~/validation/contoh-mutation";
@@ -19,25 +36,40 @@ import {
 
 const simulationOptions = [
   { value: "sukses", label: "Berhasil" },
-  { value: "isian", label: "Gagal dengan pesan pada isian" },
+  {
+    value: "isian",
+    label: "Gagal dengan pesan pada isian",
+  },
   { value: "umum", label: "Gagal dengan pesan umum" },
   { value: "sesi", label: "Sesi berakhir (401)" },
 ];
 
-async function kirimContohTiruan(input: ContohMutasiInput): Promise<ContohMutasiHasil> {
+async function kirimContohTiruan(
+  input: ContohMutasiInput,
+): Promise<ContohMutasiHasil> {
   await new Promise((resolve) => window.setTimeout(resolve, 700));
   if (input.simulasi === "isian") {
     throw new ApiError({
       status: 422,
       message: "Periksa kembali isian form.",
-      fields: { nama: "Nama ini tidak dapat digunakan pada simulasi." },
+      fields: {
+        nama: "Nama ini tidak dapat digunakan pada simulasi.",
+      },
     });
   }
   if (input.simulasi === "umum") {
-    throw new ApiError({ status: 500, message: "Simulasi gagal. Coba lagi.", fields: {} });
+    throw new ApiError({
+      status: 500,
+      message: "Simulasi gagal. Coba lagi.",
+      fields: {},
+    });
   }
   if (input.simulasi === "sesi") {
-    throw new ApiError({ status: 401, message: "Silakan masuk kembali.", fields: {} });
+    throw new ApiError({
+      status: 401,
+      message: "Silakan masuk kembali.",
+      fields: {},
+    });
   }
   return { message: "Contoh berhasil disimpan." };
 }
@@ -51,8 +83,8 @@ export function MutationQuerySample() {
         <div>
           <h2 className="card-title">Contoh TanStack Query</h2>
           <p>
-            Data contoh dibaca dari GET /api/health. Form di bawah memakai pengirim tiruan, tidak
-            menyimpan data toko.
+            Data contoh dibaca dari GET /api/health. Form di bawah memakai
+            pengirim tiruan, tidak menyimpan data toko.
           </p>
         </div>
         {isPending && !data && (
@@ -125,7 +157,10 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
       if (error instanceof ApiError) {
         const fieldError = error.fields.nama;
         if (fieldError) {
-          setErrors(form, { path: ["nama"], errors: [fieldError] });
+          setErrors(form, {
+            path: ["nama"],
+            errors: [fieldError],
+          });
         } else if (error.status !== 401) {
           setMessage(error.message);
         }
@@ -164,12 +199,15 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
           />
           <FormAlert message={message} />
           <p className="text-sm text-base-content/70">
-            Saat kiriman berjalan, tombol simpan dan penutupan modal akan dikunci.
+            Saat kiriman berjalan, tombol simpan dan penutupan modal akan
+            dikunci.
           </p>
         </ModalBody>
         <ModalFooter>
           <TutupButton loading={mutation.isPending} />
-          <FormSubmitButton loading={mutation.isPending}>Kirim contoh</FormSubmitButton>
+          <FormSubmitButton loading={mutation.isPending}>
+            Kirim contoh
+          </FormSubmitButton>
         </ModalFooter>
       </Form>
     </Modal>

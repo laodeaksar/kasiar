@@ -26,9 +26,15 @@ export class ApiNetworkError extends Error {
   }
 }
 
-const getServerRequestInfo = createServerFn({ method: "GET" }).handler(async () => {
-  const { getRequestHeader, getRequestUrl } = await import("@tanstack/react-start/server");
-  return { cookie: getRequestHeader("cookie") ?? "", origin: getRequestUrl().origin };
+const getServerRequestInfo = createServerFn({
+  method: "GET",
+}).handler(async () => {
+  const { getRequestHeader, getRequestUrl } =
+    await import("@tanstack/react-start/server");
+  return {
+    cookie: getRequestHeader("cookie") ?? "",
+    origin: getRequestUrl().origin,
+  };
 });
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -42,20 +48,27 @@ export async function apiFetch<T>(
   cookie?: string,
 ): Promise<T> {
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (init.body && !headers.has("Content-Type"))
+    headers.set("Content-Type", "application/json");
   let requestUrl = path;
   if (typeof window === "undefined") {
     const request = await getServerRequestInfo();
     const url = new URL(path, request.origin);
     if (url.origin !== request.origin)
-      throw new Error("API hanya boleh dipanggil pada alamat aplikasi yang sama.");
+      throw new Error(
+        "API hanya boleh dipanggil pada alamat aplikasi yang sama.",
+      );
     headers.set("Cookie", cookie ?? request.cookie);
     requestUrl = url.toString();
   }
 
   let response: Response;
   try {
-    response = await fetch(requestUrl, { ...init, headers, credentials: "same-origin" });
+    response = await fetch(requestUrl, {
+      ...init,
+      headers,
+      credentials: "same-origin",
+    });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw error;
     throw new ApiNetworkError();

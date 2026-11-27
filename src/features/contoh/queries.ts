@@ -1,5 +1,9 @@
 // Contoh acuan: query dan mutasi berada di sini, bukan di komponen atau loader. Param daftar harus sudah divalidasi.
-import { keepPreviousData, mutationOptions, queryOptions } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  mutationOptions,
+  queryOptions,
+} from "@tanstack/react-query";
 import * as v from "valibot";
 
 import type { ContohMutationInput } from "~/validation/contoh-mutation";
@@ -7,11 +11,15 @@ import type { ContohQuerySearch } from "~/validation/contoh-query";
 
 import { apiFetch } from "~/lib/api";
 
-const HealthSchema = v.object({ status: v.picklist(["ok"]) });
+const HealthSchema = v.object({
+  status: v.picklist(["ok"]),
+});
 export type HealthStatus = v.InferOutput<typeof HealthSchema>;
 export type { ContohMutationInput as ContohMutasiInput };
 export type ContohMutasiHasil = { message: string };
-type ContohPengirim = (input: ContohMutationInput) => Promise<ContohMutasiHasil>;
+type ContohPengirim = (
+  input: ContohMutationInput,
+) => Promise<ContohMutasiHasil>;
 
 export const contohKeys = {
   all: ["contoh"] as const,
@@ -26,7 +34,9 @@ export const healthQueryOptions = () =>
   queryOptions({
     queryKey: contohKeys.health(),
     queryFn: () =>
-      apiFetch<HealthStatus>("/api/health", (payload) => v.parse(HealthSchema, payload)),
+      apiFetch<HealthStatus>("/api/health", (payload) =>
+        v.parse(HealthSchema, payload),
+      ),
   });
 
 // Pola daftar untuk dipakai fitur berparameter: parameter tervalidasi menjadi bagian key dan data lama tetap terlihat saat memuat halaman berikutnya.
@@ -59,6 +69,8 @@ export function contohMutasiOptions(send: ContohPengirim) {
     mutationFn: send,
     meta: { errorHandledByForm: true },
     onSuccess: (_data, _variables, _result, { client }) =>
-      client.invalidateQueries({ queryKey: contohKeys.all }),
+      client.invalidateQueries({
+        queryKey: contohKeys.all,
+      }),
   });
 }

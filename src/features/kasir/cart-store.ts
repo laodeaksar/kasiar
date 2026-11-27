@@ -9,16 +9,23 @@ export type CartItem = {
 };
 type CartState = { items: CartItem[] };
 
-export const cartStore = createStore<CartState>({ items: [] });
+export const cartStore = createStore<CartState>({
+  items: [],
+});
 export const useCart = () => useSelector(cartStore, (state) => state.items);
 export function addCartItem(item: CartItem) {
   cartStore.setState((state) => {
-    const existing = state.items.find((entry) => entry.barangId === item.barangId);
+    const existing = state.items.find(
+      (entry) => entry.barangId === item.barangId,
+    );
     if (existing)
       return {
         items: state.items.map((entry) =>
           entry.barangId === item.barangId
-            ? { ...entry, jumlah: entry.jumlah + item.jumlah }
+            ? {
+                ...entry,
+                jumlah: entry.jumlah + item.jumlah,
+              }
             : entry,
         ),
       };

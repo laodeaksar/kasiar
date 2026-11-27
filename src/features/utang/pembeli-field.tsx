@@ -13,6 +13,7 @@ type Field = {
   props: FieldElementProps;
   path: readonly PropertyKey[];
 };
+
 export function PembeliField({
   field,
   onSelected,
@@ -25,11 +26,13 @@ export function PembeliField({
   const { data = [], isPending } = useQuery(pembeliOptions(value, open));
   const id = `field-${field.path.map(String).join("-")}`;
   const error = field.isTouched ? field.errors?.[0] : undefined;
+
   return (
     <div
       className="form-control relative w-full gap-1.5"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setOpen(false);
       }}
     >
       <label

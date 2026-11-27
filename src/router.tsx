@@ -24,7 +24,9 @@ function createQueryClient(onUnauthorized: () => void) {
   };
 
   return new QueryClient({
-    queryCache: new QueryCache({ onError: (error) => handleError(error) }),
+    queryCache: new QueryCache({
+      onError: (error) => handleError(error),
+    }),
     mutationCache: new MutationCache({
       onError: (error, _variables, _onMutateResult, mutation) => {
         handleError(error, mutation.meta?.errorHandledByForm === true);
@@ -36,7 +38,9 @@ function createQueryClient(onUnauthorized: () => void) {
         retry: (failureCount, error) =>
           failureCount < 1 &&
           (error instanceof ApiNetworkError ||
-            (error instanceof ApiError && error.status >= 500 && error.status < 600)),
+            (error instanceof ApiError &&
+              error.status >= 500 &&
+              error.status < 600)),
       },
       mutations: { retry: 0 },
     },
@@ -50,14 +54,22 @@ export function getRouter() {
   });
   const router = createRouter({
     routeTree,
-    context: { queryClient, session: null, sessionCookiePresent: false } satisfies RouterContext,
+    context: {
+      queryClient,
+      session: null,
+      sessionCookiePresent: false,
+    } satisfies RouterContext,
     defaultPreload: "intent",
   });
   redirectToLogin = () => {
     if (typeof window === "undefined") return;
     void router.invalidate();
   };
-  setupRouterSsrQueryIntegration({ router, queryClient, wrapQueryClient: false });
+  setupRouterSsrQueryIntegration({
+    router,
+    queryClient,
+    wrapQueryClient: false,
+  });
   return router;
 }
 

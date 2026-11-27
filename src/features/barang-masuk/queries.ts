@@ -1,10 +1,17 @@
-import { keepPreviousData, mutationOptions, queryOptions } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  mutationOptions,
+  queryOptions,
+} from "@tanstack/react-query";
 import * as v from "valibot";
 
 import type { ListResponse } from "~/types/api";
 
 import { apiFetch } from "~/lib/api";
-import { BarangMasukSchema, type BarangMasukInput } from "~/validation/barang-masuk";
+import {
+  BarangMasukSchema,
+  type BarangMasukInput,
+} from "~/validation/barang-masuk";
 
 import { barangKeys } from "../barang/queries";
 
@@ -26,18 +33,35 @@ const ListSchema = v.object({
   pageSize: v.number(),
 });
 const PilihanSchema = v.array(
-  v.object({ id: v.number(), nama: v.string(), satuan: v.string(), hargaJual: v.number() }),
+  v.object({
+    id: v.number(),
+    nama: v.string(),
+    satuan: v.string(),
+    hargaJual: v.number(),
+  }),
 );
-const SavedSchema = v.object({ id: v.string(), hargaJual: v.number() });
+const SavedSchema = v.object({
+  id: v.string(),
+  hargaJual: v.number(),
+});
 export type BarangMasukRow = v.InferOutput<typeof BarangMasukRowSchema>;
 export type PilihanBarang = v.InferOutput<typeof PilihanSchema>[number];
-export type BarangMasukParams = { q: string; dari: string; sampai: string; halaman: number };
-export type SimpanBarangMasukInput = { input: BarangMasukInput; hargaJualDikonfirmasi?: number };
+export type BarangMasukParams = {
+  q: string;
+  dari: string;
+  sampai: string;
+  halaman: number;
+};
+export type SimpanBarangMasukInput = {
+  input: BarangMasukInput;
+  hargaJualDikonfirmasi?: number;
+};
 
 export const barangMasukKeys = {
   all: ["barang-masuk"] as const,
   lists: () => [...barangMasukKeys.all, "daftar"] as const,
-  list: (params: BarangMasukParams) => [...barangMasukKeys.lists(), params] as const,
+  list: (params: BarangMasukParams) =>
+    [...barangMasukKeys.lists(), params] as const,
   barang: () => [...barangMasukKeys.all, "pilihan-barang"] as const,
   barangSearch: (q: string) => [...barangMasukKeys.barang(), { q }] as const,
   details: () => [...barangMasukKeys.all, "rincian"] as const,
@@ -50,7 +74,10 @@ function decodeList(value: unknown): ListResponse<BarangMasukRow> {
 function decodePilihan(value: unknown): PilihanBarang[] {
   return v.parse(PilihanSchema, value);
 }
-function decodeSaved(value: unknown): { id: string; hargaJual: number } {
+function decodeSaved(value: unknown): {
+  id: string;
+  hargaJual: number;
+} {
   return v.parse(SavedSchema, value);
 }
 
@@ -61,7 +88,10 @@ export function getBarangMasuk(params: BarangMasukParams) {
     sampai: params.sampai,
     halaman: String(params.halaman),
   });
-  return apiFetch<ListResponse<BarangMasukRow>>(`/api/barang-masuk?${query}`, decodeList);
+  return apiFetch<ListResponse<BarangMasukRow>>(
+    `/api/barang-masuk?${query}`,
+    decodeList,
+  );
 }
 
 export function barangMasukListOptions(params: BarangMasukParams) {
@@ -87,7 +117,10 @@ export function pilihanBarangOptions(q: string, enabled = true) {
   });
 }
 
-export function simpanBarangMasuk(input: unknown, hargaJualDikonfirmasi?: number) {
+export function simpanBarangMasuk(
+  input: unknown,
+  hargaJualDikonfirmasi?: number,
+) {
   const valid = v.parse(BarangMasukSchema, input);
   return apiFetch("/api/barang-masuk", decodeSaved, {
     method: "POST",
@@ -106,8 +139,12 @@ export const simpanBarangMasukMutationOptions = () =>
     meta: { errorHandledByForm: true },
     onSuccess: async (_data, _variables, _result, { client }) => {
       await Promise.all([
-        client.invalidateQueries({ queryKey: barangKeys.all }),
-        client.invalidateQueries({ queryKey: barangMasukKeys.all }),
+        client.invalidateQueries({
+          queryKey: barangKeys.all,
+        }),
+        client.invalidateQueries({
+          queryKey: barangMasukKeys.all,
+        }),
       ]);
     },
   });

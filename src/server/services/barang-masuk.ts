@@ -4,18 +4,29 @@ import * as v from "valibot";
 import { db } from "~/db";
 import { barang, barangMasuk, user } from "~/db/schema";
 import { UKURAN_HALAMAN } from "~/lib/konstanta";
-import { BarangMasukSchema, isJumlahValidUntukSatuan } from "~/validation/barang-masuk";
+import {
+  BarangMasukSchema,
+  isJumlahValidUntukSatuan,
+} from "~/validation/barang-masuk";
 import { parseBarangMasukSearch } from "~/validation/search";
 
 export class BarangMasukError extends Error {
   readonly fields: Record<string, string>;
   readonly status: 400 | 404 | 409;
-  readonly warning?: { type: "harga-beli-di-atas-jual"; hargaBeli: number; hargaJual: number };
+  readonly warning?: {
+    type: "harga-beli-di-atas-jual";
+    hargaBeli: number;
+    hargaJual: number;
+  };
   constructor(
     message: string,
     fields: Record<string, string> = {},
     status: 400 | 404 | 409 = 400,
-    warning?: { type: "harga-beli-di-atas-jual"; hargaBeli: number; hargaJual: number },
+    warning?: {
+      type: "harga-beli-di-atas-jual";
+      hargaBeli: number;
+      hargaJual: number;
+    },
   ) {
     super(message);
     this.name = "BarangMasukError";
@@ -41,7 +52,10 @@ export async function simpanBarangMasuk(
 ) {
   const parsed = v.safeParse(BarangMasukSchema, input);
   if (!parsed.success)
-    throw new BarangMasukError("Periksa kembali isian barang masuk.", fieldErrors(parsed.issues));
+    throw new BarangMasukError(
+      "Periksa kembali isian barang masuk.",
+      fieldErrors(parsed.issues),
+    );
   const value = parsed.output;
   const jumlahPersepuluh = Math.round(value.jumlah * 10);
 
@@ -64,16 +78,27 @@ export async function simpanBarangMasuk(
         404,
       );
     if (!isJumlahValidUntukSatuan(value.jumlah, item.satuan)) {
-      throw new BarangMasukError("Jumlah untuk satuan ini harus bilangan bulat.", {
-        jumlah: "Jumlah harus bilangan bulat untuk satuan ini.",
-      });
+      throw new BarangMasukError(
+        "Jumlah untuk satuan ini harus bilangan bulat.",
+        {
+          jumlah: "Jumlah harus bilangan bulat untuk satuan ini.",
+        },
+      );
     }
-    if (value.hargaBeli > item.hargaJual && hargaJualDikonfirmasi !== item.hargaJual) {
-      throw new BarangMasukError("Periksa harga beli yang lebih tinggi dari harga jual.", {}, 409, {
-        type: "harga-beli-di-atas-jual",
-        hargaBeli: value.hargaBeli,
-        hargaJual: item.hargaJual,
-      });
+    if (
+      value.hargaBeli > item.hargaJual &&
+      hargaJualDikonfirmasi !== item.hargaJual
+    ) {
+      throw new BarangMasukError(
+        "Periksa harga beli yang lebih tinggi dari harga jual.",
+        {},
+        409,
+        {
+          type: "harga-beli-di-atas-jual",
+          hargaBeli: value.hargaBeli,
+          hargaJual: item.hargaJual,
+        },
+      );
     }
     if (item.stok + jumlahPersepuluh > 2147483647) {
       throw new BarangMasukError("Jumlah stok terlalu besar.", {
@@ -82,10 +107,17 @@ export async function simpanBarangMasuk(
     }
     const [updated] = await tx
       .update(barang)
-      .set({ stok: sql`${barang.stok} + ${jumlahPersepuluh}` })
+      .set({
+        stok: sql`${barang.stok} + ${jumlahPersepuluh}`,
+      })
       .where(eq(barang.id, item.id))
       .returning({ stok: barang.stok });
-    if (!updated) throw new BarangMasukError("Stok barang tidak dapat diperbarui.", {}, 409);
+    if (!updated)
+      throw new BarangMasukError(
+        "Stok barang tidak dapat diperbarui.",
+        {},
+        409,
+      );
     const [record] = await tx
       .insert(barangMasuk)
       .values({
@@ -104,7 +136,10 @@ export async function simpanBarangMasuk(
 export async function cariPilihanBarang(query: unknown) {
   const q = typeof query === "string" ? query.trim().slice(0, 100) : "";
   const where = q
-    ? and(eq(barang.aktif, true), ilike(barang.nama, `%${q.replace(/[\\%_]/g, "\\$&")}%`))
+    ? and(
+        eq(barang.aktif, true),
+        ilike(barang.nama, `%${q.replace(/[\\%_]/g, "\\$&")}%`),
+      )
     : eq(barang.aktif, true);
   return db
     .select({
@@ -126,15 +161,20 @@ export async function daftarBarangMasuk(search: unknown) {
     const q = `%${params.q.replace(/[\\%_]/g, "\\$&")}%`;
     filters.push(or(ilike(barang.nama, q), ilike(barangMasuk.pemasok, q)));
   }
-  if (params.dari) filters.push(sql`${barangMasuk.tanggal} >= ${params.dari}::date`);
-  if (params.sampai) filters.push(sql`${barangMasuk.tanggal} <= ${params.sampai}::date`);
+  if (params.dari)
+    filters.push(sql`${barangMasuk.tanggal} >= ${params.dari}::date`);
+  if (params.sampai)
+    filters.push(sql`${barangMasuk.tanggal} <= ${params.sampai}::date`);
   const where = filters.length ? and(...filters) : undefined;
   const [{ total }] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(barangMasuk)
     .innerJoin(barang, eq(barangMasuk.barangId, barang.id))
     .where(where);
-  const page = Math.min(params.halaman, Math.max(1, Math.ceil(total / UKURAN_HALAMAN)));
+  const page = Math.min(
+    params.halaman,
+    Math.max(1, Math.ceil(total / UKURAN_HALAMAN)),
+  );
   const rows = await db
     .select({
       id: barangMasuk.id,

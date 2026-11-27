@@ -3,7 +3,10 @@ import type { FieldElementProps } from "@formisch/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type RefObject } from "react";
 
-import { pilihanBarangOptions, type PilihanBarang } from "../barang-masuk/queries";
+import {
+  pilihanBarangOptions,
+  type PilihanBarang,
+} from "../barang-masuk/queries";
 
 type FieldStore = {
   path: readonly PropertyKey[];
@@ -20,10 +23,19 @@ type Props = {
   inputRef?: RefObject<HTMLInputElement | null>;
 };
 
-export function BarangSelectField({ field, selected, onSelected, inputRef }: Props) {
+export function BarangSelectField({
+  field,
+  selected,
+  onSelected,
+  inputRef,
+}: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const { data: options = [], isPending, isError } = useQuery(pilihanBarangOptions(query, open));
+  const {
+    data: options = [],
+    isPending,
+    isError,
+  } = useQuery(pilihanBarangOptions(query, open));
   const error = field.isTouched ? field.errors?.[0] : undefined;
   const id = "field-barangId";
 
@@ -31,7 +43,8 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
     <div
       className="form-control relative w-full gap-1.5"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+          setOpen(false);
       }}
     >
       <label
@@ -109,7 +122,9 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
                 }}
               >
                 <span>{item.nama}</span>
-                <span className="text-sm text-base-content/70">{item.satuan}</span>
+                <span className="text-sm text-base-content/70">
+                  {item.satuan}
+                </span>
               </button>
             ))}
         </div>

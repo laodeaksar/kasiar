@@ -24,12 +24,31 @@ export type PasswordAssessment = {
   valid: boolean;
 };
 
-export function getPasswordAssessment(password: string, username = ""): PasswordAssessment {
+export function getPasswordAssessment(
+  password: string,
+  username = "",
+): PasswordAssessment {
   const characterKinds: PasswordCharacterKind[] = [
-    { id: "lowercase", label: "Huruf kecil (a–z)", present: /[a-z]/.test(password) },
-    { id: "uppercase", label: "Huruf besar (A–Z)", present: /[A-Z]/.test(password) },
-    { id: "number", label: "Angka (0–9)", present: /[0-9]/.test(password) },
-    { id: "symbol", label: "Simbol (mis. ! @ # $ %)", present: /[^a-zA-Z0-9\s]/.test(password) },
+    {
+      id: "lowercase",
+      label: "Huruf kecil (a–z)",
+      present: /[a-z]/.test(password),
+    },
+    {
+      id: "uppercase",
+      label: "Huruf besar (A–Z)",
+      present: /[A-Z]/.test(password),
+    },
+    {
+      id: "number",
+      label: "Angka (0–9)",
+      present: /[0-9]/.test(password),
+    },
+    {
+      id: "symbol",
+      label: "Simbol (mis. ! @ # $ %)",
+      present: /[^a-zA-Z0-9\s]/.test(password),
+    },
   ];
   const kindCount = characterKinds.filter((kind) => kind.present).length;
   const requirements: PasswordRequirement[] = [
@@ -77,7 +96,10 @@ export function getPasswordAssessment(password: string, username = ""): Password
   return { strength, requirements, characterKinds, valid };
 }
 
-export function getPasswordStrength(password: string, username = ""): PasswordStrength {
+export function getPasswordStrength(
+  password: string,
+  username = "",
+): PasswordStrength {
   return getPasswordAssessment(password, username).strength;
 }
 

@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
-import { RupiahCell, StatusBadge, columnHelperFor } from "~/components/data-table";
+import {
+  RupiahCell,
+  StatusBadge,
+  columnHelperFor,
+} from "~/components/data-table";
 
 import type { UtangRow } from "./queries";
 

@@ -3,7 +3,10 @@ import type { CSSProperties } from "react";
 import { Check, X } from "lucide-react";
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
-import { getPasswordAssessment, getPasswordSuggestion } from "~/lib/password-strength";
+import {
+  getPasswordAssessment,
+  getPasswordSuggestion,
+} from "~/lib/password-strength";
 
 type PasswordRequirementsPopoverProps = {
   password: string;
@@ -24,7 +27,11 @@ function supportsAnchoredPopover() {
   );
 }
 
-type RequirementItem = { id: string; met: boolean; label: string };
+type RequirementItem = {
+  id: string;
+  met: boolean;
+  label: string;
+};
 
 const panelBase =
   "pointer-events-none rounded-box border border-base-300 bg-base-100 p-3 text-sm text-base-content shadow-xl";
@@ -42,7 +49,11 @@ export function PasswordRequirementsPopover({
   id,
 }: PasswordRequirementsPopoverProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const anchored = useSyncExternalStore(noopSubscribe, supportsAnchoredPopover, () => false);
+  const anchored = useSyncExternalStore(
+    noopSubscribe,
+    supportsAnchoredPopover,
+    () => false,
+  );
   const anchorName = `--${id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const assessment = getPasswordAssessment(password, username);
 
@@ -65,10 +76,10 @@ export function PasswordRequirementsPopover({
     else if (!open && isOpen) panel.hidePopover();
   }, [anchored, open]);
 
-  const required = assessment.requirements.filter((requirement) => requirement.group === "wajib");
+  /* const required = assessment.requirements.filter((requirement) => requirement.group === "wajib");
   const recommended = assessment.requirements.filter(
     (requirement) => requirement.group === "disarankan",
-  );
+  ); */
 
   const className = anchored
     ? panelAnchored
@@ -79,20 +90,17 @@ export function PasswordRequirementsPopover({
       ref={panelRef}
       id={id}
       popover={anchored ? "manual" : undefined}
-      style={anchored ? ({ positionAnchor: anchorName } as CSSProperties) : undefined}
+      style={
+        anchored
+          ? ({
+              positionAnchor: anchorName,
+            } as CSSProperties)
+          : undefined
+      }
       className={className}
       role="group"
       aria-label="Syarat password"
     >
-      <p className="mb-2 font-semibold">Syarat password</p>
-      <RequirementGroup
-        title="Wajib"
-        requirements={required}
-      />
-      <RequirementGroup
-        title="Disarankan (agar Kuat)"
-        requirements={recommended}
-      />
       <RequirementGroup
         title="Jenis karakter"
         requirements={assessment.characterKinds.map((kind) => ({
@@ -104,6 +112,18 @@ export function PasswordRequirementsPopover({
     </div>
   );
 }
+
+/*
+<p className="mb-2 font-semibold">Syarat password</p>
+      <RequirementGroup
+        title="Wajib"
+        requirements={required}
+      />
+      <RequirementGroup
+        title="Disarankan (agar Kuat)"
+        requirements={recommended}
+      />
+      */
 
 function RequirementGroup({
   title,
@@ -135,7 +155,9 @@ function RequirementGroup({
               />
             )}
             <span>
-              <span className="sr-only">{requirement.met ? "Terpenuhi: " : "Belum terpenuhi: "}</span>
+              <span className="sr-only">
+                {requirement.met ? "Terpenuhi: " : "Belum terpenuhi: "}
+              </span>
               {requirement.label}
             </span>
           </li>
@@ -181,7 +203,8 @@ export function PasswordStrengthIndicator({
             ))}
           </div>
           <p className="text-sm">
-            Kekuatan password: <strong>{strength}</strong>. {getPasswordSuggestion(strength, assessment)}
+            Kekuatan password: <strong>{strength}</strong>.{" "}
+            {getPasswordSuggestion(strength, assessment)}
           </p>
         </>
       ) : null}

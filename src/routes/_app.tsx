@@ -20,7 +20,11 @@ import {
 import { useState } from "react";
 
 import { useConfirm } from "~/components/confirm";
-import { ThemeToggle, ThemeToggleCompact, type ThemeChoice } from "~/components/theme/theme-toggle";
+import {
+  ThemeToggle,
+  ThemeToggleCompact,
+  type ThemeChoice,
+} from "~/components/theme/theme-toggle";
 import { toast } from "~/components/toast";
 import { useCart } from "~/features/kasir/cart-store";
 import { authClient } from "~/lib/auth-client";
@@ -70,9 +74,13 @@ function AppLayout() {
   const confirm = useConfirm();
   const cart = useCart();
   const rootData = useLoaderData({ from: "__root__" });
-  const session = Route.useRouteContext({ select: (context) => context.session });
+  const session = Route.useRouteContext({
+    select: (context) => context.session,
+  });
   const [open, setOpen] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeChoice>(rootData?.theme ?? "sistem");
+  const [themeMode, setThemeMode] = useState<ThemeChoice>(
+    rootData?.theme ?? "sistem",
+  );
   const close = () => setOpen(false);
 
   async function logout() {
@@ -80,7 +88,8 @@ function AppLayout() {
       cart.length &&
       !(await confirm({
         title: "Keranjang belum kosong",
-        message: "Jika keluar sekarang, isi keranjang akan hilang. Tetap keluar?",
+        message:
+          "Jika keluar sekarang, isi keranjang akan hilang. Tetap keluar?",
         confirmText: "Tetap keluar",
         danger: true,
       }))
@@ -91,7 +100,10 @@ function AppLayout() {
     queryClient.clear();
     await router.invalidate();
     toast.success("Anda telah keluar.");
-    await router.navigate({ to: "/login", search: { kembali: "/" } });
+    await router.navigate({
+      to: "/login",
+      search: { kembali: "/" },
+    });
   }
 
   return (
@@ -173,14 +185,23 @@ function AppLayout() {
               label="Barang masuk"
               icon={<Warehouse className="size-5" />}
               onNavigate={close}
-              search={{ q: "", dari: "", sampai: "", halaman: 1 }}
+              search={{
+                q: "",
+                dari: "",
+                sampai: "",
+                halaman: 1,
+              }}
             />
             <NavItem
               to="/utang"
               label="Utang"
               icon={<Wallet className="size-5" />}
               onNavigate={close}
-              search={{ q: "", status: "belum-lunas", halaman: 1 }}
+              search={{
+                q: "",
+                status: "belum-lunas",
+                halaman: 1,
+              }}
             />
             <li className="menu-title mt-3">Data</li>
             <NavItem

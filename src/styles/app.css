@@ -35,7 +35,11 @@ textarea {
 }
 
 .kasiar-modal::backdrop {
-  background-color: color-mix(in oklab, var(--color-base-content) 46%, transparent);
+  background-color: color-mix(
+    in oklab,
+    var(--color-base-content) 46%,
+    transparent
+  );
 }
 
 @keyframes kasiar-modal-enter {

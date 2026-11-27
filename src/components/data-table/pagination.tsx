@@ -1,6 +1,7 @@
 import type { ReactTable, RowData } from "@tanstack/react-table";
 
 import type { DataTableFeatures } from "./table-features";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type DataTablePaginationProps<T extends RowData> = {
   table: ReactTable<DataTableFeatures, T>;
@@ -32,7 +33,7 @@ export function DataTablePagination<T extends RowData>({
           disabled={!table.getCanPreviousPage()}
           onClick={() => table.previousPage()}
         >
-          Sebelumnya
+          <ChevronLeft className="size-4" />
         </button>
         <span
           className="btn btn-sm join-item"
@@ -46,7 +47,7 @@ export function DataTablePagination<T extends RowData>({
           disabled={!table.getCanNextPage()}
           onClick={() => table.nextPage()}
         >
-          Berikutnya
+          <ChevronRight className="size-4" />
         </button>
       </div>
     </nav>

@@ -16,15 +16,22 @@ export const Route = createFileRoute("/_app/admin/pengguna")({
     if (context.session?.peran !== "admin") throw redirect({ to: "/" });
   },
   validateSearch: () => ({}),
-  loader: ({ context }) => context.queryClient.ensureQueryData(kasirListOptions()),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(kasirListOptions()),
   component: AdminPenggunaPage,
 });
 
 function AdminPenggunaPage() {
-  const { data: rows, isPending, isError, refetch } = useQuery(kasirListOptions());
+  const {
+    data: rows,
+    isPending,
+    isError,
+    refetch,
+  } = useQuery(kasirListOptions());
   const isAdmin = Route.useRouteContext().session?.peran === "admin";
   const [creating, setCreating] = useState(false);
   const [resetting, setResetting] = useState<KasirRow | null>(null);
+
   if (isError)
     return (
       <ErrorState
@@ -33,6 +40,7 @@ function AdminPenggunaPage() {
         }}
       />
     );
+
   if (isPending && !rows)
     return (
       <Skeleton
@@ -40,6 +48,7 @@ function AdminPenggunaPage() {
         count={3}
       />
     );
+
   const columns = penggunaColumns((row) => (
     <button
       className="btn btn-outline btn-sm"
@@ -48,7 +57,12 @@ function AdminPenggunaPage() {
       Reset password
     </button>
   ));
-  const data = { rows, total: rows.length, page: 1, pageSize: Math.max(1, rows.length) };
+  const data = {
+    rows,
+    total: rows.length,
+    page: 1,
+    pageSize: Math.max(1, rows.length),
+  };
 
   return (
     <section className="space-y-5">

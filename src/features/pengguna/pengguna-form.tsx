@@ -1,18 +1,46 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import {
+  Form,
+  isDirty,
+  reset,
+  setErrors,
+  useField,
+  useForm,
+} from "@formisch/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
+import type { PenggunaInput } from "~/validation/pengguna";
+
 import { useConfirm } from "~/components/confirm";
-import { FormAlert, FormSubmitButton, PasswordField, TextField } from "~/components/form";
-import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import {
+  FormAlert,
+  FormSubmitButton,
+  PasswordField,
+  TextField,
+} from "~/components/form";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useModalClose,
+} from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
-import { PenggunaSchema, type PenggunaInput } from "~/validation/pengguna";
+import { PenggunaSchema } from "~/validation/pengguna";
 
 import { buatKasirMutationOptions } from "./queries";
 
-export function PenggunaForm({ onSaved, onClose }: { onSaved: () => void; onClose: () => void }) {
-  const form = useForm({ schema: PenggunaSchema, initialInput: { username: "", password: "" } });
+export function PenggunaForm({
+  onSaved,
+  onClose,
+}: {
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const form = useForm({
+    schema: PenggunaSchema,
+    initialInput: { username: "", password: "" },
+  });
   const confirm = useConfirm();
   const mutation = useMutation(buatKasirMutationOptions());
   const [message, setMessage] = useState("");
@@ -32,6 +60,7 @@ export function PenggunaForm({ onSaved, onClose }: { onSaved: () => void; onClos
     setMessage("");
     setErrors(form, { path: ["username"], errors: null });
     setErrors(form, { path: ["password"], errors: null });
+
     try {
       await mutation.mutateAsync(input);
       reset(form);
@@ -40,11 +69,20 @@ export function PenggunaForm({ onSaved, onClose }: { onSaved: () => void; onClos
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (error.fields.username)
-          setErrors(form, { path: ["username"], errors: [error.fields.username] });
+          setErrors(form, {
+            path: ["username"],
+            errors: [error.fields.username],
+          });
         if (error.fields.password)
-          setErrors(form, { path: ["password"], errors: [error.fields.password] });
+          setErrors(form, {
+            path: ["password"],
+            errors: [error.fields.password],
+          });
         setMessage(error.message);
-      } else setMessage("Akun kasir tidak dapat dibuat. Periksa koneksi lalu coba lagi.");
+      } else
+        setMessage(
+          "Akun kasir tidak dapat dibuat. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
 
@@ -81,6 +119,7 @@ function PenggunaFormFields({
   const close = useModalClose();
   const username = useField(form, { path: ["username"] });
   const password = useField(form, { path: ["password"] });
+
   return (
     <Form
       of={form}
@@ -106,7 +145,7 @@ function PenggunaFormFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn"
           disabled={loading}
           onClick={close}
         >

@@ -12,9 +12,16 @@ async function seed() {
   const usernameValue = process.env.ADMIN_USERNAME?.trim();
   const password = process.env.ADMIN_PASSWORD;
   if (!usernameValue || !password)
-    throw new Error("ADMIN_USERNAME dan ADMIN_PASSWORD wajib tersedia di environment.");
-  if (password.length < 8 || getPasswordStrength(password, usernameValue) === "Lemah") {
-    throw new Error("Password admin harus minimal 8 karakter dan tidak berkekuatan Lemah.");
+    throw new Error(
+      "ADMIN_USERNAME dan ADMIN_PASSWORD wajib tersedia di environment.",
+    );
+  if (
+    password.length < 8 ||
+    getPasswordStrength(password, usernameValue) === "Lemah"
+  ) {
+    throw new Error(
+      "Password admin harus minimal 8 karakter dan tidak berkekuatan Lemah.",
+    );
   }
 
   const existing = await db.query.user.findFirst({
@@ -29,11 +36,19 @@ async function seed() {
 
   const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET,
-    database: drizzleAdapter(db, { provider: "pg", schema: schema.authSchema }),
-    emailAndPassword: { enabled: true, minPasswordLength: 8, maxPasswordLength: 128 },
+    database: drizzleAdapter(db, {
+      provider: "pg",
+      schema: schema.authSchema,
+    }),
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 8,
+      maxPasswordLength: 128,
+    },
     plugins: [username()],
   });
-  const emailPart = usernameValue.toLocaleLowerCase().replace(/[^a-z0-9._-]/g, "") || "admin";
+  const emailPart =
+    usernameValue.toLocaleLowerCase().replace(/[^a-z0-9._-]/g, "") || "admin";
   const created = await auth.api.signUpEmail({
     body: {
       name: usernameValue,
@@ -43,7 +58,10 @@ async function seed() {
     },
   });
   if (!created) throw new Error("Akun admin tidak berhasil dibuat.");
-  await db.update(schema.user).set({ role: "admin" }).where(eq(schema.user.id, created.user.id));
+  await db
+    .update(schema.user)
+    .set({ role: "admin" })
+    .where(eq(schema.user.id, created.user.id));
   console.info("Akun admin awal berhasil dibuat.");
 }
 

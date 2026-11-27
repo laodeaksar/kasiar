@@ -1,4 +1,8 @@
-import type { ColumnDef, PaginationState, RowData } from "@tanstack/react-table";
+import type {
+  ColumnDef,
+  PaginationState,
+  RowData,
+} from "@tanstack/react-table";
 
 import { useTable } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
@@ -31,7 +35,7 @@ export function DataTable<T extends RowData>({
     pageIndex: data.page - 1,
     pageSize: data.pageSize,
   };
-  
+
   const table = useTable({
     features: dataTableFeatures,
     data: data.rows,
@@ -40,14 +44,15 @@ export function DataTable<T extends RowData>({
     manualPagination: true,
     pageCount: Math.max(1, Math.ceil(data.total / data.pageSize)),
     onPaginationChange: (updater) => {
-      const next = typeof updater === "function" ? updater(pagination) : updater;
+      const next =
+        typeof updater === "function" ? updater(pagination) : updater;
       onPageChange?.(next.pageIndex + 1);
     },
   });
-  
+
   const rows = table.getRowModel().rows;
   if (rows.length === 0) return null;
-  
+
   return (
     <>
       <div
@@ -57,8 +62,9 @@ export function DataTable<T extends RowData>({
         {rows.map((row, index) => {
           const cells = row.getVisibleCells();
           const heading =
-            cells.find((cell) => cell.column.columnDef.meta?.mobilePriority === "judul") ??
-            cells[0];
+            cells.find(
+              (cell) => cell.column.columnDef.meta?.mobilePriority === "judul",
+            ) ?? cells[0];
           return (
             <article
               key={rowKey?.(row.original, index) ?? row.id}
@@ -66,7 +72,10 @@ export function DataTable<T extends RowData>({
             >
               <div className="card-body gap-2 p-4">
                 <h3 className="card-title text-base">
-                  {flexRender(heading.column.columnDef.cell, heading.getContext())}
+                  {flexRender(
+                    heading.column.columnDef.cell,
+                    heading.getContext(),
+                  )}
                 </h3>
                 {cells
                   .filter(
@@ -82,7 +91,12 @@ export function DataTable<T extends RowData>({
                       <span className="font-medium">
                         {String(cell.column.columnDef.header ?? "")}
                       </span>
-                      <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
+                      <span>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </span>
                     </div>
                   ))}
               </div>
@@ -102,7 +116,10 @@ export function DataTable<T extends RowData>({
                     <th key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </th>
                   )),
                 )}
@@ -112,7 +129,9 @@ export function DataTable<T extends RowData>({
             {rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                  <td key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
                 ))}
               </tr>
             ))}

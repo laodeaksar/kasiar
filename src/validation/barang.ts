@@ -2,7 +2,11 @@ import * as v from "valibot";
 
 import type { StatusBarang } from "~/lib/konstanta";
 
-import { SATUAN_BARANG, STATUS_BARANG, STATUS_BARANG_BAWAAN } from "~/lib/konstanta";
+import {
+  SATUAN_BARANG,
+  STATUS_BARANG,
+  STATUS_BARANG_BAWAAN,
+} from "~/lib/konstanta";
 
 export const BarangSchema = v.object({
   nama: v.pipe(
@@ -13,7 +17,10 @@ export const BarangSchema = v.object({
   ),
   satuan: v.pipe(
     v.string(),
-    v.check((value) => SATUAN_BARANG.some((unit) => unit === value), "Pilih satuan yang tersedia."),
+    v.check(
+      (value) => SATUAN_BARANG.some((unit) => unit === value),
+      "Pilih satuan yang tersedia.",
+    ),
   ),
   hargaJual: v.pipe(
     v.number("Harga jual wajib berupa angka."),
@@ -48,7 +55,9 @@ export const BarangListSearchSchema = v.object({
   halaman: v.optional(PageSchema),
 });
 function record(value: unknown): Record<string, unknown> {
-  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : {};
 }
 function parseQuery(value: unknown): string {
   const result = v.safeParse(QuerySchema, value);
@@ -61,10 +70,19 @@ function parsePage(value: unknown): number {
 export function parseBarangSearch(value: unknown) {
   const input = record(value);
   const result = v.safeParse(StatusSchema, input.status);
-  const status: StatusBarang = result.success ? result.output : STATUS_BARANG_BAWAAN;
-  return { q: parseQuery(input.q), halaman: parsePage(input.halaman), status };
+  const status: StatusBarang = result.success
+    ? result.output
+    : STATUS_BARANG_BAWAAN;
+  return {
+    q: parseQuery(input.q),
+    halaman: parsePage(input.halaman),
+    status,
+  };
 }
 export function parseBarangListSearch(value: unknown) {
   const input = record(value);
-  return { q: parseQuery(input.q), halaman: parsePage(input.halaman) };
+  return {
+    q: parseQuery(input.q),
+    halaman: parsePage(input.halaman),
+  };
 }

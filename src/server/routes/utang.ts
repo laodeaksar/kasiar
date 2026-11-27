@@ -1,8 +1,15 @@
 import { Hono } from "hono";
 
-import { catatPelunasan, daftarUtang, rincianUtang, UtangError } from "../services/utang";
+import {
+  catatPelunasan,
+  daftarUtang,
+  rincianUtang,
+  UtangError,
+} from "../services/utang";
 
-type Env = { Variables: { user: { id: string; role: string } } };
+type Env = {
+  Variables: { user: { id: string; role: string } };
+};
 export const utangRoutes = new Hono<Env>();
 
 utangRoutes.get("/", async (c) => {
@@ -19,7 +26,10 @@ utangRoutes.get("/:pembeliId", async (c) => {
     return c.json(await rincianUtang(c.req.param("pembeliId")));
   } catch (error) {
     if (error instanceof UtangError)
-      return c.json({ message: error.message, fields: error.fields }, error.status);
+      return c.json(
+        { message: error.message, fields: error.fields },
+        error.status,
+      );
     throw error;
   }
 });
@@ -30,7 +40,10 @@ utangRoutes.post("/pelunasan", async (c) => {
     return c.json(await catatPelunasan(body, c.get("user").id), 201);
   } catch (error) {
     if (error instanceof UtangError)
-      return c.json({ message: error.message, fields: error.fields }, error.status);
+      return c.json(
+        { message: error.message, fields: error.fields },
+        error.status,
+      );
     throw error;
   }
 });

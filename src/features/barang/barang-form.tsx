@@ -1,6 +1,15 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import {
+  Form,
+  isDirty,
+  reset,
+  setErrors,
+  useField,
+  useForm,
+} from "@formisch/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+
+import type { BarangInput } from "~/validation/barang";
 
 import { useConfirm } from "~/components/confirm";
 import {
@@ -10,11 +19,16 @@ import {
   SelectField,
   TextField,
 } from "~/components/form";
-import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useModalClose,
+} from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
 import { SATUAN_BARANG } from "~/lib/konstanta";
-import { BarangSchema, type BarangInput } from "~/validation/barang";
+import { BarangSchema } from "~/validation/barang";
 
 import { tambahBarangMutationOptions } from "./queries";
 
@@ -23,9 +37,22 @@ const satuanOptions = SATUAN_BARANG.map((value) => ({
   label: value === "kg" ? "Kilogram (kg)" : value,
 }));
 
-export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose: () => void }) {
-  const initialInput = { nama: "", satuan: "pcs", hargaJual: 0 };
-  const form = useForm({ schema: BarangSchema, initialInput });
+export function BarangForm({
+  onSaved,
+  onClose,
+}: {
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const initialInput = {
+    nama: "",
+    satuan: "pcs",
+    hargaJual: 0,
+  };
+  const form = useForm({
+    schema: BarangSchema,
+    initialInput,
+  });
   const confirm = useConfirm();
   const mutation = useMutation(tambahBarangMutationOptions());
   const [message, setMessage] = useState("");
@@ -46,6 +73,7 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
     setErrors(form, { path: ["nama"], errors: null });
     setErrors(form, { path: ["satuan"], errors: null });
     setErrors(form, { path: ["hargaJual"], errors: null });
+
     try {
       await mutation.mutateAsync(input);
       reset(form);
@@ -55,10 +83,17 @@ export function BarangForm({ onSaved, onClose }: { onSaved: () => void; onClose:
       if (error instanceof ApiRequestError) {
         for (const field of ["nama", "satuan", "hargaJual"] as const) {
           const fieldMessage = error.fields[field];
-          if (fieldMessage) setErrors(form, { path: [field], errors: [fieldMessage] });
+          if (fieldMessage)
+            setErrors(form, {
+              path: [field],
+              errors: [fieldMessage],
+            });
         }
         setMessage(error.message);
-      } else setMessage("Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.");
+      } else
+        setMessage(
+          "Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
 
@@ -96,6 +131,7 @@ function BarangFormFields({
   const nama = useField(form, { path: ["nama"] });
   const satuan = useField(form, { path: ["satuan"] });
   const hargaJual = useField(form, { path: ["hargaJual"] });
+
   return (
     <Form
       of={form}
@@ -128,7 +164,7 @@ function BarangFormFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn"
           disabled={loading}
           onClick={close}
         >

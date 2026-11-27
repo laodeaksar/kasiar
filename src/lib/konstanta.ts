@@ -1,4 +1,11 @@
-export const SATUAN_BARANG = ["kg", "pcs", "pack", "karung", "butir", "rak"] as const;
+export const SATUAN_BARANG = [
+  "kg",
+  "pcs",
+  "pack",
+  "karung",
+  "butir",
+  "rak",
+] as const;
 export type SatuanBarang = (typeof SATUAN_BARANG)[number];
 export const PERAN_PENGGUNA = ["admin", "kasir"] as const;
 export type PeranPengguna = (typeof PERAN_PENGGUNA)[number];

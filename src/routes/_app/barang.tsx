@@ -15,17 +15,24 @@ import { parseBarangListSearch } from "~/validation/barang";
 
 export const Route = createFileRoute("/_app/barang")({
   validateSearch: (search) => parseBarangListSearch(search),
-  loaderDeps: ({ search }) => ({ q: search.q, halaman: search.halaman }),
-  loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangListOptions(deps)),
+  loaderDeps: ({ search }) => ({
+    q: search.q,
+    halaman: search.halaman,
+  }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(barangListOptions(deps)),
   component: BarangPage,
 });
 
 function BarangPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const { data, isPending, isError, refetch } = useQuery(barangListOptions(search));
+  const { data, isPending, isError, refetch } = useQuery(
+    barangListOptions(search),
+  );
   const changeSearch = (patch: Partial<typeof search>) =>
     navigate({ search: (old) => ({ ...old, ...patch }) });
+
   if (isError)
     return (
       <ErrorState
@@ -34,6 +41,7 @@ function BarangPage() {
         }}
       />
     );
+
   if (isPending && !data)
     return (
       <Skeleton
@@ -41,6 +49,7 @@ function BarangPage() {
         count={5}
       />
     );
+
   const empty = data.rows.length === 0;
   const searching = Boolean(search.q) && empty;
   const description =

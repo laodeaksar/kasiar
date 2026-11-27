@@ -22,17 +22,33 @@ export const user = pgTable(
     username: text("username").notNull().unique(),
     displayUsername: text("display_username"),
     role: varchar("role", { length: 16 }).notNull().default("kasir"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
   },
-  (table) => [check("user_role_check", sql`${table.role} in ('admin', 'kasir')`)],
+  (table) => [
+    check("user_role_check", sql`${table.role} in ('admin', 'kasir')`),
+  ],
 );
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true,
+  }).notNull(),
   token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   userId: text("user_id")
@@ -49,20 +65,34 @@ export const account = pgTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", {
+    withTimezone: true,
+  }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+    withTimezone: true,
+  }),
   scope: text("scope"),
   password: text("password"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  expiresAt: timestamp("expires_at", {
+    withTimezone: true,
+  }).notNull(),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+  }).defaultNow(),
+  updatedAt: timestamp("updated_at", {
+    withTimezone: true,
+  }).defaultNow(),
 });
 export const barang = pgTable(
   "barang",
@@ -73,7 +103,11 @@ export const barang = pgTable(
     hargaJual: integer("harga_jual").notNull(),
     stok: integer("stok").notNull().default(0),
     aktif: boolean("aktif").notNull().default(true),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [
     check("barang_harga_nonnegatif", sql`${t.hargaJual} >= 0`),
@@ -83,15 +117,25 @@ export const barang = pgTable(
 export const pembeli = pgTable("pembeli", {
   id: integer("id").generatedAlwaysAsIdentity().primaryKey(),
   nama: varchar("nama", { length: 160 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 export const barangMasuk = pgTable(
   "barang_masuk",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     tanggal: date("tanggal").notNull(),
-    waktuDicatat: timestamp("waktu_dicatat", { withTimezone: true }).notNull().defaultNow(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    waktuDicatat: timestamp("waktu_dicatat", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
     barangId: integer("barang_id")
       .notNull()
       .references(() => barang.id),
@@ -111,8 +155,16 @@ export const transaksi = pgTable(
   "transaksi",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    waktuDicatat: timestamp("waktu_dicatat", { withTimezone: true }).notNull().defaultNow(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    waktuDicatat: timestamp("waktu_dicatat", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
     total: integer("total").notNull(),
     jumlahDibayar: integer("jumlah_dibayar").notNull(),
     status: varchar("status", { length: 12 }).notNull(),
@@ -162,7 +214,11 @@ export const riwayatHargaJual = pgTable(
       .notNull()
       .references(() => barang.id),
     hargaJual: integer("harga_jual").notNull(),
-    berlakuSejak: timestamp("berlaku_sejak", { withTimezone: true }).notNull().defaultNow(),
+    berlakuSejak: timestamp("berlaku_sejak", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
     adminId: text("admin_id")
       .notNull()
       .references(() => user.id),
@@ -176,13 +232,24 @@ export const pembayaranUtang = pgTable(
     pembeliId: integer("pembeli_id")
       .notNull()
       .references(() => pembeli.id),
-    tanggal: timestamp("tanggal", { withTimezone: true }).notNull().defaultNow(),
+    tanggal: timestamp("tanggal", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     nominal: integer("nominal").notNull(),
     penggunaId: text("pengguna_id")
       .notNull()
       .references(() => user.id),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
   },
   (t) => [check("pembayaran_nominal_positif", sql`${t.nominal} > 0`)],
 );
-export const authSchema = { user, session, account, verification };
+export const authSchema = {
+  user,
+  session,
+  account,
+  verification,
+};

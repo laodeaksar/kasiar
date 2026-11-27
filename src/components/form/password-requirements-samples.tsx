@@ -3,7 +3,9 @@ import * as v from "valibot";
 
 import { PasswordField } from "./fields";
 
-const PasswordDemoSchema = v.object({ password: v.string() });
+const PasswordDemoSchema = v.object({
+  password: v.string(),
+});
 const passwordExamples = [
   {
     title: "Kolom dekat tepi atas",
@@ -49,12 +51,13 @@ export function PasswordRequirementsSamples() {
       <div>
         <h2 className="text-2xl font-bold">Uji syarat password</h2>
         <p className="text-sm text-base-content/70">
-          Fokuskan kolom untuk membuka kotak. Coba mengetik, pindah fokus, dan gunakan tombol
-          tampil/sembunyikan password.
+          Fokuskan kolom untuk membuka kotak. Coba mengetik, pindah fokus, dan
+          gunakan tombol tampil/sembunyikan password.
         </p>
         <p className="text-sm text-base-content/70">
-          Ubah lebar halaman menjadi HP dan desktop. Gulir kolom pertama hingga dekat tepi atas
-          layar untuk memeriksa posisi kotak yang berpindah ke bawah.
+          Ubah lebar halaman menjadi HP dan desktop. Gulir kolom pertama hingga
+          dekat tepi atas layar untuk memeriksa posisi kotak yang berpindah ke
+          bawah.
         </p>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
@@ -93,7 +96,10 @@ function PasswordDemo({
   password: string;
   note: string;
 }) {
-  const form = useForm({ schema: PasswordDemoSchema, initialInput: { password } });
+  const form = useForm({
+    schema: PasswordDemoSchema,
+    initialInput: { password },
+  });
   const field = useField(form, { path: ["password"] });
   return (
     <div className="min-w-0 rounded-box border border-base-300 p-3">

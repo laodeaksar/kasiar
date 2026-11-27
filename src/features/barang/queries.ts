@@ -1,4 +1,8 @@
-import { keepPreviousData, mutationOptions, queryOptions } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  mutationOptions,
+  queryOptions,
+} from "@tanstack/react-query";
 import * as v from "valibot";
 
 import type { ListResponse } from "~/types/api";
@@ -21,7 +25,11 @@ const BarangListSchema = v.object({
   pageSize: v.number(),
 });
 export type BarangRow = v.InferOutput<typeof BarangRowSchema>;
-export type BarangParams = { q: string; halaman: number; status?: "aktif" | "nonaktif" | "semua" };
+export type BarangParams = {
+  q: string;
+  halaman: number;
+  status?: "aktif" | "nonaktif" | "semua";
+};
 
 export const barangKeys = {
   all: ["barang"] as const,
@@ -38,15 +46,24 @@ function decodeList(payload: unknown): ListResponse<BarangRow> {
 function decodeId(payload: unknown): { id: number } {
   return v.parse(v.object({ id: v.number() }), payload);
 }
-function decodeUpdate(payload: unknown): { row: BarangRow; hargaBeliTerakhir: number | null } {
+function decodeUpdate(payload: unknown): {
+  row: BarangRow;
+  hargaBeliTerakhir: number | null;
+} {
   return v.parse(
-    v.object({ row: BarangRowSchema, hargaBeliTerakhir: v.nullable(v.number()) }),
+    v.object({
+      row: BarangRowSchema,
+      hargaBeliTerakhir: v.nullable(v.number()),
+    }),
     payload,
   );
 }
 
 export function getBarang(params: BarangParams, admin = false) {
-  const query = new URLSearchParams({ q: params.q, halaman: String(params.halaman) });
+  const query = new URLSearchParams({
+    q: params.q,
+    halaman: String(params.halaman),
+  });
   if (admin) query.set("status", params.status ?? "aktif");
   return apiFetch<ListResponse<BarangRow>>(
     `${admin ? "/api/admin/barang" : "/api/barang"}?${query}`,
@@ -62,7 +79,11 @@ export function barangListOptions(params: BarangParams, admin = false) {
   });
 }
 
-export function tambahBarang(input: { nama: string; satuan: string; hargaJual: number }) {
+export function tambahBarang(input: {
+  nama: string;
+  satuan: string;
+  hargaJual: number;
+}) {
   return apiFetch<{ id: number }>("/api/admin/barang", decodeId, {
     method: "POST",
     body: JSON.stringify(input),
@@ -70,11 +91,13 @@ export function tambahBarang(input: { nama: string; satuan: string; hargaJual: n
 }
 
 export function ubahBarang(id: number, input: Record<string, unknown>) {
-  return apiFetch<{ row: BarangRow; hargaBeliTerakhir: number | null }>(
-    `/api/admin/barang/${id}`,
-    decodeUpdate,
-    { method: "PATCH", body: JSON.stringify(input) },
-  );
+  return apiFetch<{
+    row: BarangRow;
+    hargaBeliTerakhir: number | null;
+  }>(`/api/admin/barang/${id}`, decodeUpdate, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  });
 }
 
 export const tambahBarangMutationOptions = () =>
@@ -83,15 +106,24 @@ export const tambahBarangMutationOptions = () =>
     mutationFn: tambahBarang,
     meta: { errorHandledByForm: true },
     onSuccess: (_data, _variables, _result, { client }) =>
-      client.invalidateQueries({ queryKey: barangKeys.all }),
+      client.invalidateQueries({
+        queryKey: barangKeys.all,
+      }),
   });
 
 export const ubahBarangMutationOptions = () =>
   mutationOptions({
     mutationKey: [...barangKeys.all, "mutasi", "ubah"] as const,
-    mutationFn: ({ id, input }: { id: number; input: Record<string, unknown> }) =>
-      ubahBarang(id, input),
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: number;
+      input: Record<string, unknown>;
+    }) => ubahBarang(id, input),
     meta: { errorHandledByForm: true },
     onSuccess: (_data, _variables, _result, { client }) =>
-      client.invalidateQueries({ queryKey: barangKeys.all }),
+      client.invalidateQueries({
+        queryKey: barangKeys.all,
+      }),
   });

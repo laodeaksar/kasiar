@@ -22,14 +22,17 @@ export const Route = createFileRoute("/_app/barang-masuk")({
     sampai: search.sampai,
     halaman: search.halaman,
   }),
-  loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangMasukListOptions(deps)),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(barangMasukListOptions(deps)),
   component: BarangMasukPage,
 });
 
 function BarangMasukPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const { data, isPending, isError, refetch } = useQuery(barangMasukListOptions(search));
+  const { data, isPending, isError, refetch } = useQuery(
+    barangMasukListOptions(search),
+  );
   const changeSearch = (patch: Partial<typeof search>) =>
     navigate({ search: (old) => ({ ...old, ...patch }) });
   if (isError)
@@ -49,7 +52,13 @@ function BarangMasukPage() {
     );
   const empty = data.rows.length === 0;
   const filtering = Boolean(search.q || search.dari || search.sampai);
-  const clearFilters = () => changeSearch({ q: "", dari: "", sampai: "", halaman: 1 });
+  const clearFilters = () =>
+    changeSearch({
+      q: "",
+      dari: "",
+      sampai: "",
+      halaman: 1,
+    });
 
   return (
     <section className="space-y-7">
@@ -80,7 +89,12 @@ function BarangMasukPage() {
               className="input input-bordered"
               value={search.dari}
               max={search.sampai || undefined}
-              onChange={(event) => changeSearch({ dari: event.target.value, halaman: 1 })}
+              onChange={(event) =>
+                changeSearch({
+                  dari: event.target.value,
+                  halaman: 1,
+                })
+              }
             />
           </label>
           <label className="form-control">
@@ -90,7 +104,12 @@ function BarangMasukPage() {
               className="input input-bordered"
               value={search.sampai}
               min={search.dari || undefined}
-              onChange={(event) => changeSearch({ sampai: event.target.value, halaman: 1 })}
+              onChange={(event) =>
+                changeSearch({
+                  sampai: event.target.value,
+                  halaman: 1,
+                })
+              }
             />
           </label>
           {filtering && (
@@ -115,7 +134,10 @@ function BarangMasukPage() {
           <DataTableStates
             isEmpty
             isSearchEmpty
-            query={search.q || `${search.dari || "awal"} – ${search.sampai || "akhir"}`}
+            query={
+              search.q ||
+              `${search.dari || "awal"} – ${search.sampai || "akhir"}`
+            }
             onClearSearch={clearFilters}
           />
         )}

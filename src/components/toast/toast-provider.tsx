@@ -1,6 +1,10 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
-import { dismissToast, type ToastKind, useToasts } from "./toast-store";
+import { useEffect, useRef } from "react";
+
+import type { ToastKind } from "./toast-store";
+
+import { dismissToast, useToasts } from "./toast-store";
 
 const classes: Record<ToastKind, string> = {
   sukses: "alert-success",

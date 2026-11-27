@@ -14,7 +14,10 @@ const ItemSchema = v.object({
 
 export const TransaksiSchema = v.pipe(
   v.object({
-    items: v.pipe(v.array(ItemSchema), v.minLength(1, "Pilih minimal satu barang.")),
+    items: v.pipe(
+      v.array(ItemSchema),
+      v.minLength(1, "Pilih minimal satu barang."),
+    ),
     total: v.pipe(v.number(), v.integer(), v.minValue(0)),
     barangId: v.optional(v.number()),
     jumlah: v.optional(v.number()),
@@ -24,7 +27,11 @@ export const TransaksiSchema = v.pipe(
       v.minValue(0, "Jumlah dibayar tidak boleh negatif."),
     ),
     pembeliNama: v.optional(
-      v.pipe(v.string(), v.trim(), v.maxLength(160, "Nama pembeli maksimal 160 karakter.")),
+      v.pipe(
+        v.string(),
+        v.trim(),
+        v.maxLength(160, "Nama pembeli maksimal 160 karakter."),
+      ),
     ),
   }),
   v.forward(
@@ -36,7 +43,9 @@ export const TransaksiSchema = v.pipe(
   ),
   v.forward(
     v.check(
-      (value) => value.jumlahDibayar === value.total || Boolean(value.pembeliNama?.trim()),
+      (value) =>
+        value.jumlahDibayar === value.total ||
+        Boolean(value.pembeliNama?.trim()),
       "Nama pembeli wajib diisi jika masih ada utang.",
     ),
     ["pembeliNama"],

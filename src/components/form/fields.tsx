@@ -1,17 +1,15 @@
 import type { FieldElementProps } from "@formisch/react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 import { Eye, EyeOff } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type InputHTMLAttributes,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { formatRupiah } from "~/lib/format";
-import { PasswordRequirementsPopover, PasswordStrengthIndicator } from "./password-requirements";
+
+import {
+  PasswordRequirementsPopover,
+  PasswordStrengthIndicator,
+} from "./password-requirements";
 
 type FormFieldStore = {
   path: readonly PropertyKey[];
@@ -40,7 +38,10 @@ type ManagedInputKeys =
   | "name"
   | "id"
   | "required";
-type NativeInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, ManagedInputKeys>;
+type NativeInputProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  ManagedInputKeys
+>;
 
 /** Field teks generik: semua atribut <input> native + opsi tampilan/parsing. */
 type TextFieldProps = BaseFieldProps &
@@ -56,12 +57,19 @@ type PasswordFieldProps = BaseFieldProps &
     username?: string;
   };
 /** Field berjenis tetap (angka, rupiah, tanggal): hanya props dasar + sedikit atribut native. */
-type SimpleFieldProps = BaseFieldProps & Pick<NativeInputProps, "placeholder" | "disabled">;
-type NumberFieldProps = SimpleFieldProps & { decimals?: 0 | 1 };
+type SimpleFieldProps = BaseFieldProps &
+  Pick<NativeInputProps, "placeholder" | "disabled">;
+type NumberFieldProps = SimpleFieldProps & {
+  decimals?: 0 | 1;
+};
 type SelectOption = { label: string; value: string };
-type SelectFieldProps = BaseFieldProps & { options: readonly SelectOption[] };
+type SelectFieldProps = BaseFieldProps & {
+  options: readonly SelectOption[];
+};
 type CheckboxFieldProps = BaseFieldProps & Omit<NativeInputProps, "type">;
-type FormFieldProps = BaseFieldProps & { children: ReactNode };
+type FormFieldProps = BaseFieldProps & {
+  children: ReactNode;
+};
 type FieldShellProps = {
   label?: string;
   labelId?: string;
@@ -191,6 +199,7 @@ export function FormField({
     </FieldShell>
   );
 }
+
 /**
  * Membuat id yang konsisten dari path field: id input, label, hint, dan error, plus
  * `describedBy` untuk aria-describedby (error lebih diutamakan daripada hint).
@@ -240,7 +249,8 @@ export function TextField({
   const attr = ids(field, hint);
   const wrapped = !!(icon || trailing);
   const describedBy =
-    [attr.describedBy, rest["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+    [attr.describedBy, rest["aria-describedby"]].filter(Boolean).join(" ") ||
+    undefined;
   const input = (
     <input
       {...rest}
@@ -252,14 +262,16 @@ export function TextField({
       value={displayValue ?? String(field.input ?? "")}
       onBlur={field.props.onBlur}
       onChange={(event) =>
-        field.onChange(parseValue ? parseValue(event.target.value) : event.target.value)
+        field.onChange(
+          parseValue ? parseValue(event.target.value) : event.target.value,
+        )
       }
       aria-invalid={!!message}
       aria-describedby={describedBy}
       className={
         wrapped
           ? `min-w-0 grow ${className ?? ""}`.trim()
-          : `input validator min-h-12 w-full ${message ? "input-error" : ""} ${className ?? ""}`.trim()
+          : `input validator w-full ${message ? "input-error" : ""} ${className ?? ""}`.trim()
       }
     />
   );
@@ -273,7 +285,9 @@ export function TextField({
       errorId={attr.errorId}
     >
       {wrapped ? (
-        <label className={`input validator min-h-12 w-full ${message ? "input-error" : ""}`}>
+        <label
+          className={`input validator w-full ${message ? "input-error" : ""}`}
+        >
           {icon}
           {input}
           {trailing}
@@ -312,10 +326,14 @@ export function PasswordField(props: PasswordFieldProps) {
       .filter(Boolean)
       .join(" ") || undefined;
   function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
-    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))
+    if (
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
+    )
       return;
     setPopoverOpen(false);
   }
+
   return (
     <div
       ref={containerRef}
@@ -340,9 +358,13 @@ export function PasswordField(props: PasswordFieldProps) {
             onClick={() => setVisible((value) => !value)}
             aria-label={visible ? "Sembunyikan password" : "Tampilkan password"}
             aria-pressed={visible}
-            className="btn btn-circle btn-ghost btn-sm"
+            className="btn btn-circle btn-ghost btn-xs"
           >
-            {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {visible ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
           </button>
         }
       />
@@ -404,7 +426,9 @@ export function RupiahField(props: SimpleFieldProps) {
         : undefined;
   // Nilai 0 tetap ditampilkan; hanya kosong/undefined yang menghasilkan teks kosong.
   const display =
-    raw !== undefined && Number.isFinite(raw) ? formatRupiah(raw).replace(/^Rp\s?/, "") : "";
+    raw !== undefined && Number.isFinite(raw)
+      ? formatRupiah(raw).replace(/^Rp\s?/, "")
+      : "";
   return (
     <TextField
       {...props}
@@ -469,7 +493,7 @@ export function SelectField({
         aria-labelledby={attr.labelId}
         value={String(field.input ?? "")}
         onChange={(event) => field.onChange(event.target.value)}
-        className={`select validator min-h-12 w-full ${message ? "select-error" : ""}`}
+        className={`select validator w-full ${message ? "select-error" : ""}`}
         required={required}
         aria-invalid={!!message}
         aria-describedby={attr.describedBy}
@@ -511,7 +535,7 @@ export function CheckboxField({
       message={message}
       errorId={attr.errorId}
     >
-      <label className="label min-h-12 cursor-pointer justify-start gap-3 px-0">
+      <label className="label cursor-pointer justify-start gap-3 px-0">
         <input
           {...rest}
           {...field.props}

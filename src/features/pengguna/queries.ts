@@ -3,12 +3,23 @@ import * as v from "valibot";
 
 import { apiFetch } from "~/lib/api";
 
-const KasirRowSchema = v.object({ id: v.string(), username: v.string(), createdAt: v.string() });
+const KasirRowSchema = v.object({
+  id: v.string(),
+  username: v.string(),
+  createdAt: v.string(),
+});
 const kasirListSchema = v.array(KasirRowSchema);
 const messageSchema = v.object({ message: v.string() });
 export type KasirRow = v.InferOutput<typeof KasirRowSchema>;
-export type PenggunaFormInput = { username: string; password: string };
-export type ResetPasswordMutationInput = { userId: string; username: string; password: string };
+export type PenggunaFormInput = {
+  username: string;
+  password: string;
+};
+export type ResetPasswordMutationInput = {
+  userId: string;
+  username: string;
+  password: string;
+};
 
 export const penggunaKeys = {
   all: ["pengguna"] as const,
@@ -19,9 +30,14 @@ export const penggunaKeys = {
 };
 
 export const getKasir = () =>
-  apiFetch<KasirRow[]>("/api/admin/pengguna", (payload) => v.parse(kasirListSchema, payload));
+  apiFetch<KasirRow[]>("/api/admin/pengguna", (payload) =>
+    v.parse(kasirListSchema, payload),
+  );
 export const kasirListOptions = () =>
-  queryOptions({ queryKey: penggunaKeys.list(), queryFn: getKasir });
+  queryOptions({
+    queryKey: penggunaKeys.list(),
+    queryFn: getKasir,
+  });
 
 export const buatKasir = (input: PenggunaFormInput) =>
   apiFetch<{ message: string }>(
@@ -35,10 +51,15 @@ export const buatKasirMutationOptions = () =>
     mutationFn: buatKasir,
     meta: { errorHandledByForm: true },
     onSuccess: (_data, _variables, _result, { client }) =>
-      client.invalidateQueries({ queryKey: penggunaKeys.all }),
+      client.invalidateQueries({
+        queryKey: penggunaKeys.all,
+      }),
   });
 
-export const resetPasswordKasir = (userId: string, input: ResetPasswordMutationInput) =>
+export const resetPasswordKasir = (
+  userId: string,
+  input: ResetPasswordMutationInput,
+) =>
   apiFetch<{ message: string }>(
     `/api/admin/pengguna/${encodeURIComponent(userId)}/reset-password`,
     (payload) => v.parse(messageSchema, payload),
@@ -47,8 +68,11 @@ export const resetPasswordKasir = (userId: string, input: ResetPasswordMutationI
 export const resetPasswordMutationOptions = () =>
   mutationOptions({
     mutationKey: [...penggunaKeys.all, "mutasi", "reset-password"] as const,
-    mutationFn: (input: ResetPasswordMutationInput) => resetPasswordKasir(input.userId, input),
+    mutationFn: (input: ResetPasswordMutationInput) =>
+      resetPasswordKasir(input.userId, input),
     meta: { errorHandledByForm: true },
     onSuccess: (_data, _variables, _result, { client }) =>
-      client.invalidateQueries({ queryKey: penggunaKeys.all }),
+      client.invalidateQueries({
+        queryKey: penggunaKeys.all,
+      }),
   });

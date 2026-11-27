@@ -9,14 +9,31 @@ import { penggunaRoutes } from "./routes/pengguna";
 import { transaksiRoutes } from "./routes/transaksi";
 import { utangRoutes } from "./routes/utang";
 
-type Env = { Variables: { user: { id: string; role: string } } };
+type Env = {
+  Variables: { user: { id: string; role: string } };
+};
 
 export const requireLogin = createMiddleware<Env>(async (c, next) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) return c.json({ message: "Silakan masuk terlebih dahulu.", fields: {} }, 401);
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session)
+    return c.json(
+      {
+        message: "Silakan masuk terlebih dahulu.",
+        fields: {},
+      },
+      401,
+    );
   c.set("user", {
     id: session.user.id,
-    role: String((session.user as typeof session.user & { role?: string }).role ?? "kasir"),
+    role: String(
+      (
+        session.user as typeof session.user & {
+          role?: string;
+        }
+      ).role ?? "kasir",
+    ),
   });
   await next();
 });
@@ -39,4 +56,6 @@ app.route("/api/transaksi", transaksiRoutes);
 app.route("/api/utang", utangRoutes);
 app.route("/api/admin/barang", adminBarangRoutes);
 app.route("/api/admin/pengguna", penggunaRoutes);
-app.all("*", (c) => c.json({ message: "Endpoint tidak ditemukan.", fields: {} }, 404));
+app.all("*", (c) =>
+  c.json({ message: "Endpoint tidak ditemukan.", fields: {} }, 404),
+);

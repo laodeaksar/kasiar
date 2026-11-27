@@ -1,7 +1,8 @@
+import type { RegisteredRouter, ToPathOption } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Link, type RegisteredRouter, type ToPathOption } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 
 type HeaderButtonBaseProps = {
   icon: LucideIcon;
@@ -13,9 +14,15 @@ type HeaderButtonBaseProps = {
 type InternalLinkTarget = ToPathOption<RegisteredRouter>;
 
 type HeaderButtonProps = HeaderButtonBaseProps &
-  ({ to: InternalLinkTarget; onClick?: never } | { to?: undefined; onClick: () => void });
+  (
+    | { to: InternalLinkTarget; onClick?: never }
+    | { to?: undefined; onClick: () => void }
+  );
 
-const variantClass: Record<NonNullable<HeaderButtonBaseProps["variant"]>, string> = {
+const variantClass: Record<
+  NonNullable<HeaderButtonBaseProps["variant"]>,
+  string
+> = {
   utama: "btn-primary",
   biasa: "btn-ghost",
   bahaya: "btn-error btn-outline",
@@ -37,7 +44,7 @@ function ButtonContents({
         />
       ) : (
         <Icon
-          className="size-5"
+          className="size-4"
           aria-hidden="true"
         />
       )}
@@ -47,9 +54,15 @@ function ButtonContents({
 }
 
 export function HeaderButton(props: HeaderButtonProps) {
-  const { icon, label, variant = "biasa", disabled = false, loading = false } = props;
+  const {
+    icon,
+    label,
+    variant = "biasa",
+    disabled = false,
+    loading = false,
+  } = props;
   const unavailable = disabled || loading;
-  const className = `btn ${variantClass[variant]} ${buttonSizeClass}${unavailable ? " opacity-50" : ""}`;
+  const className = `btn btn-sm ${variantClass[variant]} ${buttonSizeClass}${unavailable ? " opacity-50" : ""}`;
 
   if ("to" in props && typeof props.to === "string") {
     return (
@@ -106,12 +119,20 @@ export function PageHeader({
 }) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
-    <header className={`flex min-w-0 items-start justify-between gap-2 ${className}`}>
+    <header
+      className={`flex min-w-0 items-start justify-between gap-2 ${className}`}
+    >
       <div className="min-w-0 flex-1">
         <Heading className="truncate text-2xl font-bold">{title}</Heading>
-        {description && <p className="mt-1 text-sm text-base-content/70">{description}</p>}
+        {description && (
+          <p className="mt-1 text-sm text-base-content/70">{description}</p>
+        )}
       </div>
-      {actions && <div className="flex shrink-0 flex-nowrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+          {actions}
+        </div>
+      )}
     </header>
   );
 }

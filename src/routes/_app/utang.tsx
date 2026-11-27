@@ -26,7 +26,11 @@ export const Route = createFileRoute("/_app/utang")({
   loader: async ({ context, deps }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(
-        utangListOptions({ q: deps.q, status: deps.status, halaman: deps.halaman }),
+        utangListOptions({
+          q: deps.q,
+          status: deps.status,
+          halaman: deps.halaman,
+        }),
       ),
       deps.pembeli === undefined
         ? Promise.resolve()
@@ -39,7 +43,11 @@ export const Route = createFileRoute("/_app/utang")({
 function UtangPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const params = { q: search.q, status: search.status, halaman: search.halaman };
+  const params = {
+    q: search.q,
+    status: search.status,
+    halaman: search.halaman,
+  };
   const list = useQuery(utangListOptions(params));
   const detail = useQuery(utangDetailOptions(search.pembeli));
   const updateSearch = (patch: Partial<typeof search>) =>
@@ -87,8 +95,12 @@ function UtangPage() {
                       Rincian utang — {detail.data.nama}
                     </h2>
                     <p className="mt-1 text-sm">
-                      Sisa utang: <strong>{formatRupiah(detail.data.sisaUtang)}</strong> · Status:{" "}
-                      <strong>{detail.data.sisaUtang === 0 ? "Lunas" : "Belum lunas"}</strong>
+                      Sisa utang:{" "}
+                      <strong>{formatRupiah(detail.data.sisaUtang)}</strong> ·
+                      Status:{" "}
+                      <strong>
+                        {detail.data.sisaUtang === 0 ? "Lunas" : "Belum lunas"}
+                      </strong>
                     </p>
                   </div>
                   <button
@@ -119,11 +131,14 @@ function UtangPage() {
                             className="rounded-box border border-base-300 p-4 text-sm"
                           >
                             <p>
-                              <strong>{formatTanggal(item.waktuDicatat)}</strong> · Dicatat oleh{" "}
-                              {item.namaKasir}
+                              <strong>
+                                {formatTanggal(item.waktuDicatat)}
+                              </strong>{" "}
+                              · Dicatat oleh {item.namaKasir}
                             </p>
                             <p className="mt-1">
-                              Total transaksi: {formatRupiah(item.total)} · Dibayar saat transaksi:{" "}
+                              Total transaksi: {formatRupiah(item.total)} ·
+                              Dibayar saat transaksi:{" "}
                               {formatRupiah(item.jumlahDibayar)}
                             </p>
                             <p>
@@ -155,7 +170,8 @@ function UtangPage() {
                             className="flex flex-wrap justify-between gap-2 rounded-box border border-base-300 p-4 text-sm"
                           >
                             <span>
-                              {formatTanggal(item.tanggal)} · Dicatat oleh {item.namaPengguna}
+                              {formatTanggal(item.tanggal)} · Dicatat oleh{" "}
+                              {item.namaPengguna}
                             </span>
                             <strong>{formatRupiah(item.nominal)}</strong>
                           </li>
@@ -163,8 +179,8 @@ function UtangPage() {
                       </ul>
                     )}
                     <p className="text-xs text-base-content/70">
-                      Pembayaran ditampilkan sebagai riwayat pembeli dan tidak dialokasikan ke
-                      transaksi tertentu.
+                      Pembayaran ditampilkan sebagai riwayat pembeli dan tidak
+                      dialokasikan ke transaksi tertentu.
                     </p>
                   </section>
                 </div>
@@ -194,7 +210,10 @@ function UtangPage() {
               className="select select-bordered"
               value={search.status}
               onChange={(event) =>
-                updateSearch({ status: event.target.value as "belum-lunas" | "semua", halaman: 1 })
+                updateSearch({
+                  status: event.target.value as "belum-lunas" | "semua",
+                  halaman: 1,
+                })
               }
             >
               <option value="belum-lunas">Belum lunas</option>

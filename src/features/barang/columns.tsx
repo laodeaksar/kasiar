@@ -1,13 +1,29 @@
-import { JumlahCell, RupiahCell, StatusBadge, columnHelperFor } from "~/components/data-table";
+import {
+  JumlahCell,
+  RupiahCell,
+  StatusBadge,
+  columnHelperFor,
+} from "~/components/data-table";
 
 import type { BarangRow } from "./queries";
 
 const col = columnHelperFor<BarangRow>();
 
-export function barangColumns(admin = false, actions?: (row: BarangRow) => React.ReactNode) {
+export function barangColumns(
+  admin = false,
+  actions?: (row: BarangRow) => React.ReactNode,
+) {
   const columns = col.columns([
-    { accessorKey: "nama", header: "Nama barang", meta: { mobilePriority: "judul" } },
-    { accessorKey: "satuan", header: "Satuan", meta: { mobilePriority: "detail" } },
+    {
+      accessorKey: "nama",
+      header: "Nama barang",
+      meta: { mobilePriority: "judul" },
+    },
+    {
+      accessorKey: "satuan",
+      header: "Satuan",
+      meta: { mobilePriority: "detail" },
+    },
     {
       accessorKey: "hargaJual",
       header: "Harga jual",
@@ -33,7 +49,11 @@ export function barangColumns(admin = false, actions?: (row: BarangRow) => React
     columns.push(
       col.accessor("aktif", {
         header: "Status",
-        cell: (info) => <StatusBadge status={info.getValue<boolean>() ? "aktif" : "nonaktif"} />,
+        cell: (info) => (
+          <StatusBadge
+            status={info.getValue<boolean>() ? "aktif" : "nonaktif"}
+          />
+        ),
         meta: { mobilePriority: "detail" },
       }),
     );

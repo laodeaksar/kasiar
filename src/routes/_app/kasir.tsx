@@ -6,11 +6,21 @@ import { useEffect, useState } from "react";
 import * as v from "valibot";
 
 import { useConfirm } from "~/components/confirm/use-confirm";
-import { FormAlert, FormSubmitButton, NumberField, RupiahField } from "~/components/form";
+import {
+  FormAlert,
+  FormSubmitButton,
+  NumberField,
+  RupiahField,
+} from "~/components/form";
 import { HeaderButton, PageHeader } from "~/components/page-header";
 import { toast } from "~/components/toast";
 import { BarangSelectField } from "~/features/barang/barang-select-field";
-import { addCartItem, clearCart, removeCartItem, useCart } from "~/features/kasir/cart-store";
+import {
+  addCartItem,
+  clearCart,
+  removeCartItem,
+  useCart,
+} from "~/features/kasir/cart-store";
 import { simpanTransaksiMutationOptions } from "~/features/kasir/queries";
 import { PembeliField } from "~/features/utang/pembeli-field";
 import { ApiRequestError } from "~/lib/api";
@@ -21,7 +31,9 @@ import {
   type TransaksiInput,
 } from "~/validation/transaksi";
 
-export const Route = createFileRoute("/_app/kasir")({ component: KasirPage });
+export const Route = createFileRoute("/_app/kasir")({
+  component: KasirPage,
+});
 function KasirPage() {
   const cart = useCart();
   const confirm = useConfirm();
@@ -37,12 +49,18 @@ function KasirPage() {
       pembeliNama: "",
     },
   });
-  const barangField = useField(form, { path: ["barangId"] });
+  const barangField = useField(form, {
+    path: ["barangId"],
+  });
   const jumlahField = useField(form, { path: ["jumlah"] });
   const itemsField = useField(form, { path: ["items"] });
   const totalField = useField(form, { path: ["total"] });
-  const dibayar = useField(form, { path: ["jumlahDibayar"] });
-  const pembeliNama = useField(form, { path: ["pembeliNama"] });
+  const dibayar = useField(form, {
+    path: ["jumlahDibayar"],
+  });
+  const pembeliNama = useField(form, {
+    path: ["pembeliNama"],
+  });
   const [selected, setSelected] = useState<{
     id: number;
     nama: string;
@@ -50,10 +68,21 @@ function KasirPage() {
     hargaJual: number;
   } | null>(null);
   const [message, setMessage] = useState("");
-  const total = cart.reduce((sum, item) => sum + item.hargaJual * item.jumlah, 0);
-  const sisa = Math.max(0, total - (typeof dibayar.input === "number" ? dibayar.input : 0));
+  const total = cart.reduce(
+    (sum, item) => sum + item.hargaJual * item.jumlah,
+    0,
+  );
+  const sisa = Math.max(
+    0,
+    total - (typeof dibayar.input === "number" ? dibayar.input : 0),
+  );
   useEffect(() => {
-    itemsField.onChange(cart.map(({ barangId, jumlah }) => ({ barangId, jumlah })));
+    itemsField.onChange(
+      cart.map(({ barangId, jumlah }) => ({
+        barangId,
+        jumlah,
+      })),
+    );
     totalField.onChange(total);
   }, [cart, total, itemsField, totalField]);
   function tambahItem() {
@@ -94,7 +123,10 @@ function KasirPage() {
     try {
       await mutation.mutateAsync({
         ...input,
-        items: cart.map(({ barangId, jumlah }) => ({ barangId, jumlah })),
+        items: cart.map(({ barangId, jumlah }) => ({
+          barangId,
+          jumlah,
+        })),
         total,
       });
       toast.success(
@@ -108,13 +140,17 @@ function KasirPage() {
       setMessage("");
     } catch (error) {
       if (error instanceof ApiRequestError) setMessage(error.message);
-      else setMessage("Transaksi tidak dapat disimpan. Periksa koneksi lalu coba lagi.");
+      else
+        setMessage(
+          "Transaksi tidak dapat disimpan. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
   return (
     <section className="space-y-5">
       <PageHeader
         title="Kasir"
+
         description="Pilih barang, masukkan jumlah, lalu catat pembayaran."
         actions={
           cart.length ? (
@@ -152,7 +188,11 @@ function KasirPage() {
                 label="Jumlah"
                 decimals={selected?.satuan === "kg" ? 1 : 0}
                 required
-                hint={selected ? `Satuan: ${selected.satuan}` : "Pilih barang terlebih dahulu."}
+                hint={
+                  selected
+                    ? `Satuan: ${selected.satuan}`
+                    : "Pilih barang terlebih dahulu."
+                }
               />
             </div>
             <button
@@ -181,7 +221,8 @@ function KasirPage() {
                     <div>
                       <p className="font-medium">{item.nama}</p>
                       <p className="text-sm text-base-content/70">
-                        {formatJumlah(item.jumlah, item.satuan)} × {formatRupiah(item.hargaJual)}
+                        {formatJumlah(item.jumlah, item.satuan)} ×{" "}
+                        {formatRupiah(item.hargaJual)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

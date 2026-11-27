@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 
@@ -13,7 +20,9 @@ export type ConfirmOptions = {
   cancelText?: string;
   danger?: boolean;
 };
-type PendingConfirm = ConfirmOptions & { resolve: (answer: boolean) => void };
+type PendingConfirm = ConfirmOptions & {
+  resolve: (answer: boolean) => void;
+};
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<PendingConfirm | null>(null);
@@ -50,6 +59,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(() => ({ confirm }), [confirm]);
+
   return (
     <ConfirmContext.Provider value={value}>
       {children}

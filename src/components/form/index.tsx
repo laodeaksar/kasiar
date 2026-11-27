@@ -10,7 +10,10 @@ export {
   CheckboxField,
   DateField,
 } from "./fields";
-export { PasswordRequirementsPopover, PasswordStrengthIndicator } from "./password-requirements";
+export {
+  PasswordRequirementsPopover,
+  PasswordStrengthIndicator,
+} from "./password-requirements";
 
 export function FormSubmitButton({
   children = "Simpan",
@@ -24,7 +27,7 @@ export function FormSubmitButton({
   return (
     <button
       type="submit"
-      className="btn btn-primary w-full sm:w-auto"
+      className="btn btn-primary"
       disabled={disabled || loading}
       aria-busy={loading}
     >
@@ -39,7 +42,13 @@ export function FormSubmitButton({
   );
 }
 
-export function FormAlert({ message, children }: { message?: string; children?: ReactNode }) {
+export function FormAlert({
+  message,
+  children,
+}: {
+  message?: string;
+  children?: ReactNode;
+}) {
   if (!message && !children) return null;
   return (
     <div

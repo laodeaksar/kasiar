@@ -21,16 +21,21 @@ import {
 } from "~/validation/barang-masuk";
 
 import { BarangSelectField } from "../barang/barang-select-field";
-import { simpanBarangMasukMutationOptions, type PilihanBarang } from "./queries";
+import {
+  simpanBarangMasukMutationOptions,
+  type PilihanBarang,
+} from "./queries";
 
 function tanggalHariIniLokal() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
-function isPriceWarning(
-  value: unknown,
-): value is { type: "harga-beli-di-atas-jual"; hargaBeli: number; hargaJual: number } {
+function isPriceWarning(value: unknown): value is {
+  type: "harga-beli-di-atas-jual";
+  hargaBeli: number;
+  hargaJual: number;
+} {
   if (typeof value !== "object" || value === null) return false;
   const warning = value as Record<string, unknown>;
   return (
@@ -45,10 +50,18 @@ export function BarangMasukForm() {
   const mutation = useMutation(simpanBarangMasukMutationOptions());
   const form = useForm({
     schema: BarangMasukSchema,
-    initialInput: { tanggal: "", barangId: 0, jumlah: 0, hargaBeli: 0, pemasok: "" },
+    initialInput: {
+      tanggal: "",
+      barangId: 0,
+      jumlah: 0,
+      hargaBeli: 0,
+      pemasok: "",
+    },
   });
   const tanggal = useField(form, { path: ["tanggal"] });
-  const barangField = useField(form, { path: ["barangId"] });
+  const barangField = useField(form, {
+    path: ["barangId"],
+  });
   const jumlah = useField(form, { path: ["jumlah"] });
   const hargaBeli = useField(form, { path: ["hargaBeli"] });
   const pemasok = useField(form, { path: ["pemasok"] });
@@ -68,6 +81,7 @@ export function BarangMasukForm() {
     setErrors(form, { path: ["jumlah"], errors: null });
     setErrors(form, { path: ["hargaBeli"], errors: null });
     setErrors(form, { path: ["pemasok"], errors: null });
+
     if (!selected || selected.id !== input.barangId) {
       setMessage("Pilih barang yang tersedia.");
       selectRef.current?.focus();
@@ -77,14 +91,22 @@ export function BarangMasukForm() {
       setMessage("Jumlah untuk satuan ini harus bilangan bulat.");
       return;
     }
+
     try {
       let hargaJualDikonfirmasi: number | undefined;
       while (true) {
         try {
-          await mutation.mutateAsync({ input, hargaJualDikonfirmasi });
+          await mutation.mutateAsync({
+            input,
+            hargaJualDikonfirmasi,
+          });
           break;
         } catch (error) {
-          if (!(error instanceof ApiRequestError) || !isPriceWarning(error.details)) throw error;
+          if (
+            !(error instanceof ApiRequestError) ||
+            !isPriceWarning(error.details)
+          )
+            throw error;
           const warning = error.details;
           const proceed = await confirm({
             title: "Periksa harga beli",
@@ -105,17 +127,35 @@ export function BarangMasukForm() {
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (error.fields.tanggal)
-          setErrors(form, { path: ["tanggal"], errors: [error.fields.tanggal] });
+          setErrors(form, {
+            path: ["tanggal"],
+            errors: [error.fields.tanggal],
+          });
         if (error.fields.barangId)
-          setErrors(form, { path: ["barangId"], errors: [error.fields.barangId] });
+          setErrors(form, {
+            path: ["barangId"],
+            errors: [error.fields.barangId],
+          });
         if (error.fields.jumlah)
-          setErrors(form, { path: ["jumlah"], errors: [error.fields.jumlah] });
+          setErrors(form, {
+            path: ["jumlah"],
+            errors: [error.fields.jumlah],
+          });
         if (error.fields.hargaBeli)
-          setErrors(form, { path: ["hargaBeli"], errors: [error.fields.hargaBeli] });
+          setErrors(form, {
+            path: ["hargaBeli"],
+            errors: [error.fields.hargaBeli],
+          });
         if (error.fields.pemasok)
-          setErrors(form, { path: ["pemasok"], errors: [error.fields.pemasok] });
+          setErrors(form, {
+            path: ["pemasok"],
+            errors: [error.fields.pemasok],
+          });
         setMessage(error.message);
-      } else setMessage("Barang masuk tidak dapat disimpan. Periksa koneksi lalu coba lagi.");
+      } else
+        setMessage(
+          "Barang masuk tidak dapat disimpan. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
 
@@ -164,7 +204,9 @@ export function BarangMasukForm() {
         </div>
         <FormAlert message={message} />
         <div className="flex justify-end">
-          <FormSubmitButton loading={mutation.isPending}>Simpan barang masuk</FormSubmitButton>
+          <FormSubmitButton loading={mutation.isPending}>
+            Simpan barang masuk
+          </FormSubmitButton>
         </div>
       </div>
     </Form>

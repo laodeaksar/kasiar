@@ -14,11 +14,15 @@ export const PenggunaSchema = v.pipe(
         "Username hanya boleh berisi huruf, angka, titik, dan garis bawah.",
       ),
     ),
-    password: v.pipe(v.string(), v.maxLength(128, "Password maksimal 128 karakter.")),
+    password: v.pipe(
+      v.string(),
+      v.maxLength(128, "Password maksimal 128 karakter."),
+    ),
   }),
   v.forward(
     v.check(
-      ({ username, password }) => getPasswordAssessment(password, username).valid,
+      ({ username, password }) =>
+        getPasswordAssessment(password, username).valid,
       "Password terlalu lemah. Tambahkan huruf besar, angka, atau simbol.",
     ),
     ["password"],

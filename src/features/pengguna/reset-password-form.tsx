@@ -1,22 +1,46 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import {
+  Form,
+  isDirty,
+  reset,
+  setErrors,
+  useField,
+  useForm,
+} from "@formisch/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
+import type { ResetPasswordInput } from "~/validation/reset-password";
+
 import { useConfirm } from "~/components/confirm";
 import { FormAlert, FormSubmitButton, PasswordField } from "~/components/form";
-import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useModalClose,
+} from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
-import { ResetPasswordSchema, type ResetPasswordInput } from "~/validation/reset-password";
+import { ResetPasswordSchema } from "~/validation/reset-password";
 
 import type { KasirRow } from "./queries";
 
 import { resetPasswordMutationOptions } from "./queries";
 
-export function ResetPasswordForm({ kasir, onDone }: { kasir: KasirRow; onDone: () => void }) {
+export function ResetPasswordForm({
+  kasir,
+  onDone,
+}: {
+  kasir: KasirRow;
+  onDone: () => void;
+}) {
   const form = useForm({
     schema: ResetPasswordSchema,
-    initialInput: { userId: kasir.id, username: kasir.username, password: "" },
+    initialInput: {
+      userId: kasir.id,
+      username: kasir.username,
+      password: "",
+    },
   });
   const confirm = useConfirm();
   const mutation = useMutation(resetPasswordMutationOptions());
@@ -53,9 +77,15 @@ export function ResetPasswordForm({ kasir, onDone }: { kasir: KasirRow; onDone: 
     } catch (error) {
       if (error instanceof ApiRequestError) {
         if (error.fields.password)
-          setErrors(form, { path: ["password"], errors: [error.fields.password] });
+          setErrors(form, {
+            path: ["password"],
+            errors: [error.fields.password],
+          });
         setMessage(error.message);
-      } else setMessage("Password tidak dapat direset. Periksa koneksi lalu coba lagi.");
+      } else
+        setMessage(
+          "Password tidak dapat direset. Periksa koneksi lalu coba lagi.",
+        );
     }
   }
 
@@ -94,6 +124,7 @@ function ResetPasswordFields({
 }) {
   const close = useModalClose();
   const password = useField(form, { path: ["password"] });
+
   return (
     <Form
       of={form}
@@ -114,7 +145,7 @@ function ResetPasswordFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost"
+          className="btn"
           disabled={loading}
           onClick={close}
         >

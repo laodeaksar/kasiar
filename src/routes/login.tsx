@@ -1,9 +1,19 @@
 import { Form, useField, useForm } from "@formisch/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  redirect,
+  useNavigate,
+  useRouter,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { TextField, PasswordField, FormAlert, FormSubmitButton } from "~/components/form";
+import {
+  TextField,
+  PasswordField,
+  FormAlert,
+  FormSubmitButton,
+} from "~/components/form";
 import { PageHeader } from "~/components/page-header";
 import { toast } from "~/components/toast";
 import { authClient } from "~/lib/auth-client";
@@ -13,7 +23,10 @@ import { parseLoginSearch, safeReturnTarget } from "~/validation/search";
 export const Route = createFileRoute("/login")({
   validateSearch: (search) => parseLoginSearch(search),
   beforeLoad: ({ context, search }) => {
-    if (context.session) throw redirect({ to: safeReturnTarget(search.kembali) });
+    if (context.session)
+      throw redirect({
+        to: safeReturnTarget(search.kembali),
+      });
   },
   component: LoginPage,
 });
@@ -28,10 +41,17 @@ function LoginPage() {
   useEffect(() => {
     if (sesiBerakhir !== "1") return;
     toast.warning("Sesi Anda berakhir. Silakan masuk kembali.");
-    void navigate({ to: "/login", search: { kembali: safeReturnTarget(kembali) }, replace: true });
+    void navigate({
+      to: "/login",
+      search: { kembali: safeReturnTarget(kembali) },
+      replace: true,
+    });
   }, [kembali, navigate, sesiBerakhir]);
 
-  const form = useForm({ schema: LoginSchema, initialInput: { username: "", password: "" } });
+  const form = useForm({
+    schema: LoginSchema,
+    initialInput: { username: "", password: "" },
+  });
   const username = useField(form, { path: ["username"] });
   const password = useField(form, { path: ["password"] });
 
@@ -84,7 +104,9 @@ function LoginPage() {
               required
             />
             <FormAlert message={message} />
-            <FormSubmitButton loading={form.isSubmitting}>Masuk</FormSubmitButton>
+            <FormSubmitButton loading={form.isSubmitting}>
+              Masuk
+            </FormSubmitButton>
           </Form>
         </div>
       </section>

@@ -1,4 +1,9 @@
-import { JumlahCell, RupiahCell, TanggalCell, columnHelperFor } from "~/components/data-table";
+import {
+  JumlahCell,
+  RupiahCell,
+  TanggalCell,
+  columnHelperFor,
+} from "~/components/data-table";
 
 import type { BarangMasukRow } from "./queries";
 
@@ -12,7 +17,11 @@ export function barangMasukColumns() {
       cell: (info) => <TanggalCell value={info.getValue<string>()} />,
       meta: { mobilePriority: "detail" },
     },
-    { accessorKey: "namaBarang", header: "Barang", meta: { mobilePriority: "judul" } },
+    {
+      accessorKey: "namaBarang",
+      header: "Barang",
+      meta: { mobilePriority: "judul" },
+    },
     {
       accessorKey: "jumlahPersepuluh",
       header: "Jumlah",
@@ -39,6 +48,10 @@ export function barangMasukColumns() {
       cell: (info) => info.getValue<string | null>() || "—",
       meta: { mobilePriority: "detail" },
     },
-    { accessorKey: "namaPengguna", header: "Dicatat oleh", meta: { mobilePriority: "sembunyi" } },
+    {
+      accessorKey: "namaPengguna",
+      header: "Dicatat oleh",
+      meta: { mobilePriority: "sembunyi" },
+    },
   ]);
 }

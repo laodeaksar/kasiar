@@ -11,7 +11,11 @@ export class UtangError extends Error {
   readonly fields: Record<string, string>;
   readonly status: 400 | 404 | 409;
 
-  constructor(message: string, fields: Record<string, string> = {}, status: 400 | 404 | 409 = 400) {
+  constructor(
+    message: string,
+    fields: Record<string, string> = {},
+    status: 400 | 404 | 409 = 400,
+  ) {
     super(message);
     this.name = "UtangError";
     this.fields = fields;
@@ -83,14 +87,20 @@ export async function daftarUtang(search: unknown) {
       where ${transaksi.pembeliId} = ${pembeli.id} and ${transaksi.status} = 'utang'
     )`,
   ];
-  if (params.q) filters.push(ilike(pembeli.nama, `%${params.q.replace(/[\\%_]/g, "\\$&")}%`));
+  if (params.q)
+    filters.push(
+      ilike(pembeli.nama, `%${params.q.replace(/[\\%_]/g, "\\$&")}%`),
+    );
   if (params.status === "belum-lunas") filters.push(gt(saldoPembeliSql(), 0));
   const where = and(...filters);
   const [{ total }] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(pembeli)
     .where(where);
-  const page = Math.min(params.halaman, Math.max(1, Math.ceil(total / UKURAN_HALAMAN)));
+  const page = Math.min(
+    params.halaman,
+    Math.max(1, Math.ceil(total / UKURAN_HALAMAN)),
+  );
   const rows = await db
     .select({
       id: pembeli.id,
@@ -105,7 +115,12 @@ export async function daftarUtang(search: unknown) {
   return {
     rows: rows.map((row) => {
       const sisaUtang = Math.max(0, toSafeInteger(row.sisaUtang));
-      return { id: row.id, nama: row.nama, sisaUtang, status: sisaUtang > 0 ? "utang" : "lunas" };
+      return {
+        id: row.id,
+        nama: row.nama,
+        sisaUtang,
+        status: sisaUtang > 0 ? "utang" : "lunas",
+      };
     }),
     total,
     page,
@@ -115,10 +130,16 @@ export async function daftarUtang(search: unknown) {
 
 export async function rincianUtang(pembeliIdInput: unknown) {
   const parsedId = v.safeParse(
-    v.pipe(v.union([v.number(), v.string()]), v.transform(Number), v.integer(), v.minValue(1)),
+    v.pipe(
+      v.union([v.number(), v.string()]),
+      v.transform(Number),
+      v.integer(),
+      v.minValue(1),
+    ),
     pembeliIdInput,
   );
-  if (!parsedId.success) throw new UtangError("Pembeli tidak ditemukan.", {}, 404);
+  if (!parsedId.success)
+    throw new UtangError("Pembeli tidak ditemukan.", {}, 404);
   const pembeliId = parsedId.output;
   const [buyer] = await db
     .select({ id: pembeli.id, nama: pembeli.nama })
@@ -162,7 +183,11 @@ export async function rincianUtang(pembeliIdInput: unknown) {
           gt(transaksi.total, transaksi.jumlahDibayar),
         ),
       )
-      .orderBy(desc(transaksi.waktuDicatat), desc(transaksi.createdAt), desc(transaksi.id)),
+      .orderBy(
+        desc(transaksi.waktuDicatat),
+        desc(transaksi.createdAt),
+        desc(transaksi.id),
+      ),
     db
       .select({
         id: pembayaranUtang.id,
@@ -201,7 +226,11 @@ export async function catatPelunasan(input: unknown, penggunaId: string) {
       .where(eq(pembeli.id, value.pembeliId))
       .for("update");
     if (!buyer)
-      throw new UtangError("Pembeli tidak ditemukan.", { pembeliId: "Pilih pembeli." }, 404);
+      throw new UtangError(
+        "Pembeli tidak ditemukan.",
+        { pembeliId: "Pilih pembeli." },
+        404,
+      );
 
     const balance = await hitungSaldo(tx, buyer.id);
     if (balance.sisaUtang <= 0)
@@ -215,13 +244,19 @@ export async function catatPelunasan(input: unknown, penggunaId: string) {
     if (value.nominal > balance.sisaUtang)
       throw new UtangError(
         "Nominal pembayaran melebihi sisa utang.",
-        { nominal: "Nominal tidak boleh melebihi sisa utang." },
+        {
+          nominal: "Nominal tidak boleh melebihi sisa utang.",
+        },
         409,
       );
 
     const [payment] = await tx
       .insert(pembayaranUtang)
-      .values({ pembeliId: buyer.id, nominal: value.nominal, penggunaId })
+      .values({
+        pembeliId: buyer.id,
+        nominal: value.nominal,
+        penggunaId,
+      })
       .returning({ id: pembayaranUtang.id });
     const sisaUtang = balance.sisaUtang - value.nominal;
     return {

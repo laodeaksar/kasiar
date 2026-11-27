@@ -2,10 +2,15 @@ import * as v from "valibot";
 
 function isRealDate(value: string) {
   const date = new Date(`${value}T00:00:00.000Z`);
-  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+  return (
+    Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value
+  );
 }
 
-export function isJumlahValidUntukSatuan(jumlah: number, satuan: string): boolean {
+export function isJumlahValidUntukSatuan(
+  jumlah: number,
+  satuan: string,
+): boolean {
   return satuan === "kg" || Number.isInteger(jumlah);
 }
 
@@ -36,7 +41,11 @@ export const BarangMasukSchema = v.object({
     v.maxValue(2147483647, "Harga beli terlalu besar."),
   ),
   pemasok: v.optional(
-    v.pipe(v.string(), v.trim(), v.maxLength(200, "Nama pemasok maksimal 200 karakter.")),
+    v.pipe(
+      v.string(),
+      v.trim(),
+      v.maxLength(200, "Nama pemasok maksimal 200 karakter."),
+    ),
   ),
 });
 

@@ -1,7 +1,15 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { X } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+} from "react";
 
 type ModalSize = "kecil" | "sedang" | "besar";
 type ModalProps = {
@@ -31,7 +39,8 @@ function lockScroll() {
 }
 function unlockScroll() {
   scrollLockCount = Math.max(0, scrollLockCount - 1);
-  if (scrollLockCount === 0) document.body.style.overflow = scrollLockPrevOverflow;
+  if (scrollLockCount === 0)
+    document.body.style.overflow = scrollLockPrevOverflow;
 }
 
 export function Modal({
@@ -52,9 +61,19 @@ export function Modal({
   const closing = useRef(false);
   const reactId = useId();
   const titleId = `modal-title-${reactId.replaceAll(":", "")}`;
-  const latest = useRef({ open, onClose, canClose, closeGuard });
+  const latest = useRef({
+    open,
+    onClose,
+    canClose,
+    closeGuard,
+  });
   useEffect(() => {
-    latest.current = { open, onClose, canClose, closeGuard };
+    latest.current = {
+      open,
+      onClose,
+      canClose,
+      closeGuard,
+    };
   }, [open, onClose, canClose, closeGuard]);
 
   const requestClose = useCallback(async () => {
@@ -119,7 +138,9 @@ export function Modal({
       const target =
         initialFocusRef?.current ??
         firstField ??
-        dialog.querySelector<HTMLElement>("[data-modal-action]:not([disabled])") ??
+        dialog.querySelector<HTMLElement>(
+          "[data-modal-action]:not([disabled])",
+        ) ??
         closeButtonRef.current;
       target?.focus({ preventScroll: true });
       scrollFocusedFieldIntoView();
@@ -155,7 +176,9 @@ export function Modal({
   };
 
   const dialogPlacement =
-    placement === "tengah" ? "modal-middle p-4" : "modal-bottom sm:modal-middle p-0 sm:p-4";
+    placement === "tengah"
+      ? "modal-middle p-4"
+      : "modal-bottom sm:modal-middle p-0 sm:p-4";
   const boxPlacement =
     placement === "tengah"
       ? "rounded-box max-h-[calc(100%-2rem)] max-w-[calc(100vw-2rem)]"
@@ -213,7 +236,11 @@ export function Modal({
   );
 }
 
-export function ModalBody({ children, className = "", ...props }: ComponentPropsWithoutRef<"div">) {
+export function ModalBody({
+  children,
+  className = "",
+  ...props
+}: ComponentPropsWithoutRef<"div">) {
   return (
     <div
       {...props}
@@ -242,6 +269,7 @@ export function ModalFooter({
 
 export function useModalClose() {
   const requestClose = useContext(RequestCloseContext);
-  if (!requestClose) throw new Error("useModalClose harus digunakan di dalam Modal.");
+  if (!requestClose)
+    throw new Error("useModalClose harus digunakan di dalam Modal.");
   return requestClose;
 }

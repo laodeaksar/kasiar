@@ -22,5 +22,7 @@ export function formatTanggal(value: string | Date): string {
         : new Date(value)
       : value;
   if (Number.isNaN(date.getTime())) return "Tanggal tidak valid";
-  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium" }).format(date);
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+  }).format(date);
 }

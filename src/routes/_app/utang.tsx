@@ -92,7 +92,7 @@ function UtangPage() {
                     </p>
                   </div>
                   <button
-                    className="btn btn-outline min-h-11"
+                    className="btn btn-outline"
                     onClick={() => updateSearch({ pembeli: undefined })}
                   >
                     Tutup rincian
@@ -186,13 +186,12 @@ function UtangPage() {
         <DataTableToolbar>
           <DataTableSearch
             value={search.q}
-            label="Cari nama pembeli"
             onChange={(q) => updateSearch({ q, halaman: 1 })}
           />
           <label className="form-control">
             <span className="label-text mb-1">Status</span>
             <select
-              className="select select-bordered min-h-12"
+              className="select select-bordered"
               value={search.status}
               onChange={(event) =>
                 updateSearch({ status: event.target.value as "belum-lunas" | "semua", halaman: 1 })

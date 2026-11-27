@@ -21,8 +21,7 @@ const variantClass: Record<NonNullable<HeaderButtonBaseProps["variant"]>, string
   bahaya: "btn-error btn-outline",
 };
 
-const buttonSizeClass =
-  "h-11 min-h-11 w-11 min-w-11 shrink-0 gap-2 p-0 sm:h-11 sm:min-h-11 sm:w-auto sm:min-w-11 sm:px-4";
+const buttonSizeClass = "btn-sm shrink-0 gap-2 p-0 sm:px-4";
 
 function ButtonContents({
   icon: Icon,

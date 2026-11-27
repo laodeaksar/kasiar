@@ -157,7 +157,7 @@ function KasirPage() {
             </div>
             <button
               type="button"
-              className="btn btn-primary min-h-12 self-end"
+              className="btn btn-primary self-end"
               onClick={tambahItem}
             >
               Tambah
@@ -188,7 +188,7 @@ function KasirPage() {
                       <span>{formatRupiah(item.jumlah * item.hargaJual)}</span>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-square min-h-11"
+                        className="btn btn-ghost btn-square"
                         aria-label={`Hapus ${item.nama}`}
                         onClick={() => removeCartItem(item.barangId)}
                       >

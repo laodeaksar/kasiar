@@ -44,7 +44,7 @@ export function PembeliField({
         {...field.props}
         id={id}
         value={value}
-        className={`input input-bordered min-h-12 w-full ${error ? "input-error" : ""}`}
+        className={`input input-bordered w-full ${error ? "input-error" : ""}`}
         placeholder="Pilih atau ketik nama pembeli"
         onFocus={() => setOpen(true)}
         onChange={(event) => {
@@ -60,7 +60,7 @@ export function PembeliField({
             <button
               type="button"
               key={item.id}
-              className="block min-h-11 w-full px-3 text-left hover:bg-base-200"
+              className="block w-full px-3 text-left hover:bg-base-200"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 field.onChange(item.nama);

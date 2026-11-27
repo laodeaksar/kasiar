@@ -61,7 +61,7 @@ function AppLayout() {
           <div className="dropdown md:hidden">
             <button
               tabIndex={0}
-              className="btn btn-ghost btn-square min-h-11"
+              className="btn btn-ghost btn-square"
               aria-label="Buka navigasi"
             >
               <Menu />
@@ -162,7 +162,7 @@ function AppLayout() {
           <ThemeToggle initialTheme={rootData?.theme ?? null} />
           <button
             type="button"
-            className="btn btn-outline min-h-11"
+            className="btn btn-outline"
             onClick={logout}
           >
             Keluar

@@ -31,6 +31,7 @@ export function DataTable<T extends RowData>({
     pageIndex: data.page - 1,
     pageSize: data.pageSize,
   };
+  
   const table = useTable({
     features: dataTableFeatures,
     data: data.rows,
@@ -43,8 +44,10 @@ export function DataTable<T extends RowData>({
       onPageChange?.(next.pageIndex + 1);
     },
   });
+  
   const rows = table.getRowModel().rows;
   if (rows.length === 0) return null;
+  
   return (
     <>
       <div

@@ -114,7 +114,7 @@ function ResetPasswordFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost min-h-11"
+          className="btn btn-ghost"
           disabled={loading}
           onClick={close}
         >

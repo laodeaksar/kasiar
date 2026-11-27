@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { X } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useId, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef } from "react";
 
 type ModalSize = "kecil" | "sedang" | "besar";
 type ModalProps = {
@@ -10,6 +10,7 @@ type ModalProps = {
   title: string;
   descriptionId?: string;
   size?: ModalSize;
+  placement?: "bawah" | "tengah";
   canClose?: boolean;
   closeGuard?: () => boolean | Promise<boolean>;
   initialFocusRef?: { current: HTMLElement | null };
@@ -18,12 +19,28 @@ type ModalProps = {
 
 const RequestCloseContext = createContext<(() => void) | null>(null);
 
+// Scroll lock global: aman untuk modal bertumpuk / ditutup tidak berurutan.
+let scrollLockCount = 0;
+let scrollLockPrevOverflow = "";
+function lockScroll() {
+  if (scrollLockCount === 0) {
+    scrollLockPrevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+  scrollLockCount += 1;
+}
+function unlockScroll() {
+  scrollLockCount = Math.max(0, scrollLockCount - 1);
+  if (scrollLockCount === 0) document.body.style.overflow = scrollLockPrevOverflow;
+}
+
 export function Modal({
   open,
   onClose,
   title,
   descriptionId,
   size = "sedang",
+  placement = "bawah",
   canClose = true,
   closeGuard,
   initialFocusRef,
@@ -48,20 +65,36 @@ export function Modal({
       const allowed = current.closeGuard ? await current.closeGuard() : true;
       const updated = latest.current;
       if (allowed && updated.open && updated.canClose) updated.onClose();
-    } catch {
+    } catch (error) {
       // Jika pemeriksaan sebelum tutup gagal, pertahankan modal tetap terbuka.
+      if (import.meta.env.DEV) console.error("closeGuard gagal:", error);
     } finally {
       closing.current = false;
     }
   }, []);
 
+  const contextValue = useMemo(
+    () => () => {
+      void requestClose();
+    },
+    [requestClose],
+  );
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!open || !dialog) return;
-    const previousOverflow = document.body.style.overflow;
     if (!dialog.open) dialog.showModal();
-    document.body.style.overflow = "hidden";
+    lockScroll();
 
+    const vv = window.visualViewport;
+
+    // Ikuti area yang benar-benar terlihat (mengecil saat keyboard muncul),
+    // supaya footer modal tidak tertutup keyboard.
+    const fitToVisualViewport = () => {
+      if (!vv) return;
+      dialog.style.height = `${vv.height}px`;
+      dialog.style.top = `${vv.offsetTop}px`;
+    };
     const scrollFocusedFieldIntoView = () => {
       const active = document.activeElement;
       if (
@@ -72,6 +105,12 @@ export function Modal({
         active.scrollIntoView({ block: "nearest" });
       }
     };
+    const onViewportChange = () => {
+      fitToVisualViewport();
+      scrollFocusedFieldIntoView();
+    };
+
+    fitToVisualViewport();
     const frame = window.requestAnimationFrame(() => {
       if (!dialog.open) return;
       const firstField = dialog.querySelector<HTMLElement>(
@@ -85,13 +124,17 @@ export function Modal({
       target?.focus({ preventScroll: true });
       scrollFocusedFieldIntoView();
     });
-    window.visualViewport?.addEventListener("resize", scrollFocusedFieldIntoView);
+    vv?.addEventListener("resize", onViewportChange);
+    vv?.addEventListener("scroll", onViewportChange);
 
     return () => {
       window.cancelAnimationFrame(frame);
-      window.visualViewport?.removeEventListener("resize", scrollFocusedFieldIntoView);
+      vv?.removeEventListener("resize", onViewportChange);
+      vv?.removeEventListener("scroll", onViewportChange);
+      dialog.style.height = "";
+      dialog.style.top = "";
       if (dialog.open) dialog.close();
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
     };
   }, [initialFocusRef, open]);
 
@@ -111,18 +154,20 @@ export function Modal({
     besar: "sm:w-[42rem]",
   };
 
+  const dialogPlacement =
+    placement === "tengah" ? "modal-middle p-4" : "modal-bottom sm:modal-middle p-0 sm:p-4";
+  const boxPlacement =
+    placement === "tengah"
+      ? "rounded-box max-h-[calc(100%-2rem)] max-w-[calc(100vw-2rem)]"
+      : "max-h-[90%] max-w-none rounded-t-2xl rounded-b-none sm:max-h-[calc(100%-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box";
+
   return (
-    <RequestCloseContext.Provider
-      value={() => {
-        void requestClose();
-      }}
-    >
+    <RequestCloseContext.Provider value={contextValue}>
       <dialog
         ref={dialogRef}
-        className="modal modal-bottom sm:modal-middle kasiar-modal fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent p-0 text-base-content sm:p-4"
+        className={`modal ${dialogPlacement} kasiar-modal fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent text-base-content`}
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        aria-modal="true"
         onCancel={(event) => {
           event.preventDefault();
           void requestClose();
@@ -134,7 +179,7 @@ export function Modal({
         }}
       >
         <div
-          className={`modal-box flex max-h-[90dvh] w-full max-w-none flex-col overflow-hidden rounded-t-2xl rounded-b-none bg-base-100 p-0 shadow-xl sm:max-h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box ${sizeClasses[size]}`}
+          className={`modal-box flex w-full flex-col overflow-hidden bg-base-100 p-0 shadow-xl ${boxPlacement} ${sizeClasses[size]}`}
         >
           <header className="relative flex shrink-0 items-center border-b border-base-300 px-4 py-3 pr-16 sm:px-6">
             <h2
@@ -146,7 +191,7 @@ export function Modal({
             <button
               ref={closeButtonRef}
               type="button"
-              className="btn btn-ghost btn-square absolute right-2 top-1/2 size-11 min-h-11 min-w-11 -translate-y-1/2 disabled:opacity-40"
+              className="btn btn-sm btn-ghost btn-circle absolute right-2 top-1/2 -translate-y-1/2 disabled:opacity-40"
               aria-label="Tutup"
               data-modal-close="true"
               disabled={!canClose}
@@ -160,7 +205,8 @@ export function Modal({
               />
             </button>
           </header>
-          {children}
+          {/* Di-unmount saat tertutup: state form reset & effect anak berhenti. */}
+          {open ? children : null}
         </div>
       </dialog>
     </RequestCloseContext.Provider>

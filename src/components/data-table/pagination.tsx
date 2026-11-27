@@ -27,7 +27,7 @@ export function DataTablePagination<T extends RowData>({
       </p>
       <div className="join">
         <button
-          className="btn join-item min-h-11"
+          className="btn btn-sm join-item"
           aria-label="Halaman sebelumnya"
           disabled={!table.getCanPreviousPage()}
           onClick={() => table.previousPage()}
@@ -35,13 +35,13 @@ export function DataTablePagination<T extends RowData>({
           Sebelumnya
         </button>
         <span
-          className="btn join-item min-h-11"
+          className="btn btn-sm join-item"
           aria-current="page"
         >
           {page} / {pages}
         </span>
         <button
-          className="btn join-item min-h-11"
+          className="btn btn-sm join-item"
           aria-label="Halaman berikutnya"
           disabled={!table.getCanNextPage()}
           onClick={() => table.nextPage()}

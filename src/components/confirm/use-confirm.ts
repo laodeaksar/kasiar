@@ -1,14 +1,8 @@
 import { createContext, useContext } from "react";
 
-type ConfirmContextValue = { confirm: (options: ConfirmOptions) => Promise<boolean> };
+import type { ConfirmOptions } from "./confirm-provider";
 
-export type ConfirmOptions = {
-  title?: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  danger?: boolean;
-};
+type ConfirmContextValue = { confirm: (options: ConfirmOptions) => Promise<boolean> };
 
 export const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 

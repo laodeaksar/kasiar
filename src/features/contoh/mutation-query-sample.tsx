@@ -79,7 +79,7 @@ export function MutationQuerySample() {
         <div>
           <button
             type="button"
-            className="btn btn-primary min-h-11"
+            className="btn btn-primary"
             onClick={() => setOpen(true)}
           >
             Uji alur simpan
@@ -181,7 +181,7 @@ function TutupButton({ loading }: { loading: boolean }) {
   return (
     <button
       type="button"
-      className="btn btn-ghost min-h-11"
+      className="btn btn-ghost"
       disabled={loading}
       onClick={close}
     >

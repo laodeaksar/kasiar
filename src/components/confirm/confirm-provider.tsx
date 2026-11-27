@@ -1,19 +1,26 @@
 import type { ReactNode } from "react";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 
-import type { ConfirmOptions } from "./use-confirm";
-
 import { ConfirmContext } from "./use-confirm";
 
+export type ConfirmOptions = {
+  title?: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  danger?: boolean;
+};
 type PendingConfirm = ConfirmOptions & { resolve: (answer: boolean) => void };
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<PendingConfirm | null>(null);
   const pendingRef = useRef<PendingConfirm | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const messageId = `confirm-message-${useId().replaceAll(":", "")}`;
+
   const confirm = useCallback(
     (options: ConfirmOptions) =>
       new Promise<boolean>((resolve) => {
@@ -32,6 +39,16 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     pendingRef.current = null;
     setPending(null);
   }, []);
+
+  // Jika provider di-unmount saat konfirmasi masih terbuka, jangan biarkan promise menggantung.
+  useEffect(
+    () => () => {
+      pendingRef.current?.resolve(false);
+      pendingRef.current = null;
+    },
+    [],
+  );
+
   const value = useMemo(() => ({ confirm }), [confirm]);
   return (
     <ConfirmContext.Provider value={value}>
@@ -40,18 +57,19 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         open={pending !== null}
         onClose={() => finish(false)}
         title={pending?.title ?? "Yakin?"}
-        descriptionId="confirm-message"
+        descriptionId={messageId}
         size="kecil"
+        placement="tengah"
         initialFocusRef={pending?.danger ? cancelButtonRef : undefined}
       >
-        <ModalBody id="confirm-message">
-          <p>{pending?.message}</p>
+        <ModalBody id={messageId}>
+          <p className="whitespace-pre-line">{pending?.message}</p>
         </ModalBody>
         <ModalFooter>
           <button
             ref={cancelButtonRef}
             type="button"
-            className="btn btn-outline min-h-11"
+            className="btn"
             data-modal-action="true"
             onClick={() => finish(false)}
           >
@@ -59,7 +77,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           </button>
           <button
             type="button"
-            className={`btn min-h-11 ${pending?.danger ? "btn-error" : "btn-primary"}`}
+            className={`btn ${pending?.danger ? "btn-error" : "btn-primary"}`}
             data-modal-action="true"
             onClick={() => finish(true)}
           >

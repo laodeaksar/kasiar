@@ -72,13 +72,12 @@ function BarangMasukPage() {
           <DataTableSearch
             value={search.q}
             onChange={(q) => changeSearch({ q, halaman: 1 })}
-            label="Cari barang atau pemasok"
           />
           <label className="form-control">
             <span className="label-text mb-1">Dari tanggal</span>
             <input
               type="date"
-              className="input input-bordered min-h-12"
+              className="input input-bordered"
               value={search.dari}
               max={search.sampai || undefined}
               onChange={(event) => changeSearch({ dari: event.target.value, halaman: 1 })}
@@ -88,7 +87,7 @@ function BarangMasukPage() {
             <span className="label-text mb-1">Sampai tanggal</span>
             <input
               type="date"
-              className="input input-bordered min-h-12"
+              className="input input-bordered"
               value={search.sampai}
               min={search.dari || undefined}
               onChange={(event) => changeSearch({ sampai: event.target.value, halaman: 1 })}
@@ -96,7 +95,7 @@ function BarangMasukPage() {
           </label>
           {filtering && (
             <button
-              className="btn btn-outline min-h-12"
+              className="btn btn-outline"
               onClick={clearFilters}
             >
               Hapus filter

@@ -20,6 +20,7 @@ export function DataTableStates({
   if (loading) return <Skeleton variant="table-rows" />;
   if (error) return <ErrorState onRetry={onRetry ?? (() => undefined)} />;
   if (!isEmpty) return null;
+  
   return (
     <EmptyState
       title={isSearchEmpty ? `Tidak ada hasil untuk “${query ?? ""}”.` : "Belum ada data."}

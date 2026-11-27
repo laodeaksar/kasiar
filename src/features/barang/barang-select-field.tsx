@@ -53,7 +53,7 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
         aria-controls="barang-pilihan-list"
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`input input-bordered min-h-12 w-full ${error ? "input-error" : ""}`}
+        className={`input w-full ${error ? "input-error" : ""}`}
         value={open ? query : (selected?.nama ?? "")}
         placeholder="Cari nama barang..."
         onFocus={() => {
@@ -99,7 +99,7 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
                 type="button"
                 role="option"
                 aria-selected={selected?.id === item.id}
-                className="flex min-h-12 w-full items-center justify-between gap-3 px-3 text-left hover:bg-base-200 focus:bg-base-200"
+                className="flex w-full items-center justify-between gap-3 px-3 text-left hover:bg-base-200 focus:bg-base-200"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
                   field.onChange(item.id);

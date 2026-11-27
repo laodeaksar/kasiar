@@ -97,7 +97,7 @@ function AdminBarangPage() {
     );
   const columns = barangColumns(true, (row) => (
     <button
-      className="btn btn-sm btn-outline min-h-10"
+      className="btn btn-sm btn-outline"
       onClick={() => (row.aktif ? setEditing(row) : void toggleActive(row))}
     >
       {row.aktif ? "Ubah" : "Aktifkan"}
@@ -136,7 +136,7 @@ function AdminBarangPage() {
         <label className="form-control w-full max-w-xs">
           <span className="label-text mb-1">Status barang</span>
           <select
-            className="select select-bordered min-h-12"
+            className="select select-bordered"
             value={search.status}
             onChange={(event) =>
               changeSearch({ status: event.target.value as typeof search.status, halaman: 1 })
@@ -170,7 +170,7 @@ function AdminBarangPage() {
           title="Belum ada barang. Tambahkan barang pertama."
           action={
             <button
-              className="btn btn-primary min-h-11"
+              className="btn btn-primary"
               onClick={() => setShowAdd(true)}
             >
               Tambah barang
@@ -340,7 +340,7 @@ function EditBarangFields({
       <ModalFooter>
         <button
           type="button"
-          className="btn btn-ghost min-h-11"
+          className="btn btn-ghost"
           disabled={loading}
           onClick={close}
         >

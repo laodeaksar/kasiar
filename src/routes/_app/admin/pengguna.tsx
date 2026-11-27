@@ -42,7 +42,7 @@ function AdminPenggunaPage() {
     );
   const columns = penggunaColumns((row) => (
     <button
-      className="btn btn-outline btn-sm min-h-10"
+      className="btn btn-outline btn-sm"
       onClick={() => setResetting(row)}
     >
       Reset password

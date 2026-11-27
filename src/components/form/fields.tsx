@@ -1,11 +1,17 @@
 import type { FieldElementProps } from "@formisch/react";
 
 import { Eye, EyeOff } from "lucide-react";
-import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+} from "react";
 
-import { formatRupiah } from "../../lib/format";
-import { getPasswordAssessment, getPasswordSuggestion } from "../../lib/password-strength";
-import { PasswordRequirementsPopover } from "./password-requirements-popover";
+import { formatRupiah } from "~/lib/format";
+import { PasswordRequirementsPopover, PasswordStrengthIndicator } from "./password-requirements";
 
 type FormFieldStore = {
   path: readonly PropertyKey[];
@@ -15,30 +21,106 @@ type FormFieldStore = {
   onChange(value: unknown): void;
   props: FieldElementProps;
 };
-type FieldProps = {
+/** Props dasar yang dimiliki semua field. */
+type BaseFieldProps = {
   field: FormFieldStore;
   label: string;
   hint?: string;
   required?: boolean;
-  type?: string;
-  placeholder?: string;
-  showStrength?: boolean;
-  username?: string;
-  inputMode?: "text" | "numeric" | "decimal" | "email";
-  autoComplete?: string;
 };
+
+/** Atribut <input> yang dikelola komponen/formisch dan tidak boleh diatur dari luar. */
+type ManagedInputKeys =
+  | "value"
+  | "defaultValue"
+  | "checked"
+  | "defaultChecked"
+  | "onChange"
+  | "onBlur"
+  | "name"
+  | "id"
+  | "required";
+type NativeInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, ManagedInputKeys>;
+
+/** Field teks generik: semua atribut <input> native + opsi tampilan/parsing. */
+type TextFieldProps = BaseFieldProps &
+  NativeInputProps & {
+    icon?: ReactNode;
+    trailing?: ReactNode;
+    displayValue?: string;
+    parseValue?: (value: string) => unknown;
+  };
+type PasswordFieldProps = BaseFieldProps &
+  Omit<NativeInputProps, "type"> & {
+    showStrength?: boolean;
+    username?: string;
+  };
+/** Field berjenis tetap (angka, rupiah, tanggal): hanya props dasar + sedikit atribut native. */
+type SimpleFieldProps = BaseFieldProps & Pick<NativeInputProps, "placeholder" | "disabled">;
+type NumberFieldProps = SimpleFieldProps & { decimals?: 0 | 1 };
+type SelectOption = { label: string; value: string };
+type SelectFieldProps = BaseFieldProps & { options: readonly SelectOption[] };
+type CheckboxFieldProps = BaseFieldProps & Omit<NativeInputProps, "type">;
+type FormFieldProps = BaseFieldProps & { children: ReactNode };
+type FieldShellProps = {
+  label?: string;
+  labelId?: string;
+  hint?: string;
+  hintId?: string;
+  message: string;
+  errorId?: string;
+  children: ReactNode;
+};
+
+/**
+ * Mengambil pesan error pertama untuk ditampilkan, tetapi hanya setelah field disentuh
+ * (isTouched), supaya form baru dibuka tidak langsung penuh pesan merah.
+ * Mengembalikan "" jika tidak ada error.
+ */
 function errorText(field: FormFieldStore) {
   return field.isTouched ? (field.errors?.[0] ?? "") : "";
 }
 
-function useValidity<T extends HTMLInputElement | HTMLSelectElement>(message: string) {
-  const ref = useRef<T>(null);
+/**
+ * Hook internal untuk elemen <input>/<select> milik field.
+ * Menggabungkan ref formisch (agar field terdaftar, mis. untuk fokus otomatis ke field
+ * error saat submit) dengan ref lokal untuk setCustomValidity (agar validasi native/
+ * pseudo-class :user-invalid mengikuti pesan error formisch).
+ *
+ * @example
+ * const message = errorText(field);
+ * const ref = useFieldRef<HTMLInputElement>(field, message);
+ * return <input {...field.props} ref={ref} />; // ref harus SETELAH spread field.props
+ */
+function useFieldRef<T extends HTMLInputElement | HTMLSelectElement>(
+  field: FormFieldStore,
+  message: string,
+) {
+  const elementRef = useRef<T | null>(null);
+  const formRef = field.props.ref;
+  const ref = useCallback(
+    (element: T | null) => {
+      elementRef.current = element;
+      if (element) formRef(element);
+    },
+    [formRef],
+  );
   useEffect(() => {
-    ref.current?.setCustomValidity(message);
+    elementRef.current?.setCustomValidity(message);
   }, [message]);
   return ref;
 }
 
+/**
+ * Pembungkus tampilan satu field: label (legend), kontrol, pesan error, dan hint.
+ * Hint disembunyikan saat ada error. Dipakai oleh semua field di file ini; pakai langsung
+ * hanya untuk membuat jenis field baru.
+ *
+ * @example
+ * <FieldShell label="Nama *" labelId="n-label" message={errorText(field)} errorId="n-error">
+ *   <input className="input validator w-full" />
+ * </FieldShell>
+ */
 export function FieldShell({
   label,
   labelId,
@@ -47,15 +129,7 @@ export function FieldShell({
   message,
   errorId,
   children,
-}: {
-  label?: string;
-  labelId?: string;
-  hint?: string;
-  hintId?: string;
-  message: string;
-  errorId?: string;
-  children: ReactNode;
-}) {
+}: FieldShellProps) {
   return (
     <fieldset className="fieldset min-w-0">
       {label ? (
@@ -86,13 +160,23 @@ export function FieldShell({
   );
 }
 
+/**
+ * Pembungkus field untuk kontrol kustom (radio, textarea, upload, dll.) yang tidak punya
+ * komponen sendiri. Menyediakan label, hint, dan pesan error; kontrolnya Anda tulis sendiri.
+ * Gunakan `ids(field, hint)` untuk id/aria-describedby kontrol tersebut.
+ *
+ * @example
+ * <FormField field={field} label="Catatan" hint="Opsional">
+ *   <textarea {...field.props} className="textarea w-full" />
+ * </FormField>
+ */
 export function FormField({
   field,
   label,
   hint,
   required,
   children,
-}: FieldProps & { children: ReactNode }) {
+}: FormFieldProps) {
   const attr = ids(field, hint);
   return (
     <FieldShell
@@ -107,6 +191,14 @@ export function FormField({
     </FieldShell>
   );
 }
+/**
+ * Membuat id yang konsisten dari path field: id input, label, hint, dan error, plus
+ * `describedBy` untuk aria-describedby (error lebih diutamakan daripada hint).
+ *
+ * @example
+ * const attr = ids(field, "Contoh hint");
+ * <input id={attr.id} aria-labelledby={attr.labelId} aria-describedby={attr.describedBy} />
+ */
 function ids(field: FormFieldStore, hint?: string) {
   const id = `field-${field.path.map(String).join("-")}`;
   const message = errorText(field);
@@ -119,32 +211,32 @@ function ids(field: FormFieldStore, hint?: string) {
   };
 }
 
-type InputExtra = Omit<
-  InputHTMLAttributes<HTMLInputElement>,
-  "value" | "onChange" | "onBlur" | "name" | "id"
->;
-
+/**
+ * Field teks generik. Menerima semua atribut <input> native (type, placeholder,
+ * autoComplete, inputMode, maxLength, dll.) kecuali yang dikelola formisch.
+ * - `icon` / `trailing`: elemen di kiri/kanan dalam kotak input.
+ * - `displayValue`: teks yang ditampilkan jika berbeda dari nilai field (mis. format angka).
+ * - `parseValue`: ubah teks ketikan menjadi nilai field sebelum disimpan.
+ *
+ * @example
+ * <Field of={form} path={["nama"]}>
+ *   {(field) => <TextField field={field} label="Nama barang" required autoComplete="off" />}
+ * </Field>
+ */
 export function TextField({
   label,
   field,
   hint,
+  required,
   icon,
   trailing,
   displayValue,
   parseValue,
   className,
   ...rest
-}: {
-  label: string;
-  field: FormFieldStore;
-  hint?: string;
-  icon?: ReactNode;
-  trailing?: ReactNode;
-  displayValue?: string;
-  parseValue?: (value: string) => unknown;
-} & InputExtra) {
+}: TextFieldProps) {
   const message = errorText(field);
-  const ref = useValidity<HTMLInputElement>(message);
+  const ref = useFieldRef<HTMLInputElement>(field, message);
   const attr = ids(field, hint);
   const wrapped = !!(icon || trailing);
   const describedBy =
@@ -155,6 +247,7 @@ export function TextField({
       {...field.props}
       ref={ref}
       id={attr.id}
+      required={required}
       aria-labelledby={attr.labelId}
       value={displayValue ?? String(field.input ?? "")}
       onBlur={field.props.onBlur}
@@ -165,14 +258,14 @@ export function TextField({
       aria-describedby={describedBy}
       className={
         wrapped
-          ? `grow ${className ?? ""}`.trim()
-          : `${className ?? "input validator w-full"} ${message ? "input-error" : ""}`.trim()
+          ? `min-w-0 grow ${className ?? ""}`.trim()
+          : `input validator min-h-12 w-full ${message ? "input-error" : ""} ${className ?? ""}`.trim()
       }
     />
   );
   return (
     <FieldShell
-      label={`${label}${rest.required ? " *" : ""}`}
+      label={`${label}${required ? " *" : ""}`}
       labelId={attr.labelId}
       hint={hint}
       hintId={attr.hintId}
@@ -180,7 +273,7 @@ export function TextField({
       errorId={attr.errorId}
     >
       {wrapped ? (
-        <label className={`input validator w-full ${message ? "input-error" : ""}`}>
+        <label className={`input validator min-h-12 w-full ${message ? "input-error" : ""}`}>
           {icon}
           {input}
           {trailing}
@@ -192,39 +285,19 @@ export function TextField({
   );
 }
 
-export function PasswordStrengthIndicator({
-  password,
-  username,
-}: {
-  password: string;
-  username?: string;
-}) {
-  const strength = getPasswordAssessment(password, username).strength;
-  const active = strength === "Lemah" ? 1 : strength === "Sedang" ? 2 : 3;
-  return (
-    <div className="space-y-1">
-      <div
-        className="flex gap-1"
-        aria-hidden="true"
-      >
-        {[1, 2, 3].map((segment) => (
-          <span
-            key={segment}
-            className={`h-2 flex-1 rounded-full ${segment <= active ? (strength === "Lemah" ? "bg-error" : strength === "Sedang" ? "bg-warning" : "bg-success") : "bg-base-300"}`}
-          />
-        ))}
-      </div>
-      <p
-        className="text-sm"
-        aria-live="polite"
-      >
-        Kekuatan password: <strong>{strength}</strong>. {getPasswordSuggestion(strength)}
-      </p>
-    </div>
-  );
-}
-
-export function PasswordField(props: FieldProps & InputExtra) {
+/**
+ * Field password dengan tombol tampilkan/sembunyikan. Atur `autoComplete` sesuai konteks
+ * (default "new-password"; pakai "current-password" untuk form login).
+ * Dengan `showStrength`, muncul indikator kekuatan dan popover syarat password saat fokus;
+ * isi `username` agar password yang sama dengan username ditolak.
+ *
+ * @example
+ * // Form daftar / ganti password
+ * <PasswordField field={field} label="Password" required showStrength username={username} />
+ * // Form login
+ * <PasswordField field={field} label="Password" required autoComplete="current-password" />
+ */
+export function PasswordField(props: PasswordFieldProps) {
   const { field, showStrength, username, ...textProps } = props;
   const [visible, setVisible] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -232,12 +305,10 @@ export function PasswordField(props: FieldProps & InputExtra) {
   const attr = ids(field, props.hint);
   const password = typeof field.input === "string" ? field.input : "";
   const requirementsId = `${attr.id}-requirements`;
-  const describedBy =
-    [
-      attr.describedBy,
-      props.hint ? `${attr.id}-hint` : undefined,
-      showStrength ? requirementsId : undefined,
-    ]
+  // TextField sudah menambahkan ID error/hint miliknya sendiri; di sini hanya
+  // tambahan dari luar dan daftar syarat password.
+  const extraDescribedBy =
+    [props["aria-describedby"], showStrength ? requirementsId : undefined]
       .filter(Boolean)
       .join(" ") || undefined;
   function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
@@ -258,14 +329,18 @@ export function PasswordField(props: FieldProps & InputExtra) {
         {...textProps}
         field={field}
         type={visible ? "text" : "password"}
-        autoComplete="new-password"
-        aria-describedby={describedBy}
+        autoComplete={textProps.autoComplete ?? "new-password"}
+        aria-describedby={extraDescribedBy}
         trailing={
           <button
             type="button"
+            // Cegah tombol mencuri fokus: popover tidak tertutup (Safari/iOS)
+            // dan keyboard HP tetap terbuka.
+            onMouseDown={(event) => event.preventDefault()}
             onClick={() => setVisible((value) => !value)}
             aria-label={visible ? "Sembunyikan password" : "Tampilkan password"}
-            className="btn btn-circle btn-ghost btn-xs"
+            aria-pressed={visible}
+            className="btn btn-circle btn-ghost btn-sm"
           >
             {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
@@ -290,48 +365,55 @@ export function PasswordField(props: FieldProps & InputExtra) {
   );
 }
 
-export function NumberField({
-  field,
-  label,
-  decimals = 0,
-  hint,
-  required,
-}: FieldProps & { decimals?: 0 | 1 }) {
+/**
+ * Field angka (<input type="number">). Nilai field berupa number, atau undefined jika
+ * dikosongkan. `decimals={1}` mengizinkan satu angka desimal.
+ *
+ * @example
+ * <NumberField field={field} label="Jumlah" required />
+ * <NumberField field={field} label="Berat (kg)" decimals={1} />
+ */
+export function NumberField({ decimals = 0, ...props }: NumberFieldProps) {
   return (
     <TextField
-      field={field}
-      label={label}
-      hint={hint}
-      required={required}
+      {...props}
       type="number"
       step={decimals === 1 ? "0.1" : "1"}
       inputMode={decimals === 1 ? "decimal" : "numeric"}
       parseValue={(value) => (value === "" ? undefined : Number(value))}
-      className="input input-bordered min-h-12 w-full"
     />
   );
 }
 
-export function RupiahField({ field, label, hint, required }: FieldProps) {
+const MAX_RUPIAH_DIGITS = 12;
+
+/**
+ * Field nominal rupiah. Tampilan diformat per ribuan dengan awalan "Rp"; nilai field berupa
+ * number (maksimal 12 digit) atau undefined jika kosong. Nilai 0 tetap ditampilkan.
+ *
+ * @example
+ * <RupiahField field={field} label="Harga jual" required hint="Per satuan" />
+ */
+export function RupiahField(props: SimpleFieldProps) {
+  const { field } = props;
   const raw =
     typeof field.input === "number"
       ? field.input
-      : typeof field.input === "string"
+      : typeof field.input === "string" && field.input.trim() !== ""
         ? Number(field.input)
-        : 0;
-  const display = Number.isFinite(raw) && raw > 0 ? formatRupiah(raw).replace(/^Rp\s?/, "") : "";
+        : undefined;
+  // Nilai 0 tetap ditampilkan; hanya kosong/undefined yang menghasilkan teks kosong.
+  const display =
+    raw !== undefined && Number.isFinite(raw) ? formatRupiah(raw).replace(/^Rp\s?/, "") : "";
   return (
     <TextField
-      field={field}
-      label={label}
-      hint={hint}
-      required={required}
+      {...props}
       type="text"
       inputMode="numeric"
       displayValue={display}
       parseValue={(value) => {
-        const digits = value.replace(/\D/g, "");
-        return digits === "" ? "" : Number(digits);
+        const digits = value.replace(/\D/g, "").slice(0, MAX_RUPIAH_DIGITS);
+        return digits === "" ? undefined : Number(digits);
       }}
       icon={
         <span
@@ -341,20 +423,35 @@ export function RupiahField({ field, label, hint, required }: FieldProps) {
           Rp
         </span>
       }
-      className="min-h-12 w-full"
     />
   );
 }
 
+/**
+ * Dropdown pilihan. `options` wajib; nilai field berupa string `value` opsi terpilih.
+ * Untuk placeholder, sertakan opsi dengan value "" (mis. "Pilih satuan").
+ *
+ * @example
+ * <SelectField
+ *   field={field}
+ *   label="Satuan"
+ *   required
+ *   options={[
+ *     { label: "Pilih satuan", value: "" },
+ *     { label: "Kg", value: "kg" },
+ *     { label: "Liter", value: "liter" },
+ *   ]}
+ * />
+ */
 export function SelectField({
   field,
   label,
   hint,
   required,
-  options = [],
-}: FieldProps & { options: { label: string; value: string }[] }) {
+  options,
+}: SelectFieldProps) {
   const message = errorText(field);
-  const ref = useValidity<HTMLSelectElement>(message);
+  const ref = useFieldRef<HTMLSelectElement>(field, message);
   const attr = ids(field, hint);
   return (
     <FieldShell
@@ -372,7 +469,7 @@ export function SelectField({
         aria-labelledby={attr.labelId}
         value={String(field.input ?? "")}
         onChange={(event) => field.onChange(event.target.value)}
-        className={`select validator w-full ${message ? "select-error" : ""}`}
+        className={`select validator min-h-12 w-full ${message ? "select-error" : ""}`}
         required={required}
         aria-invalid={!!message}
         aria-describedby={attr.describedBy}
@@ -390,19 +487,22 @@ export function SelectField({
   );
 }
 
+/**
+ * Kotak centang. Nilai field berupa boolean. `label` tampil di samping kotak; `required`
+ * menambahkan tanda * dan membuat field wajib dicentang.
+ *
+ * @example
+ * <CheckboxField field={field} label="Saya setuju dengan syarat dan ketentuan" required />
+ */
 export function CheckboxField({
   field,
   label,
   hint,
   required,
   ...rest
-}: FieldProps &
-  Omit<
-    InputHTMLAttributes<HTMLInputElement>,
-    "value" | "checked" | "onChange" | "onBlur" | "name" | "id" | "type"
-  >) {
+}: CheckboxFieldProps) {
   const message = errorText(field);
-  const ref = useValidity<HTMLInputElement>(message);
+  const ref = useFieldRef<HTMLInputElement>(field, message);
   const attr = ids(field, hint);
   return (
     <FieldShell
@@ -425,7 +525,7 @@ export function CheckboxField({
           aria-describedby={attr.describedBy}
           className={`checkbox validator ${message ? "checkbox-error" : ""}`}
         />
-        <span className="label-text">
+        <span>
           {label}
           {required ? " *" : ""}
         </span>
@@ -434,15 +534,17 @@ export function CheckboxField({
   );
 }
 
-export function DateField({ field, label, hint, required }: FieldProps) {
+/**
+ * Field tanggal (<input type="date">). Nilai field berupa string "YYYY-MM-DD".
+ *
+ * @example
+ * <DateField field={field} label="Tanggal masuk" required />
+ */
+export function DateField(props: SimpleFieldProps) {
   return (
     <TextField
-      field={field}
-      label={label}
-      hint={hint}
-      required={required}
+      {...props}
       type="date"
-      className="input input-bordered min-h-12 w-full"
     />
   );
 }

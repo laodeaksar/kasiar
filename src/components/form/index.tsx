@@ -4,14 +4,13 @@ export {
   FormField,
   TextField,
   PasswordField,
-  PasswordStrengthIndicator,
   NumberField,
   RupiahField,
   SelectField,
   CheckboxField,
   DateField,
 } from "./fields";
-export { PasswordRequirementsPopover } from "./password-requirements-popover";
+export { PasswordRequirementsPopover, PasswordStrengthIndicator } from "./password-requirements";
 
 export function FormSubmitButton({
   children = "Simpan",
@@ -25,7 +24,7 @@ export function FormSubmitButton({
   return (
     <button
       type="submit"
-      className="btn btn-primary min-h-12 w-full sm:w-auto"
+      className="btn btn-primary w-full sm:w-auto"
       disabled={disabled || loading}
       aria-busy={loading}
     >

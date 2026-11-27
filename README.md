@@ -4,7 +4,7 @@ Kasiar adalah aplikasi web untuk mencatat barang dan stok, barang masuk, penjual
 
 ## Menjalankan di komputer sendiri
 
-Pastikan Node.js dan npm tersedia. Dari folder project, jalankan:
+Gunakan Node.js 22 atau lebih baru dan npm. Dari folder project, jalankan:
 
 ```sh
 npm ci
@@ -21,11 +21,15 @@ Buka `.env` di editor teks dan isi nilainya secara privat. Jangan unggah atau me
 Buat database kosong di Neon (atau PostgreSQL yang kompatibel), lalu jalankan migrasi dan seed admin:
 
 ```sh
-npx drizzle-kit migrate
-node --env-file=.env --import=tsx src/db/seed.ts
+npm run db:migrate
+npm run db:seed
 ```
 
-Seed membaca `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari environment. Jika akun admin dengan username itu sudah ada, seed tidak mengubah akun tersebut. Simpan `.env` di mesin lokal saja. Untuk menjalankan aplikasi:
+Seed membaca `ADMIN_USERNAME` dan `ADMIN_PASSWORD` dari environment. Jika akun admin dengan username itu sudah ada, seed tidak mengubah akun tersebut. Simpan `.env` di mesin lokal saja. Perintah `db:*` membaca `.env` dan `.env.local` secara opsional; jika keduanya ada, `.env.local` menjadi nilai pengganti.
+
+Jika skema database berubah, buat file migrasi baru dengan `npm run db:generate`. Untuk membuka tampilan database lokal, jalankan `npm run db:studio`.
+
+Untuk menjalankan aplikasi:
 
 ```sh
 npm run dev

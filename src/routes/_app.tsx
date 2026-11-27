@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   Link,
@@ -5,53 +6,53 @@ import {
   redirect,
   useRouter,
   useLoaderData,
-} from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
-import { Menu, Package, Shield, ShoppingCart, Wallet, Warehouse } from 'lucide-react'
-import { ThemeToggle } from '../components/theme/theme-toggle'
-import { toast } from '../components/toast/toast-store'
-import { authClient } from '../lib/auth-client'
-import { safeReturnTarget } from '../validation/search'
-import { useConfirm } from '../components/confirm/use-confirm'
-import { useCart } from '../features/kasir/cart-store'
+} from "@tanstack/react-router";
+import { Menu, Package, Shield, ShoppingCart, Wallet, Warehouse } from "lucide-react";
 
-export const Route = createFileRoute('/_app')({
+import { useConfirm } from "~/components/confirm";
+import { ThemeToggle } from "~/components/theme/theme-toggle";
+import { toast } from "~/components/toast";
+import { useCart } from "~/features/kasir/cart-store";
+import { authClient } from "~/lib/auth-client";
+import { safeReturnTarget } from "~/validation/search";
+
+export const Route = createFileRoute("/_app")({
   beforeLoad: ({ context, location }) => {
     if (!context.session)
       throw redirect({
-        to: '/login',
+        to: "/login",
         search: {
           kembali: safeReturnTarget(location.href),
-          sesiBerakhir: context.sessionCookiePresent ? '1' : undefined,
+          sesiBerakhir: context.sessionCookiePresent ? "1" : undefined,
         },
-      })
+      });
   },
   component: AppLayout,
-})
+});
 
 function AppLayout() {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const confirm = useConfirm()
-  const cart = useCart()
-  const rootData = useLoaderData({ from: '__root__' })
-  const session = Route.useRouteContext({ select: (context) => context.session })
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const cart = useCart();
+  const rootData = useLoaderData({ from: "__root__" });
+  const session = Route.useRouteContext({ select: (context) => context.session });
   async function logout() {
     if (
       cart.length &&
       !(await confirm({
-        title: 'Keranjang belum kosong',
-        message: 'Jika keluar sekarang, isi keranjang akan hilang. Tetap keluar?',
-        confirmText: 'Tetap keluar',
+        title: "Keranjang belum kosong",
+        message: "Jika keluar sekarang, isi keranjang akan hilang. Tetap keluar?",
+        confirmText: "Tetap keluar",
         danger: true,
       }))
     )
-      return
-    await authClient.signOut()
-    queryClient.clear()
-    await router.invalidate()
-    toast.success('Anda telah keluar.')
-    await router.navigate({ to: '/login', search: { kembali: '/' } })
+      return;
+    await authClient.signOut();
+    queryClient.clear();
+    await router.invalidate();
+    toast.success("Anda telah keluar.");
+    await router.navigate({ to: "/login", search: { kembali: "/" } });
   }
   return (
     <div className="min-h-screen bg-base-100 text-base-content">
@@ -73,11 +74,14 @@ function AppLayout() {
                 <Link to="/">Beranda</Link>
               </li>
               <li>
-                <Link to="/barang" search={{ q: '', halaman: 1 }}>
+                <Link
+                  to="/barang"
+                  search={{ q: "", halaman: 1 }}
+                >
                   <Package className="size-4" /> Barang
                 </Link>
               </li>
-              {session?.peran === 'admin' && (
+              {session?.peran === "admin" && (
                 <li>
                   <Link to="/admin">
                     <Shield className="size-4" /> Admin
@@ -85,7 +89,10 @@ function AppLayout() {
                 </li>
               )}
               <li>
-                <Link to="/barang-masuk" search={{ q: '', dari: '', sampai: '', halaman: 1 }}>
+                <Link
+                  to="/barang-masuk"
+                  search={{ q: "", dari: "", sampai: "", halaman: 1 }}
+                >
                   <Warehouse className="size-4" /> Barang masuk
                 </Link>
               </li>
@@ -95,25 +102,37 @@ function AppLayout() {
                 </Link>
               </li>
               <li>
-                <Link to="/utang" search={{ q: '', status: 'belum-lunas', halaman: 1 }}>
+                <Link
+                  to="/utang"
+                  search={{ q: "", status: "belum-lunas", halaman: 1 }}
+                >
                   <Wallet className="size-4" /> Utang
                 </Link>
               </li>
             </ul>
           </div>
-          <Link to="/" className="btn btn-ghost text-lg font-bold">
+          <Link
+            to="/"
+            className="btn btn-ghost text-lg font-bold"
+          >
             Kasiar
           </Link>
         </div>
         <nav className="navbar-center hidden md:flex">
           <ul className="menu menu-horizontal gap-1">
             <li>
-              <Link to="/barang" search={{ q: '', halaman: 1 }}>
+              <Link
+                to="/barang"
+                search={{ q: "", halaman: 1 }}
+              >
                 <Package className="size-4" /> Barang
               </Link>
             </li>
             <li>
-              <Link to="/barang-masuk" search={{ q: '', dari: '', sampai: '', halaman: 1 }}>
+              <Link
+                to="/barang-masuk"
+                search={{ q: "", dari: "", sampai: "", halaman: 1 }}
+              >
                 <Warehouse className="size-4" /> Barang masuk
               </Link>
             </li>
@@ -123,11 +142,14 @@ function AppLayout() {
               </Link>
             </li>
             <li>
-              <Link to="/utang" search={{ q: '', status: 'belum-lunas', halaman: 1 }}>
+              <Link
+                to="/utang"
+                search={{ q: "", status: "belum-lunas", halaman: 1 }}
+              >
                 <Wallet className="size-4" /> Utang
               </Link>
             </li>
-            {session?.peran === 'admin' && (
+            {session?.peran === "admin" && (
               <li>
                 <Link to="/admin">
                   <Shield className="size-4" /> Admin
@@ -138,7 +160,11 @@ function AppLayout() {
         </nav>
         <div className="navbar-end gap-2">
           <ThemeToggle initialTheme={rootData?.theme ?? null} />
-          <button type="button" className="btn btn-outline min-h-11" onClick={logout}>
+          <button
+            type="button"
+            className="btn btn-outline min-h-11"
+            onClick={logout}
+          >
             Keluar
           </button>
         </div>
@@ -147,5 +173,5 @@ function AppLayout() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

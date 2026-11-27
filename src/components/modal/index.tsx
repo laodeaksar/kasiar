@@ -1,1 +1,1 @@
-export { Modal, ModalBody, ModalFooter, useModalClose } from './modal'
+export { Modal, ModalBody, ModalFooter, useModalClose } from "./modal";

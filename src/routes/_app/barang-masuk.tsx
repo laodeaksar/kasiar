@@ -1,19 +1,20 @@
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+
 import {
   DataTable,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
-} from '../../components/data-table'
-import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
-import { PageHeader } from '../../components/page-header'
-import { BarangMasukForm } from '../../features/barang-masuk/barang-masuk-form'
-import { barangMasukColumns } from '../../features/barang-masuk/columns'
-import { barangMasukListOptions } from '../../features/barang-masuk/queries'
-import { parseBarangMasukSearch } from '../../validation/search'
+} from "~/components/data-table";
+import { EmptyState, ErrorState, Skeleton } from "~/components/feedback";
+import { PageHeader } from "~/components/page-header";
+import { BarangMasukForm } from "~/features/barang-masuk/barang-masuk-form";
+import { barangMasukColumns } from "~/features/barang-masuk/columns";
+import { barangMasukListOptions } from "~/features/barang-masuk/queries";
+import { parseBarangMasukSearch } from "~/validation/search";
 
-export const Route = createFileRoute('/_app/barang-masuk')({
+export const Route = createFileRoute("/_app/barang-masuk")({
   validateSearch: (search) => parseBarangMasukSearch(search),
   loaderDeps: ({ search }) => ({
     q: search.q,
@@ -23,26 +24,32 @@ export const Route = createFileRoute('/_app/barang-masuk')({
   }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangMasukListOptions(deps)),
   component: BarangMasukPage,
-})
+});
 
 function BarangMasukPage() {
-  const search = Route.useSearch()
-  const navigate = Route.useNavigate()
-  const { data, isPending, isError, refetch } = useQuery(barangMasukListOptions(search))
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { data, isPending, isError, refetch } = useQuery(barangMasukListOptions(search));
   const changeSearch = (patch: Partial<typeof search>) =>
-    navigate({ search: (old) => ({ ...old, ...patch }) })
+    navigate({ search: (old) => ({ ...old, ...patch }) });
   if (isError)
     return (
       <ErrorState
         onRetry={() => {
-          void refetch()
+          void refetch();
         }}
       />
-    )
-  if (isPending && !data) return <Skeleton variant="table-rows" count={5} />
-  const empty = data.rows.length === 0
-  const filtering = Boolean(search.q || search.dari || search.sampai)
-  const clearFilters = () => changeSearch({ q: '', dari: '', sampai: '', halaman: 1 })
+    );
+  if (isPending && !data)
+    return (
+      <Skeleton
+        variant="table-rows"
+        count={5}
+      />
+    );
+  const empty = data.rows.length === 0;
+  const filtering = Boolean(search.q || search.dari || search.sampai);
+  const clearFilters = () => changeSearch({ q: "", dari: "", sampai: "", halaman: 1 });
 
   return (
     <section className="space-y-7">
@@ -51,8 +58,14 @@ function BarangMasukPage() {
         description="Catat barang yang diterima agar stok bertambah dengan benar."
       />
       <BarangMasukForm />
-      <section className="space-y-4" aria-labelledby="riwayat-barang-masuk">
-        <h2 id="riwayat-barang-masuk" className="text-xl font-semibold">
+      <section
+        className="space-y-4"
+        aria-labelledby="riwayat-barang-masuk"
+      >
+        <h2
+          id="riwayat-barang-masuk"
+          className="text-xl font-semibold"
+        >
           Riwayat barang masuk
         </h2>
         <DataTableToolbar>
@@ -82,7 +95,10 @@ function BarangMasukPage() {
             />
           </label>
           {filtering && (
-            <button className="btn btn-outline min-h-12" onClick={clearFilters}>
+            <button
+              className="btn btn-outline min-h-12"
+              onClick={clearFilters}
+            >
               Hapus filter
             </button>
           )}
@@ -100,7 +116,7 @@ function BarangMasukPage() {
           <DataTableStates
             isEmpty
             isSearchEmpty
-            query={search.q || `${search.dari || 'awal'} – ${search.sampai || 'akhir'}`}
+            query={search.q || `${search.dari || "awal"} – ${search.sampai || "akhir"}`}
             onClearSearch={clearFilters}
           />
         )}
@@ -108,7 +124,10 @@ function BarangMasukPage() {
           <EmptyState
             title="Belum ada barang masuk. Catat barang masuk pertama."
             action={
-              <a href="#form-barang-masuk" className="btn btn-primary">
+              <a
+                href="#form-barang-masuk"
+                className="btn btn-primary"
+              >
                 Catat barang masuk
               </a>
             }
@@ -116,5 +135,5 @@ function BarangMasukPage() {
         )}
       </section>
     </section>
-  )
+  );
 }

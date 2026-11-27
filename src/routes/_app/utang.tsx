@@ -1,20 +1,21 @@
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+
 import {
   DataTable,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
-} from '../../components/data-table'
-import { EmptyState, ErrorState, Skeleton } from '../../components/feedback'
-import { PageHeader } from '../../components/page-header'
-import { formatRupiah, formatTanggal } from '../../lib/format'
-import { PelunasanForm } from '../../features/utang/pelunasan-form'
-import { utangColumns } from '../../features/utang/columns'
-import { utangDetailOptions, utangListOptions } from '../../features/utang/queries'
-import { parseUtangSearch } from '../../validation/search'
+} from "~/components/data-table";
+import { EmptyState, ErrorState, Skeleton } from "~/components/feedback";
+import { PageHeader } from "~/components/page-header";
+import { utangColumns } from "~/features/utang/columns";
+import { PelunasanForm } from "~/features/utang/pelunasan-form";
+import { utangDetailOptions, utangListOptions } from "~/features/utang/queries";
+import { formatRupiah, formatTanggal } from "~/lib/format";
+import { parseUtangSearch } from "~/validation/search";
 
-export const Route = createFileRoute('/_app/utang')({
+export const Route = createFileRoute("/_app/utang")({
   validateSearch: (search) => parseUtangSearch(search),
   loaderDeps: ({ search }) => ({
     q: search.q,
@@ -30,25 +31,31 @@ export const Route = createFileRoute('/_app/utang')({
       deps.pembeli === undefined
         ? Promise.resolve()
         : context.queryClient.ensureQueryData(utangDetailOptions(deps.pembeli)),
-    ])
+    ]);
   },
   component: UtangPage,
-})
+});
 
 function UtangPage() {
-  const search = Route.useSearch()
-  const navigate = Route.useNavigate()
-  const params = { q: search.q, status: search.status, halaman: search.halaman }
-  const list = useQuery(utangListOptions(params))
-  const detail = useQuery(utangDetailOptions(search.pembeli))
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const params = { q: search.q, status: search.status, halaman: search.halaman };
+  const list = useQuery(utangListOptions(params));
+  const detail = useQuery(utangDetailOptions(search.pembeli));
   const updateSearch = (patch: Partial<typeof search>) =>
-    navigate({ search: (old) => ({ ...old, ...patch }) })
-  const clearSearch = () => updateSearch({ q: '', halaman: 1 })
-  if (list.isError) return <ErrorState onRetry={() => void list.refetch()} />
-  if (list.isPending && !list.data) return <Skeleton variant="table-rows" count={5} />
+    navigate({ search: (old) => ({ ...old, ...patch }) });
+  const clearSearch = () => updateSearch({ q: "", halaman: 1 });
+  if (list.isError) return <ErrorState onRetry={() => void list.refetch()} />;
+  if (list.isPending && !list.data)
+    return (
+      <Skeleton
+        variant="table-rows"
+        count={5}
+      />
+    );
 
-  const data = list.data
-  const searchHasText = search.q.length > 0
+  const data = list.data;
+  const searchHasText = search.q.length > 0;
   return (
     <section className="space-y-7">
       <PageHeader
@@ -65,17 +72,23 @@ function UtangPage() {
             {detail.isError ? (
               <ErrorState onRetry={() => void detail.refetch()} />
             ) : detail.isPending && !detail.data ? (
-              <Skeleton variant="cards" count={2} />
+              <Skeleton
+                variant="cards"
+                count={2}
+              />
             ) : detail.data ? (
               <>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 id="utang-detail-title" className="card-title">
+                    <h2
+                      id="utang-detail-title"
+                      className="card-title"
+                    >
                       Rincian utang — {detail.data.nama}
                     </h2>
                     <p className="mt-1 text-sm">
-                      Sisa utang: <strong>{formatRupiah(detail.data.sisaUtang)}</strong> · Status:{' '}
-                      <strong>{detail.data.sisaUtang === 0 ? 'Lunas' : 'Belum lunas'}</strong>
+                      Sisa utang: <strong>{formatRupiah(detail.data.sisaUtang)}</strong> · Status:{" "}
+                      <strong>{detail.data.sisaUtang === 0 ? "Lunas" : "Belum lunas"}</strong>
                     </p>
                   </div>
                   <button
@@ -86,8 +99,14 @@ function UtangPage() {
                   </button>
                 </div>
                 <div className="grid gap-5 lg:grid-cols-2">
-                  <section className="space-y-3" aria-labelledby="utang-transaksi-title">
-                    <h3 id="utang-transaksi-title" className="font-semibold">
+                  <section
+                    className="space-y-3"
+                    aria-labelledby="utang-transaksi-title"
+                  >
+                    <h3
+                      id="utang-transaksi-title"
+                      className="font-semibold"
+                    >
                       Transaksi yang memiliki utang
                     </h3>
                     {detail.data.transaksi.length === 0 ? (
@@ -100,15 +119,15 @@ function UtangPage() {
                             className="rounded-box border border-base-300 p-4 text-sm"
                           >
                             <p>
-                              <strong>{formatTanggal(item.waktuDicatat)}</strong> · Dicatat oleh{' '}
+                              <strong>{formatTanggal(item.waktuDicatat)}</strong> · Dicatat oleh{" "}
                               {item.namaKasir}
                             </p>
                             <p className="mt-1">
-                              Total transaksi: {formatRupiah(item.total)} · Dibayar saat transaksi:{' '}
+                              Total transaksi: {formatRupiah(item.total)} · Dibayar saat transaksi:{" "}
                               {formatRupiah(item.jumlahDibayar)}
                             </p>
                             <p>
-                              Sisa dari transaksi saat dicatat:{' '}
+                              Sisa dari transaksi saat dicatat:{" "}
                               {formatRupiah(item.sisaSaatTransaksi)}
                             </p>
                           </li>
@@ -116,8 +135,14 @@ function UtangPage() {
                       </ul>
                     )}
                   </section>
-                  <section className="space-y-3" aria-labelledby="riwayat-pembayaran-title">
-                    <h3 id="riwayat-pembayaran-title" className="font-semibold">
+                  <section
+                    className="space-y-3"
+                    aria-labelledby="riwayat-pembayaran-title"
+                  >
+                    <h3
+                      id="riwayat-pembayaran-title"
+                      className="font-semibold"
+                    >
                       Riwayat pembayaran
                     </h3>
                     {detail.data.pembayaran.length === 0 ? (
@@ -148,8 +173,14 @@ function UtangPage() {
           </div>
         </section>
       )}
-      <section className="space-y-4" aria-labelledby="daftar-utang-title">
-        <h2 id="daftar-utang-title" className="text-xl font-semibold">
+      <section
+        className="space-y-4"
+        aria-labelledby="daftar-utang-title"
+      >
+        <h2
+          id="daftar-utang-title"
+          className="text-xl font-semibold"
+        >
           Daftar utang
         </h2>
         <DataTableToolbar>
@@ -164,7 +195,7 @@ function UtangPage() {
               className="select select-bordered min-h-12"
               value={search.status}
               onChange={(event) =>
-                updateSearch({ status: event.target.value as 'belum-lunas' | 'semua', halaman: 1 })
+                updateSearch({ status: event.target.value as "belum-lunas" | "semua", halaman: 1 })
               }
             >
               <option value="belum-lunas">Belum lunas</option>
@@ -183,17 +214,22 @@ function UtangPage() {
         )}
         {data.rows.length === 0 &&
           (searchHasText ? (
-            <DataTableStates isEmpty isSearchEmpty query={search.q} onClearSearch={clearSearch} />
+            <DataTableStates
+              isEmpty
+              isSearchEmpty
+              query={search.q}
+              onClearSearch={clearSearch}
+            />
           ) : (
             <EmptyState
               title={
-                search.status === 'belum-lunas'
-                  ? 'Tidak ada utang yang belum lunas.'
-                  : 'Belum ada catatan utang.'
+                search.status === "belum-lunas"
+                  ? "Tidak ada utang yang belum lunas."
+                  : "Belum ada catatan utang."
               }
             />
           ))}
       </section>
     </section>
-  )
+  );
 }

@@ -1,127 +1,120 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  type ComponentPropsWithoutRef,
-  type ReactNode,
-} from 'react'
-import { X } from 'lucide-react'
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
-type ModalSize = 'kecil' | 'sedang' | 'besar'
+import { X } from "lucide-react";
+import { createContext, useCallback, useContext, useEffect, useId, useRef } from "react";
+
+type ModalSize = "kecil" | "sedang" | "besar";
 type ModalProps = {
-  open: boolean
-  onClose: () => void
-  title: string
-  descriptionId?: string
-  size?: ModalSize
-  canClose?: boolean
-  closeGuard?: () => boolean | Promise<boolean>
-  initialFocusRef?: { current: HTMLElement | null }
-  children: ReactNode
-}
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  descriptionId?: string;
+  size?: ModalSize;
+  canClose?: boolean;
+  closeGuard?: () => boolean | Promise<boolean>;
+  initialFocusRef?: { current: HTMLElement | null };
+  children: ReactNode;
+};
 
-const RequestCloseContext = createContext<(() => void) | null>(null)
+const RequestCloseContext = createContext<(() => void) | null>(null);
 
 export function Modal({
   open,
   onClose,
   title,
   descriptionId,
-  size = 'sedang',
+  size = "sedang",
   canClose = true,
   closeGuard,
   initialFocusRef,
   children,
 }: ModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
-  const backdropPointerDown = useRef(false)
-  const closing = useRef(false)
-  const reactId = useId()
-  const titleId = `modal-title-${reactId.replaceAll(':', '')}`
-  const latest = useRef({ open, onClose, canClose, closeGuard })
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const backdropPointerDown = useRef(false);
+  const closing = useRef(false);
+  const reactId = useId();
+  const titleId = `modal-title-${reactId.replaceAll(":", "")}`;
+  const latest = useRef({ open, onClose, canClose, closeGuard });
   useEffect(() => {
-    latest.current = { open, onClose, canClose, closeGuard }
-  }, [open, onClose, canClose, closeGuard])
+    latest.current = { open, onClose, canClose, closeGuard };
+  }, [open, onClose, canClose, closeGuard]);
 
   const requestClose = useCallback(async () => {
-    const current = latest.current
-    if (!current.open || !current.canClose || closing.current) return
-    closing.current = true
+    const current = latest.current;
+    if (!current.open || !current.canClose || closing.current) return;
+    closing.current = true;
     try {
-      const allowed = current.closeGuard ? await current.closeGuard() : true
-      const updated = latest.current
-      if (allowed && updated.open && updated.canClose) updated.onClose()
+      const allowed = current.closeGuard ? await current.closeGuard() : true;
+      const updated = latest.current;
+      if (allowed && updated.open && updated.canClose) updated.onClose();
     } catch {
       // Jika pemeriksaan sebelum tutup gagal, pertahankan modal tetap terbuka.
     } finally {
-      closing.current = false
+      closing.current = false;
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const dialog = dialogRef.current
-    if (!open || !dialog) return
-    const previousOverflow = document.body.style.overflow
-    if (!dialog.open) dialog.showModal()
-    document.body.style.overflow = 'hidden'
+    const dialog = dialogRef.current;
+    if (!open || !dialog) return;
+    const previousOverflow = document.body.style.overflow;
+    if (!dialog.open) dialog.showModal();
+    document.body.style.overflow = "hidden";
 
     const scrollFocusedFieldIntoView = () => {
-      const active = document.activeElement
+      const active = document.activeElement;
       if (
         active instanceof HTMLElement &&
         dialog.contains(active) &&
-        active.closest('[data-modal-body]')
+        active.closest("[data-modal-body]")
       ) {
-        active.scrollIntoView({ block: 'nearest' })
+        active.scrollIntoView({ block: "nearest" });
       }
-    }
+    };
     const frame = window.requestAnimationFrame(() => {
-      if (!dialog.open) return
+      if (!dialog.open) return;
       const firstField = dialog.querySelector<HTMLElement>(
         'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
-      )
+      );
       const target =
         initialFocusRef?.current ??
         firstField ??
-        dialog.querySelector<HTMLElement>('[data-modal-action]:not([disabled])') ??
-        closeButtonRef.current
-      target?.focus({ preventScroll: true })
-      scrollFocusedFieldIntoView()
-    })
-    window.visualViewport?.addEventListener('resize', scrollFocusedFieldIntoView)
+        dialog.querySelector<HTMLElement>("[data-modal-action]:not([disabled])") ??
+        closeButtonRef.current;
+      target?.focus({ preventScroll: true });
+      scrollFocusedFieldIntoView();
+    });
+    window.visualViewport?.addEventListener("resize", scrollFocusedFieldIntoView);
 
     return () => {
-      window.cancelAnimationFrame(frame)
-      window.visualViewport?.removeEventListener('resize', scrollFocusedFieldIntoView)
-      if (dialog.open) dialog.close()
-      document.body.style.overflow = previousOverflow
-    }
-  }, [initialFocusRef, open])
+      window.cancelAnimationFrame(frame);
+      window.visualViewport?.removeEventListener("resize", scrollFocusedFieldIntoView);
+      if (dialog.open) dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [initialFocusRef, open]);
 
   function onPointerDown(event: React.PointerEvent<HTMLDialogElement>) {
-    backdropPointerDown.current = event.target === event.currentTarget
+    backdropPointerDown.current = event.target === event.currentTarget;
   }
   function onPointerUp(event: React.PointerEvent<HTMLDialogElement>) {
-    const endedOnBackdrop = event.target === event.currentTarget
-    const beganOnBackdrop = backdropPointerDown.current
-    backdropPointerDown.current = false
-    if (beganOnBackdrop && endedOnBackdrop) void requestClose()
+    const endedOnBackdrop = event.target === event.currentTarget;
+    const beganOnBackdrop = backdropPointerDown.current;
+    backdropPointerDown.current = false;
+    if (beganOnBackdrop && endedOnBackdrop) void requestClose();
   }
 
   const sizeClasses: Record<ModalSize, string> = {
-    kecil: 'sm:w-[24rem]',
-    sedang: 'sm:w-[32rem]',
-    besar: 'sm:w-[42rem]',
-  }
+    kecil: "sm:w-[24rem]",
+    sedang: "sm:w-[32rem]",
+    besar: "sm:w-[42rem]",
+  };
 
   return (
     <RequestCloseContext.Provider
       value={() => {
-        void requestClose()
+        void requestClose();
       }}
     >
       <dialog
@@ -131,20 +124,23 @@ export function Modal({
         aria-describedby={descriptionId}
         aria-modal="true"
         onCancel={(event) => {
-          event.preventDefault()
-          void requestClose()
+          event.preventDefault();
+          void requestClose();
         }}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
         onPointerCancel={() => {
-          backdropPointerDown.current = false
+          backdropPointerDown.current = false;
         }}
       >
         <div
           className={`modal-box flex max-h-[90dvh] w-full max-w-none flex-col overflow-hidden rounded-t-2xl rounded-b-none bg-base-100 p-0 shadow-xl sm:max-h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box ${sizeClasses[size]}`}
         >
           <header className="relative flex shrink-0 items-center border-b border-base-300 px-4 py-3 pr-16 sm:px-6">
-            <h2 id={titleId} className="text-lg font-semibold sm:text-xl">
+            <h2
+              id={titleId}
+              className="text-lg font-semibold sm:text-xl"
+            >
               {title}
             </h2>
             <button
@@ -155,20 +151,23 @@ export function Modal({
               data-modal-close="true"
               disabled={!canClose}
               onClick={() => {
-                void requestClose()
+                void requestClose();
               }}
             >
-              <X className="size-5" aria-hidden="true" />
+              <X
+                className="size-5"
+                aria-hidden="true"
+              />
             </button>
           </header>
           {children}
         </div>
       </dialog>
     </RequestCloseContext.Provider>
-  )
+  );
 }
 
-export function ModalBody({ children, className = '', ...props }: ComponentPropsWithoutRef<'div'>) {
+export function ModalBody({ children, className = "", ...props }: ComponentPropsWithoutRef<"div">) {
   return (
     <div
       {...props}
@@ -177,14 +176,14 @@ export function ModalBody({ children, className = '', ...props }: ComponentProps
     >
       {children}
     </div>
-  )
+  );
 }
 
 export function ModalFooter({
   children,
-  className = '',
+  className = "",
   ...props
-}: ComponentPropsWithoutRef<'footer'>) {
+}: ComponentPropsWithoutRef<"footer">) {
   return (
     <footer
       {...props}
@@ -192,11 +191,11 @@ export function ModalFooter({
     >
       {children}
     </footer>
-  )
+  );
 }
 
 export function useModalClose() {
-  const requestClose = useContext(RequestCloseContext)
-  if (!requestClose) throw new Error('useModalClose harus digunakan di dalam Modal.')
-  return requestClose
+  const requestClose = useContext(RequestCloseContext);
+  if (!requestClose) throw new Error("useModalClose harus digunakan di dalam Modal.");
+  return requestClose;
 }

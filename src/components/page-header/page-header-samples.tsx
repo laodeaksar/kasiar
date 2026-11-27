@@ -1,40 +1,64 @@
-import { Home, Pencil, Plus, Search, Trash2 } from 'lucide-react'
-import { useConfirm } from '../confirm/use-confirm'
-import { HeaderButton, PageHeader } from './index'
+import { Home, Pencil, Plus, Search, Trash2 } from "lucide-react";
+
+import { useConfirm } from "../confirm/use-confirm";
+import { HeaderButton, PageHeader } from "./index";
 
 export function PageHeaderSamples() {
-  const confirm = useConfirm()
+  const confirm = useConfirm();
   async function confirmExample() {
     await confirm({
-      title: 'Yakin?',
-      message: 'Ini hanya contoh konfirmasi. Tidak ada data yang dihapus.',
-      confirmText: 'Lanjutkan',
+      title: "Yakin?",
+      message: "Ini hanya contoh konfirmasi. Tidak ada data yang dihapus.",
+      confirmText: "Lanjutkan",
       danger: true,
-    })
+    });
   }
   const oneAction = (
-    <HeaderButton icon={Plus} label="Tambah" variant="utama" onClick={() => undefined} />
-  )
+    <HeaderButton
+      icon={Plus}
+      label="Tambah"
+      variant="utama"
+      onClick={() => undefined}
+    />
+  );
   const twoActions = (
     <>
-      <HeaderButton icon={Search} label="Cari" onClick={() => undefined} />
-      <HeaderButton icon={Plus} label="Tambah" variant="utama" onClick={() => undefined} />
+      <HeaderButton
+        icon={Search}
+        label="Cari"
+        onClick={() => undefined}
+      />
+      <HeaderButton
+        icon={Plus}
+        label="Tambah"
+        variant="utama"
+        onClick={() => undefined}
+      />
     </>
-  )
+  );
   const threeActions = (
     <>
-      <HeaderButton icon={Plus} label="Tambah" variant="utama" onClick={() => undefined} />
-      <HeaderButton icon={Pencil} label="Ubah" onClick={() => undefined} />
+      <HeaderButton
+        icon={Plus}
+        label="Tambah"
+        variant="utama"
+        onClick={() => undefined}
+      />
+      <HeaderButton
+        icon={Pencil}
+        label="Ubah"
+        onClick={() => undefined}
+      />
       <HeaderButton
         icon={Trash2}
         label="Hapus"
         variant="bahaya"
         onClick={() => {
-          void confirmExample()
+          void confirmExample();
         }}
       />
     </>
-  )
+  );
 
   return (
     <section className="space-y-4">
@@ -77,9 +101,23 @@ export function PageHeaderSamples() {
             title="Nonaktif, sedang memproses, dan tautan"
             actions={
               <>
-                <HeaderButton icon={Search} label="Cari" disabled onClick={() => undefined} />
-                <HeaderButton icon={Plus} label="Simpan" loading onClick={() => undefined} />
-                <HeaderButton icon={Home} label="Beranda" to="/" />
+                <HeaderButton
+                  icon={Search}
+                  label="Cari"
+                  disabled
+                  onClick={() => undefined}
+                />
+                <HeaderButton
+                  icon={Plus}
+                  label="Simpan"
+                  loading
+                  onClick={() => undefined}
+                />
+                <HeaderButton
+                  icon={Home}
+                  label="Beranda"
+                  to="/"
+                />
               </>
             }
           />
@@ -115,14 +153,28 @@ export function PageHeaderSamples() {
             title="Nonaktif, sedang memproses, dan tautan"
             actions={
               <>
-                <HeaderButton icon={Search} label="Cari" disabled onClick={() => undefined} />
-                <HeaderButton icon={Plus} label="Simpan" loading onClick={() => undefined} />
-                <HeaderButton icon={Home} label="Beranda" to="/" />
+                <HeaderButton
+                  icon={Search}
+                  label="Cari"
+                  disabled
+                  onClick={() => undefined}
+                />
+                <HeaderButton
+                  icon={Plus}
+                  label="Simpan"
+                  loading
+                  onClick={() => undefined}
+                />
+                <HeaderButton
+                  icon={Home}
+                  label="Beranda"
+                  to="/"
+                />
               </>
             }
           />
         </div>
       </div>
     </section>
-  )
+  );
 }

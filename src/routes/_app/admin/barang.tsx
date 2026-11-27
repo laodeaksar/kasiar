@@ -1,81 +1,82 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { Form, isDirty, reset, setErrors, useField, useForm } from '@formisch/react'
-import { Plus } from 'lucide-react'
-import { useConfirm } from '../../../components/confirm/use-confirm'
+import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+
+import { useConfirm } from "~/components/confirm";
 import {
   DataTable,
   DataTableSearch,
   DataTableStates,
   DataTableToolbar,
-} from '../../../components/data-table'
-import { EmptyState, ErrorState, Skeleton } from '../../../components/feedback'
+} from "~/components/data-table";
+import { EmptyState, ErrorState, Skeleton } from "~/components/feedback";
 import {
   FormAlert,
   FormSubmitButton,
   RupiahField,
   SelectField,
   TextField,
-} from '../../../components/form'
-import { Modal, ModalBody, ModalFooter, useModalClose } from '../../../components/modal'
-import { HeaderButton, PageHeader } from '../../../components/page-header'
-import { toast } from '../../../components/toast/toast-store'
-import { formatRupiah } from '../../../lib/format'
-import { ApiError } from '../../../lib/api'
-import { SATUAN_BARANG } from '../../../lib/konstanta'
-import { barangColumns } from '../../../features/barang/columns'
-import { BarangForm } from '../../../features/barang/barang-form'
+} from "~/components/form";
+import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import { HeaderButton, PageHeader } from "~/components/page-header";
+import { toast } from "~/components/toast";
+import { BarangForm } from "~/features/barang/barang-form";
+import { barangColumns } from "~/features/barang/columns";
 import {
   barangListOptions,
   ubahBarangMutationOptions,
   type BarangRow,
-} from '../../../features/barang/queries'
-import { BarangSchema, parseBarangSearch, type BarangInput } from '../../../validation/barang'
+} from "~/features/barang/queries";
+import { ApiError } from "~/lib/api";
+import { formatRupiah } from "~/lib/format";
+import { SATUAN_BARANG } from "~/lib/konstanta";
+import { BarangSchema, parseBarangSearch, type BarangInput } from "~/validation/barang";
 
 const satuanOptions = SATUAN_BARANG.map((value) => ({
   value,
-  label: value === 'kg' ? 'Kilogram (kg)' : value,
-}))
+  label: value === "kg" ? "Kilogram (kg)" : value,
+}));
 
-export const Route = createFileRoute('/_app/admin/barang')({
+export const Route = createFileRoute("/_app/admin/barang")({
   validateSearch: (search) => parseBarangSearch(search),
   beforeLoad: ({ context }) => {
-    if (context.session?.peran !== 'admin') throw redirect({ to: '/' })
+    if (context.session?.peran !== "admin") throw redirect({ to: "/" });
   },
   loaderDeps: ({ search }) => ({ q: search.q, halaman: search.halaman, status: search.status }),
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(barangListOptions(deps, true)),
   component: AdminBarangPage,
-})
+});
 
 function AdminBarangPage() {
-  const search = Route.useSearch()
-  const navigate = Route.useNavigate()
-  const isAdmin = Route.useRouteContext().session?.peran === 'admin'
-  const { data, isPending, isError, refetch } = useQuery(barangListOptions(search, true))
-  const [showAdd, setShowAdd] = useState(false)
-  const [editing, setEditing] = useState<BarangRow | null>(null)
-  const confirm = useConfirm()
-  const toggleMutation = useMutation(ubahBarangMutationOptions())
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const isAdmin = Route.useRouteContext().session?.peran === "admin";
+  const { data, isPending, isError, refetch } = useQuery(barangListOptions(search, true));
+  const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<BarangRow | null>(null);
+  const confirm = useConfirm();
+  const toggleMutation = useMutation(ubahBarangMutationOptions());
   const changeSearch = (patch: Partial<typeof search>) =>
-    navigate({ search: (old) => ({ ...old, ...patch }) })
+    navigate({ search: (old) => ({ ...old, ...patch }) });
 
   async function toggleActive(row: BarangRow) {
     if (
       row.aktif &&
       !(await confirm({
-        title: 'Yakin?',
+        title: "Yakin?",
         message: `Nonaktifkan barang “${row.nama}”? Barang nonaktif tidak ditampilkan pada daftar barang.`,
-        confirmText: 'Nonaktifkan',
+        confirmText: "Nonaktifkan",
         danger: true,
       }))
     )
-      return
+      return;
     try {
-      await toggleMutation.mutateAsync({ id: row.id, input: { aktif: !row.aktif } })
-      toast.success('Data barang diperbarui.')
+      await toggleMutation.mutateAsync({ id: row.id, input: { aktif: !row.aktif } });
+      toast.success("Data barang diperbarui.");
     } catch {
-      toast.error('Perubahan barang tidak berhasil. Coba lagi.')
+      toast.error("Perubahan barang tidak berhasil. Coba lagi.");
     }
   }
 
@@ -83,21 +84,27 @@ function AdminBarangPage() {
     return (
       <ErrorState
         onRetry={() => {
-          void refetch()
+          void refetch();
         }}
       />
-    )
-  if (isPending && !data) return <Skeleton variant="table-rows" count={5} />
+    );
+  if (isPending && !data)
+    return (
+      <Skeleton
+        variant="table-rows"
+        count={5}
+      />
+    );
   const columns = barangColumns(true, (row) => (
     <button
       className="btn btn-sm btn-outline min-h-10"
       onClick={() => (row.aktif ? setEditing(row) : void toggleActive(row))}
     >
-      {row.aktif ? 'Ubah' : 'Aktifkan'}
+      {row.aktif ? "Ubah" : "Aktifkan"}
     </button>
-  ))
-  const empty = data.rows.length === 0
-  const searching = Boolean(search.q) && empty
+  ));
+  const empty = data.rows.length === 0;
+  const searching = Boolean(search.q) && empty;
 
   return (
     <section className="space-y-5">
@@ -116,10 +123,16 @@ function AdminBarangPage() {
         }
       />
       {showAdd && (
-        <BarangForm onClose={() => setShowAdd(false)} onSaved={() => setShowAdd(false)} />
+        <BarangForm
+          onClose={() => setShowAdd(false)}
+          onSaved={() => setShowAdd(false)}
+        />
       )}
       <DataTableToolbar>
-        <DataTableSearch value={search.q} onChange={(q) => changeSearch({ q, halaman: 1 })} />
+        <DataTableSearch
+          value={search.q}
+          onChange={(q) => changeSearch({ q, halaman: 1 })}
+        />
         <label className="form-control w-full max-w-xs">
           <span className="label-text mb-1">Status barang</span>
           <select
@@ -149,14 +162,17 @@ function AdminBarangPage() {
           isEmpty
           isSearchEmpty
           query={search.q}
-          onClearSearch={() => changeSearch({ q: '', halaman: 1 })}
+          onClearSearch={() => changeSearch({ q: "", halaman: 1 })}
         />
       )}
       {empty && !searching && (
         <EmptyState
           title="Belum ada barang. Tambahkan barang pertama."
           action={
-            <button className="btn btn-primary min-h-11" onClick={() => setShowAdd(true)}>
+            <button
+              className="btn btn-primary min-h-11"
+              onClick={() => setShowAdd(true)}
+            >
               Tambah barang
             </button>
           }
@@ -171,92 +187,92 @@ function AdminBarangPage() {
         />
       )}
     </section>
-  )
+  );
 }
 
-type EditFormStore = ReturnType<typeof useForm<typeof BarangSchema>>
+type EditFormStore = ReturnType<typeof useForm<typeof BarangSchema>>;
 
 function EditBarangDialog({
   row,
   onClose,
   onSaved,
 }: {
-  row: BarangRow
-  onClose: () => void
-  onSaved: () => void
+  row: BarangRow;
+  onClose: () => void;
+  onSaved: () => void;
 }) {
   const form = useForm({
     schema: BarangSchema,
     initialInput: { nama: row.nama, satuan: row.satuan, hargaJual: row.hargaJual },
-  })
-  const confirm = useConfirm()
-  const mutation = useMutation(ubahBarangMutationOptions())
-  const [message, setMessage] = useState('')
+  });
+  const confirm = useConfirm();
+  const mutation = useMutation(ubahBarangMutationOptions());
+  const [message, setMessage] = useState("");
 
   async function closeGuard() {
-    if (!isDirty(form)) return true
+    if (!isDirty(form)) return true;
     return confirm({
-      title: 'Buang perubahan?',
-      message: 'Isian yang belum disimpan akan hilang',
-      cancelText: 'Tetap mengedit',
-      confirmText: 'Buang perubahan',
+      title: "Buang perubahan?",
+      message: "Isian yang belum disimpan akan hilang",
+      cancelText: "Tetap mengedit",
+      confirmText: "Buang perubahan",
       danger: true,
-    })
+    });
   }
 
   async function submit(input: BarangInput) {
-    setMessage('')
-    setErrors(form, { path: ['nama'], errors: null })
-    setErrors(form, { path: ['satuan'], errors: null })
-    setErrors(form, { path: ['hargaJual'], errors: null })
-    const changes: Record<string, unknown> = {}
-    const nameChanged = input.nama !== row.nama || input.satuan !== row.satuan
-    const priceChanged = input.hargaJual !== row.hargaJual
+    setMessage("");
+    setErrors(form, { path: ["nama"], errors: null });
+    setErrors(form, { path: ["satuan"], errors: null });
+    setErrors(form, { path: ["hargaJual"], errors: null });
+    const changes: Record<string, unknown> = {};
+    const nameChanged = input.nama !== row.nama || input.satuan !== row.satuan;
+    const priceChanged = input.hargaJual !== row.hargaJual;
     if (!nameChanged && !priceChanged) {
-      onClose()
-      return
+      onClose();
+      return;
     }
     if (
       nameChanged &&
       !(await confirm({
-        title: 'Yakin?',
-        message: `Ubah data “${row.nama}”?${input.satuan !== row.satuan ? ` Mengubah satuan dari ${row.satuan} menjadi ${input.satuan} mengubah arti angka stok yang sudah tercatat.` : ''}`,
-        confirmText: 'Ubah data',
+        title: "Yakin?",
+        message: `Ubah data “${row.nama}”?${input.satuan !== row.satuan ? ` Mengubah satuan dari ${row.satuan} menjadi ${input.satuan} mengubah arti angka stok yang sudah tercatat.` : ""}`,
+        confirmText: "Ubah data",
       }))
     )
-      return
+      return;
     if (priceChanged) {
       const warning =
         row.hargaBeliTerakhir !== null &&
         row.hargaBeliTerakhir !== undefined &&
         input.hargaJual < row.hargaBeliTerakhir
           ? ` Peringatan: harga jual baru ${formatRupiah(input.hargaJual)} lebih rendah dari harga beli terakhir ${formatRupiah(row.hargaBeliTerakhir)}.`
-          : ''
+          : "";
       if (
         !(await confirm({
-          title: 'Yakin?',
+          title: "Yakin?",
           message: `Ubah harga jual dari ${formatRupiah(row.hargaJual)} menjadi ${formatRupiah(input.hargaJual)}?${warning}`,
-          confirmText: 'Ubah harga',
+          confirmText: "Ubah harga",
         }))
       )
-        return
+        return;
     }
-    if (input.nama !== row.nama) changes.nama = input.nama
-    if (input.satuan !== row.satuan) changes.satuan = input.satuan
-    if (priceChanged) changes.hargaJual = input.hargaJual
+    if (input.nama !== row.nama) changes.nama = input.nama;
+    if (input.satuan !== row.satuan) changes.satuan = input.satuan;
+    if (priceChanged) changes.hargaJual = input.hargaJual;
     try {
-      await mutation.mutateAsync({ id: row.id, input: changes })
-      reset(form)
-      toast.success('Data barang diperbarui.')
-      onSaved()
+      await mutation.mutateAsync({ id: row.id, input: changes });
+      reset(form);
+      toast.success("Data barang diperbarui.");
+      onSaved();
     } catch (error) {
       if (error instanceof ApiError) {
-        for (const field of ['nama', 'satuan', 'hargaJual'] as const) {
-          const fieldMessage = error.fields[field]
-          if (fieldMessage) setErrors(form, { path: [field], errors: [fieldMessage] })
+        for (const field of ["nama", "satuan", "hargaJual"] as const) {
+          const fieldMessage = error.fields[field];
+          if (fieldMessage) setErrors(form, { path: [field], errors: [fieldMessage] });
         }
       }
-      setMessage(error instanceof ApiError ? error.message : 'Data barang tidak dapat diperbarui.')
+      setMessage(error instanceof ApiError ? error.message : "Data barang tidak dapat diperbarui.");
     }
   }
 
@@ -276,7 +292,7 @@ function EditBarangDialog({
         onSubmit={submit}
       />
     </Modal>
-  )
+  );
 }
 
 function EditBarangFields({
@@ -285,31 +301,53 @@ function EditBarangFields({
   loading,
   onSubmit,
 }: {
-  form: EditFormStore
-  message: string
-  loading: boolean
-  onSubmit: (input: BarangInput) => Promise<void>
+  form: EditFormStore;
+  message: string;
+  loading: boolean;
+  onSubmit: (input: BarangInput) => Promise<void>;
 }) {
-  const close = useModalClose()
-  const nama = useField(form, { path: ['nama'] })
-  const satuan = useField(form, { path: ['satuan'] })
-  const hargaJual = useField(form, { path: ['hargaJual'] })
+  const close = useModalClose();
+  const nama = useField(form, { path: ["nama"] });
+  const satuan = useField(form, { path: ["satuan"] });
+  const hargaJual = useField(form, { path: ["hargaJual"] });
   return (
-    <Form of={form} onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+    <Form
+      of={form}
+      onSubmit={onSubmit}
+      className="flex min-h-0 flex-1 flex-col"
+    >
       <ModalBody className="grid content-start gap-4 sm:grid-cols-2">
-        <TextField field={nama} label="Nama barang" required />
-        <SelectField field={satuan} label="Satuan" required options={satuanOptions} />
-        <RupiahField field={hargaJual} label="Harga jual" required />
+        <TextField
+          field={nama}
+          label="Nama barang"
+          required
+        />
+        <SelectField
+          field={satuan}
+          label="Satuan"
+          required
+          options={satuanOptions}
+        />
+        <RupiahField
+          field={hargaJual}
+          label="Harga jual"
+          required
+        />
         <div className="sm:col-span-2">
           <FormAlert message={message} />
         </div>
       </ModalBody>
       <ModalFooter>
-        <button type="button" className="btn btn-ghost min-h-11" disabled={loading} onClick={close}>
+        <button
+          type="button"
+          className="btn btn-ghost min-h-11"
+          disabled={loading}
+          onClick={close}
+        >
           Batal
         </button>
         <FormSubmitButton loading={loading}>Simpan perubahan</FormSubmitButton>
       </ModalFooter>
     </Form>
-  )
+  );
 }

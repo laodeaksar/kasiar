@@ -10,13 +10,13 @@ import {
   sortFn_datetime,
   sortFn_text,
   tableFeatures,
-} from '@tanstack/react-table'
+} from "@tanstack/react-table";
 
-export type MobilePriority = 'judul' | 'detail' | 'sembunyi'
+export type MobilePriority = "judul" | "detail" | "sembunyi";
 
 export type DataTableColumnMeta = {
-  mobilePriority?: MobilePriority
-}
+  mobilePriority?: MobilePriority;
+};
 
 // Semua fitur tabel didaftarkan sekali agar setiap tabel memakai konfigurasi yang sama.
 // Pencarian tetap dilakukan di luar tabel melalui parameter URL.
@@ -33,8 +33,8 @@ export const dataTableFeatures = tableFeatures({
     text: sortFn_text,
   },
   columnMeta: {} as DataTableColumnMeta,
-})
-export type DataTableFeatures = typeof dataTableFeatures
+});
+export type DataTableFeatures = typeof dataTableFeatures;
 
 export const columnHelperFor = <TData extends Record<string, any>>() =>
-  createColumnHelper<DataTableFeatures, TData>()
+  createColumnHelper<DataTableFeatures, TData>();

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 export {
   FieldShell,
   FormField,
@@ -10,17 +10,17 @@ export {
   SelectField,
   CheckboxField,
   DateField,
-} from './fields'
-export { PasswordRequirementsPopover } from './password-requirements-popover'
+} from "./fields";
+export { PasswordRequirementsPopover } from "./password-requirements-popover";
 
 export function FormSubmitButton({
-  children = 'Simpan',
+  children = "Simpan",
   loading = false,
   disabled = false,
 }: {
-  children?: ReactNode
-  loading?: boolean
-  disabled?: boolean
+  children?: ReactNode;
+  loading?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -29,17 +29,25 @@ export function FormSubmitButton({
       disabled={disabled || loading}
       aria-busy={loading}
     >
-      {loading && <span className="loading loading-spinner loading-sm" aria-hidden="true" />}
-      {loading ? 'Menyimpan...' : children}
+      {loading && (
+        <span
+          className="loading loading-spinner loading-sm"
+          aria-hidden="true"
+        />
+      )}
+      {loading ? "Menyimpan..." : children}
     </button>
-  )
+  );
 }
 
 export function FormAlert({ message, children }: { message?: string; children?: ReactNode }) {
-  if (!message && !children) return null
+  if (!message && !children) return null;
   return (
-    <div className="alert alert-error" role="alert">
+    <div
+      className="alert alert-error"
+      role="alert"
+    >
       {message ?? children}
     </div>
-  )
+  );
 }

@@ -1,36 +1,42 @@
-import { Hono } from 'hono'
-import { createMiddleware } from 'hono/factory'
-import { auth } from '../lib/auth'
-import { adminBarangRoutes, barangRoutes } from './routes/barang'
-import { penggunaRoutes } from './routes/pengguna'
-import { barangMasukRoutes } from './routes/barang-masuk'
-import { transaksiRoutes } from './routes/transaksi'
-import { utangRoutes } from './routes/utang'
-type Env = { Variables: { user: { id: string; role: string } } }
+import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
+
+import { auth } from "~/lib/auth";
+
+import { adminBarangRoutes, barangRoutes } from "./routes/barang";
+import { barangMasukRoutes } from "./routes/barang-masuk";
+import { penggunaRoutes } from "./routes/pengguna";
+import { transaksiRoutes } from "./routes/transaksi";
+import { utangRoutes } from "./routes/utang";
+
+type Env = { Variables: { user: { id: string; role: string } } };
+
 export const requireLogin = createMiddleware<Env>(async (c, next) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers })
-  if (!session) return c.json({ message: 'Silakan masuk terlebih dahulu.', fields: {} }, 401)
-  c.set('user', {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session) return c.json({ message: "Silakan masuk terlebih dahulu.", fields: {} }, 401);
+  c.set("user", {
     id: session.user.id,
-    role: String((session.user as typeof session.user & { role?: string }).role ?? 'kasir'),
-  })
-  await next()
-})
+    role: String((session.user as typeof session.user & { role?: string }).role ?? "kasir"),
+  });
+  await next();
+});
+
 export const requireAdmin = createMiddleware<Env>(async (c, next) => {
-  if (c.get('user').role !== 'admin')
-    return c.json({ message: 'Akses khusus admin.', fields: {} }, 403)
-  await next()
-})
-export const app = new Hono<Env>()
-app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
-app.get('/api/health', (c) => c.json({ status: 'ok' }))
-app.use('/api/*', requireLogin)
-app.get('/api/session', (c) => c.json({ user: c.get('user') }))
-app.use('/api/admin/*', requireAdmin)
-app.route('/api/barang', barangRoutes)
-app.route('/api/barang-masuk', barangMasukRoutes)
-app.route('/api/transaksi', transaksiRoutes)
-app.route('/api/utang', utangRoutes)
-app.route('/api/admin/barang', adminBarangRoutes)
-app.route('/api/admin/pengguna', penggunaRoutes)
-app.all('*', (c) => c.json({ message: 'Endpoint tidak ditemukan.', fields: {} }, 404))
+  if (c.get("user").role !== "admin")
+    return c.json({ message: "Akses khusus admin.", fields: {} }, 403);
+  await next();
+});
+
+export const app = new Hono<Env>();
+app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.get("/api/health", (c) => c.json({ status: "ok" }));
+app.use("/api/*", requireLogin);
+app.get("/api/session", (c) => c.json({ user: c.get("user") }));
+app.use("/api/admin/*", requireAdmin);
+app.route("/api/barang", barangRoutes);
+app.route("/api/barang-masuk", barangMasukRoutes);
+app.route("/api/transaksi", transaksiRoutes);
+app.route("/api/utang", utangRoutes);
+app.route("/api/admin/barang", adminBarangRoutes);
+app.route("/api/admin/pengguna", penggunaRoutes);
+app.all("*", (c) => c.json({ message: "Endpoint tidak ditemukan.", fields: {} }, 404));

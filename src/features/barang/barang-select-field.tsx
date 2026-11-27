@@ -1,38 +1,43 @@
-import { useState, type RefObject } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import type { FieldElementProps } from '@formisch/react'
-import { pilihanBarangOptions, type PilihanBarang } from '../barang-masuk/queries'
+import type { FieldElementProps } from "@formisch/react";
+
+import { useQuery } from "@tanstack/react-query";
+import { useState, type RefObject } from "react";
+
+import { pilihanBarangOptions, type PilihanBarang } from "../barang-masuk/queries";
 
 type FieldStore = {
-  path: readonly PropertyKey[]
-  input: unknown
-  errors: [string, ...string[]] | null
-  isTouched: boolean
-  onChange(value: unknown): void
-  props: FieldElementProps
-}
+  path: readonly PropertyKey[];
+  input: unknown;
+  errors: [string, ...string[]] | null;
+  isTouched: boolean;
+  onChange(value: unknown): void;
+  props: FieldElementProps;
+};
 type Props = {
-  field: FieldStore
-  selected: PilihanBarang | null
-  onSelected: (item: PilihanBarang | null) => void
-  inputRef?: RefObject<HTMLInputElement | null>
-}
+  field: FieldStore;
+  selected: PilihanBarang | null;
+  onSelected: (item: PilihanBarang | null) => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
+};
 
 export function BarangSelectField({ field, selected, onSelected, inputRef }: Props) {
-  const [query, setQuery] = useState('')
-  const [open, setOpen] = useState(false)
-  const { data: options = [], isPending, isError } = useQuery(pilihanBarangOptions(query, open))
-  const error = field.isTouched ? field.errors?.[0] : undefined
-  const id = 'field-barangId'
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const { data: options = [], isPending, isError } = useQuery(pilihanBarangOptions(query, open));
+  const error = field.isTouched ? field.errors?.[0] : undefined;
+  const id = "field-barangId";
 
   return (
     <div
       className="form-control relative w-full gap-1.5"
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false)
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <label className="label py-0" htmlFor={id}>
+      <label
+        className="label py-0"
+        htmlFor={id}
+      >
         <span className="label-text font-medium">
           Barang <span aria-hidden="true">*</span>
         </span>
@@ -48,18 +53,18 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
         aria-controls="barang-pilihan-list"
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-error` : undefined}
-        className={`input input-bordered min-h-12 w-full ${error ? 'input-error' : ''}`}
-        value={open ? query : (selected?.nama ?? '')}
+        className={`input input-bordered min-h-12 w-full ${error ? "input-error" : ""}`}
+        value={open ? query : (selected?.nama ?? "")}
         placeholder="Cari nama barang..."
         onFocus={() => {
-          setQuery('')
-          setOpen(true)
+          setQuery("");
+          setOpen(true);
         }}
         onChange={(event) => {
-          setQuery(event.target.value)
-          setOpen(true)
-          field.onChange(0)
-          onSelected(null)
+          setQuery(event.target.value);
+          setOpen(true);
+          field.onChange(0);
+          onSelected(null);
         }}
       />
       {open && (
@@ -69,12 +74,18 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
           id="barang-pilihan-list"
         >
           {isPending && (
-            <p className="p-3 text-sm" role="status">
+            <p
+              className="p-3 text-sm"
+              role="status"
+            >
               Mencari barang...
             </p>
           )}
           {isError && (
-            <p className="p-3 text-sm text-error" role="alert">
+            <p
+              className="p-3 text-sm text-error"
+              role="alert"
+            >
               Barang gagal dimuat. Coba lagi.
             </p>
           )}
@@ -91,10 +102,10 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
                 className="flex min-h-12 w-full items-center justify-between gap-3 px-3 text-left hover:bg-base-200 focus:bg-base-200"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => {
-                  field.onChange(item.id)
-                  onSelected(item)
-                  setQuery('')
-                  setOpen(false)
+                  field.onChange(item.id);
+                  onSelected(item);
+                  setQuery("");
+                  setOpen(false);
                 }}
               >
                 <span>{item.nama}</span>
@@ -104,15 +115,19 @@ export function BarangSelectField({ field, selected, onSelected, inputRef }: Pro
         </div>
       )}
       {error && (
-        <span id={`${id}-error`} className="label-text-alt text-error" role="alert">
+        <span
+          id={`${id}-error`}
+          className="label-text-alt text-error"
+          role="alert"
+        >
           {error}
         </span>
       )}
       {selected && !open && (
         <span className="label-text-alt text-base-content/70">
-          Harga jual saat ini: Rp {selected.hargaJual.toLocaleString('id-ID')}
+          Harga jual saat ini: Rp {selected.hargaJual.toLocaleString("id-ID")}
         </span>
       )}
     </div>
-  )
+  );
 }

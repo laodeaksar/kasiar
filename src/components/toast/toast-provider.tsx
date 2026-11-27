@@ -1,12 +1,13 @@
-import { useEffect, useRef, type ReactNode } from 'react'
-import { dismissToast, type ToastKind, useToasts } from './toast-store'
+import { useEffect, useRef, type ReactNode } from "react";
+
+import { dismissToast, type ToastKind, useToasts } from "./toast-store";
 
 const classes: Record<ToastKind, string> = {
-  sukses: 'alert-success',
-  info: 'alert-info',
-  peringatan: 'alert-warning',
-  error: 'alert-error',
-}
+  sukses: "alert-success",
+  info: "alert-info",
+  peringatan: "alert-warning",
+  error: "alert-error",
+};
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   return (
@@ -14,27 +15,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <Toaster />
     </>
-  )
+  );
 }
 
 function Toaster() {
-  const items = useToasts()
-  const container = useRef<HTMLDivElement>(null)
+  const items = useToasts();
+  const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const element = container.current
-    if (!element) return
+    const element = container.current;
+    if (!element) return;
     if (items.length > 0) {
       try {
-        if (element.matches(':popover-open')) element.hidePopover()
-        element.showPopover()
+        if (element.matches(":popover-open")) element.hidePopover();
+        element.showPopover();
       } catch {
         // Peramban tanpa dukungan Popover tetap menampilkan wadah toast biasa.
       }
-    } else if (element.matches(':popover-open')) {
-      element.hidePopover()
+    } else if (element.matches(":popover-open")) {
+      element.hidePopover();
     }
-  }, [items])
+  }, [items]);
 
   return (
     <div
@@ -48,7 +49,7 @@ function Toaster() {
         <div
           key={item.id}
           className={`alert ${classes[item.kind]} shadow-lg`}
-          role={item.kind === 'error' ? 'alert' : 'status'}
+          role={item.kind === "error" ? "alert" : "status"}
         >
           <span>{item.message}</span>
           <button
@@ -61,5 +62,5 @@ function Toaster() {
         </div>
       ))}
     </div>
-  )
+  );
 }

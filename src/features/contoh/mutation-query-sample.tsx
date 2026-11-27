@@ -1,48 +1,50 @@
-import { Form, isDirty, reset, setErrors, useField, useForm } from '@formisch/react'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { useConfirm } from '../../components/confirm/use-confirm'
-import { ErrorState, Skeleton } from '../../components/feedback'
-import { FormAlert, FormSubmitButton, SelectField, TextField } from '../../components/form'
-import { Modal, ModalBody, ModalFooter, useModalClose } from '../../components/modal'
-import { toast } from '../../components/toast/toast-store'
-import { ApiError } from '../../lib/api'
-import { ContohMutationSchema } from '../../validation/contoh-mutation'
+import { Form, isDirty, reset, setErrors, useField, useForm } from "@formisch/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { useConfirm } from "~/components/confirm";
+import { ErrorState, Skeleton } from "~/components/feedback";
+import { FormAlert, FormSubmitButton, SelectField, TextField } from "~/components/form";
+import { Modal, ModalBody, ModalFooter, useModalClose } from "~/components/modal";
+import { toast } from "~/components/toast";
+import { ApiError } from "~/lib/api";
+import { ContohMutationSchema } from "~/validation/contoh-mutation";
+
 import {
   contohMutasiOptions,
   healthQueryOptions,
   type ContohMutasiInput,
   type ContohMutasiHasil,
-} from './queries'
+} from "./queries";
 
 const simulationOptions = [
-  { value: 'sukses', label: 'Berhasil' },
-  { value: 'isian', label: 'Gagal dengan pesan pada isian' },
-  { value: 'umum', label: 'Gagal dengan pesan umum' },
-  { value: 'sesi', label: 'Sesi berakhir (401)' },
-]
+  { value: "sukses", label: "Berhasil" },
+  { value: "isian", label: "Gagal dengan pesan pada isian" },
+  { value: "umum", label: "Gagal dengan pesan umum" },
+  { value: "sesi", label: "Sesi berakhir (401)" },
+];
 
 async function kirimContohTiruan(input: ContohMutasiInput): Promise<ContohMutasiHasil> {
-  await new Promise((resolve) => window.setTimeout(resolve, 700))
-  if (input.simulasi === 'isian') {
+  await new Promise((resolve) => window.setTimeout(resolve, 700));
+  if (input.simulasi === "isian") {
     throw new ApiError({
       status: 422,
-      message: 'Periksa kembali isian form.',
-      fields: { nama: 'Nama ini tidak dapat digunakan pada simulasi.' },
-    })
+      message: "Periksa kembali isian form.",
+      fields: { nama: "Nama ini tidak dapat digunakan pada simulasi." },
+    });
   }
-  if (input.simulasi === 'umum') {
-    throw new ApiError({ status: 500, message: 'Simulasi gagal. Coba lagi.', fields: {} })
+  if (input.simulasi === "umum") {
+    throw new ApiError({ status: 500, message: "Simulasi gagal. Coba lagi.", fields: {} });
   }
-  if (input.simulasi === 'sesi') {
-    throw new ApiError({ status: 401, message: 'Silakan masuk kembali.', fields: {} })
+  if (input.simulasi === "sesi") {
+    throw new ApiError({ status: 401, message: "Silakan masuk kembali.", fields: {} });
   }
-  return { message: 'Contoh berhasil disimpan.' }
+  return { message: "Contoh berhasil disimpan." };
 }
 
 export function MutationQuerySample() {
-  const [open, setOpen] = useState(false)
-  const { data, isPending, isError, refetch } = useQuery(healthQueryOptions())
+  const [open, setOpen] = useState(false);
+  const { data, isPending, isError, refetch } = useQuery(healthQueryOptions());
   return (
     <section className="card border border-base-300 bg-base-100">
       <div className="card-body gap-4">
@@ -53,70 +55,82 @@ export function MutationQuerySample() {
             menyimpan data toko.
           </p>
         </div>
-        {isPending && !data && <Skeleton variant="text" count={1} />}
+        {isPending && !data && (
+          <Skeleton
+            variant="text"
+            count={1}
+          />
+        )}
         {isError && !data && (
           <ErrorState
             onRetry={() => {
-              void refetch()
+              void refetch();
             }}
           />
         )}
         {data && (
-          <p role="status" className="alert alert-success">
+          <p
+            role="status"
+            className="alert alert-success"
+          >
             Status server: {data.status}
           </p>
         )}
         <div>
-          <button type="button" className="btn btn-primary min-h-11" onClick={() => setOpen(true)}>
+          <button
+            type="button"
+            className="btn btn-primary min-h-11"
+            onClick={() => setOpen(true)}
+          >
             Uji alur simpan
           </button>
         </div>
       </div>
       {open && <ContohMutationModal onClose={() => setOpen(false)} />}
     </section>
-  )
+  );
 }
 
 function ContohMutationModal({ onClose }: { onClose: () => void }) {
   const form = useForm({
     schema: ContohMutationSchema,
-    initialInput: { nama: '', simulasi: 'sukses' as const },
-  })
-  const mutation = useMutation(contohMutasiOptions(kirimContohTiruan))
-  const confirm = useConfirm()
-  const [message, setMessage] = useState('')
-  const nama = useField(form, { path: ['nama'] })
-  const simulasi = useField(form, { path: ['simulasi'] })
+    initialInput: { nama: "", simulasi: "sukses" as const },
+  });
+  const mutation = useMutation(contohMutasiOptions(kirimContohTiruan));
+  const confirm = useConfirm();
+  const [message, setMessage] = useState("");
+  const nama = useField(form, { path: ["nama"] });
+  const simulasi = useField(form, { path: ["simulasi"] });
 
   async function closeGuard() {
-    if (!isDirty(form)) return true
+    if (!isDirty(form)) return true;
     return confirm({
-      title: 'Buang perubahan?',
-      message: 'Isian yang belum disimpan akan hilang.',
-      cancelText: 'Tetap mengisi',
-      confirmText: 'Buang isian',
+      title: "Buang perubahan?",
+      message: "Isian yang belum disimpan akan hilang.",
+      cancelText: "Tetap mengisi",
+      confirmText: "Buang isian",
       danger: true,
-    })
+    });
   }
 
   async function submit(input: ContohMutasiInput) {
-    setMessage('')
-    setErrors(form, { path: ['nama'], errors: null })
+    setMessage("");
+    setErrors(form, { path: ["nama"], errors: null });
     try {
-      await mutation.mutateAsync(input)
-      reset(form)
-      toast.success('Contoh berhasil disimpan.')
-      onClose()
+      await mutation.mutateAsync(input);
+      reset(form);
+      toast.success("Contoh berhasil disimpan.");
+      onClose();
     } catch (error) {
       if (error instanceof ApiError) {
-        const fieldError = error.fields.nama
+        const fieldError = error.fields.nama;
         if (fieldError) {
-          setErrors(form, { path: ['nama'], errors: [fieldError] })
+          setErrors(form, { path: ["nama"], errors: [fieldError] });
         } else if (error.status !== 401) {
-          setMessage(error.message)
+          setMessage(error.message);
         }
       } else {
-        setMessage('Contoh gagal dikirim. Periksa koneksi lalu coba lagi.')
+        setMessage("Contoh gagal dikirim. Periksa koneksi lalu coba lagi.");
       }
     }
   }
@@ -130,9 +144,18 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
       canClose={!mutation.isPending}
       closeGuard={closeGuard}
     >
-      <Form of={form} onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+      <Form
+        of={form}
+        onSubmit={submit}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <ModalBody className="space-y-4">
-          <TextField field={nama} label="Nama contoh" required placeholder="Contoh: Beras eceran" />
+          <TextField
+            field={nama}
+            label="Nama contoh"
+            required
+            placeholder="Contoh: Beras eceran"
+          />
           <SelectField
             field={simulasi}
             label="Hasil simulasi"
@@ -150,14 +173,19 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
         </ModalFooter>
       </Form>
     </Modal>
-  )
+  );
 }
 
 function TutupButton({ loading }: { loading: boolean }) {
-  const close = useModalClose()
+  const close = useModalClose();
   return (
-    <button type="button" className="btn btn-ghost min-h-11" disabled={loading} onClick={close}>
+    <button
+      type="button"
+      className="btn btn-ghost min-h-11"
+      disabled={loading}
+      onClick={close}
+    >
       Batal
     </button>
-  )
+  );
 }

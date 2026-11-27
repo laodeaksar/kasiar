@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && tsc -b",
-    "format": "oxfmt",
+    "format": "oxfmt .",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {

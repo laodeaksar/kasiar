@@ -1,44 +1,54 @@
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useState } from 'react'
-import { UserPlus } from 'lucide-react'
-import { DataTable } from '../../../components/data-table'
-import { EmptyState, ErrorState, Skeleton } from '../../../components/feedback'
-import { HeaderButton, PageHeader } from '../../../components/page-header'
-import { PenggunaForm } from '../../../features/pengguna/pengguna-form'
-import { penggunaColumns } from '../../../features/pengguna/columns'
-import { kasirListOptions, type KasirRow } from '../../../features/pengguna/queries'
-import { ResetPasswordForm } from '../../../features/pengguna/reset-password-form'
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { UserPlus } from "lucide-react";
+import { useState } from "react";
 
-export const Route = createFileRoute('/_app/admin/pengguna')({
+import { DataTable } from "~/components/data-table";
+import { EmptyState, ErrorState, Skeleton } from "~/components/feedback";
+import { HeaderButton, PageHeader } from "~/components/page-header";
+import { penggunaColumns } from "~/features/pengguna/columns";
+import { PenggunaForm } from "~/features/pengguna/pengguna-form";
+import { kasirListOptions, type KasirRow } from "~/features/pengguna/queries";
+import { ResetPasswordForm } from "~/features/pengguna/reset-password-form";
+
+export const Route = createFileRoute("/_app/admin/pengguna")({
   beforeLoad: ({ context }) => {
-    if (context.session?.peran !== 'admin') throw redirect({ to: '/' })
+    if (context.session?.peran !== "admin") throw redirect({ to: "/" });
   },
   validateSearch: () => ({}),
   loader: ({ context }) => context.queryClient.ensureQueryData(kasirListOptions()),
   component: AdminPenggunaPage,
-})
+});
 
 function AdminPenggunaPage() {
-  const { data: rows, isPending, isError, refetch } = useQuery(kasirListOptions())
-  const isAdmin = Route.useRouteContext().session?.peran === 'admin'
-  const [creating, setCreating] = useState(false)
-  const [resetting, setResetting] = useState<KasirRow | null>(null)
+  const { data: rows, isPending, isError, refetch } = useQuery(kasirListOptions());
+  const isAdmin = Route.useRouteContext().session?.peran === "admin";
+  const [creating, setCreating] = useState(false);
+  const [resetting, setResetting] = useState<KasirRow | null>(null);
   if (isError)
     return (
       <ErrorState
         onRetry={() => {
-          void refetch()
+          void refetch();
         }}
       />
-    )
-  if (isPending && !rows) return <Skeleton variant="table-rows" count={3} />
+    );
+  if (isPending && !rows)
+    return (
+      <Skeleton
+        variant="table-rows"
+        count={3}
+      />
+    );
   const columns = penggunaColumns((row) => (
-    <button className="btn btn-outline btn-sm min-h-10" onClick={() => setResetting(row)}>
+    <button
+      className="btn btn-outline btn-sm min-h-10"
+      onClick={() => setResetting(row)}
+    >
       Reset password
     </button>
-  ))
-  const data = { rows, total: rows.length, page: 1, pageSize: Math.max(1, rows.length) }
+  ));
+  const data = { rows, total: rows.length, page: 1, pageSize: Math.max(1, rows.length) };
 
   return (
     <section className="space-y-5">
@@ -75,11 +85,18 @@ function AdminPenggunaPage() {
         </div>
       </section>
       {creating && (
-        <PenggunaForm onClose={() => setCreating(false)} onSaved={() => setCreating(false)} />
+        <PenggunaForm
+          onClose={() => setCreating(false)}
+          onSaved={() => setCreating(false)}
+        />
       )}
       {resetting && (
-        <ResetPasswordForm key={resetting.id} kasir={resetting} onDone={() => setResetting(null)} />
+        <ResetPasswordForm
+          key={resetting.id}
+          kasir={resetting}
+          onDone={() => setResetting(null)}
+        />
       )}
     </section>
-  )
+  );
 }

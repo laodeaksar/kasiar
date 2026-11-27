@@ -1,22 +1,26 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Package, Users } from 'lucide-react'
-import { PageHeader } from '../../../components/page-header'
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { Package, Users } from "lucide-react";
 
-export const Route = createFileRoute('/_app/admin/')({
+import { PageHeader } from "~/components/page-header";
+
+export const Route = createFileRoute("/_app/admin/")({
   beforeLoad: ({ context }) => {
-    if (context.session?.peran !== 'admin') throw redirect({ to: '/' })
+    if (context.session?.peran !== "admin") throw redirect({ to: "/" });
   },
   component: AdminHome,
-})
+});
 
 function AdminHome() {
   return (
     <section className="space-y-5">
-      <PageHeader title="Pengelolaan toko" description="Pilih bagian yang ingin dikelola." />
+      <PageHeader
+        title="Pengelolaan toko"
+        description="Pilih bagian yang ingin dikelola."
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <Link
           to="/admin/barang"
-          search={{ q: '', halaman: 1, status: 'aktif' }}
+          search={{ q: "", halaman: 1, status: "aktif" }}
           className="card border border-base-300 bg-base-100 transition hover:bg-base-200"
         >
           <div className="card-body">
@@ -37,5 +41,5 @@ function AdminHome() {
         </Link>
       </div>
     </section>
-  )
+  );
 }

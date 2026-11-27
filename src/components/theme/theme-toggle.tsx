@@ -13,6 +13,11 @@ const LABELS: Record<ThemeChoice, string> = {
   terang: "Terang",
   gelap: "Gelap",
 };
+const NEXT_MODE: Record<ThemeChoice, string> = {
+  sistem: "light",
+  terang: "dark",
+  gelap: "system",
+};
 const ICONS: Record<ThemeChoice, LucideIcon> = {
   sistem: Monitor,
   terang: Sun,
@@ -26,6 +31,33 @@ function ThemeIcon({ mode }: { mode: ThemeChoice }) {
       className="size-4"
       aria-hidden="true"
     />
+  );
+}
+
+export function ThemeToggleCompact() {
+  const [mode, setModeState] = useState<ThemeChoice>(initialTheme ?? "sistem");
+
+  function setMode(value: ThemeChoice) {
+    setModeState(value);
+    const theme = value === "sistem" ? null : value;
+    writeThemeCookie(theme);
+    const root = document.documentElement;
+    if (theme) root.dataset.theme = theme === "terang" ? "light" : "dark";
+    else delete root.dataset.theme;
+    root.style.colorScheme =
+      theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
+  }
+   
+  return (
+    <button
+      type="button"
+      onClick={() => setMode(NEXT_MODE[mode])}
+      className="btn btn-ghost btn-square"
+      title={`Tema: ${LABELS[mode]} — klik untuk ganti`}
+      aria-label={`Ganti tema. Sekarang: ${LABELS[mode]}`}
+    >
+      <ThemeIcon mode={mode} />
+    </button>
   );
 }
 

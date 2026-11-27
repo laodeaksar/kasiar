@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 
 import { useConfirm } from "~/components/confirm";
-import { ThemeToggle } from "~/components/theme/theme-toggle";
+import { ThemeToggle, ThemeToggleCompact } from "~/components/theme/theme-toggle";
 import { toast } from "~/components/toast";
 import { useCart } from "~/features/kasir/cart-store";
 import { authClient } from "~/lib/auth-client";
@@ -118,7 +118,7 @@ function AppLayout() {
           >
             Kasiar
           </Link>
-          <ThemeToggle initialTheme={rootData?.theme ?? null} />
+          <ThemeToggleCompact initialTheme={rootData?.theme ?? null} />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">

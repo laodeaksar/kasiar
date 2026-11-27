@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig, loadEnv } from "vite";
+import { nitro } from "nitro/vite";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -10,7 +11,7 @@ export default defineConfig(({ mode }) => {
   // No `define` is used, so these server-only values are not bundled into browser code.
   Object.assign(process.env, loadEnv(mode, process.cwd(), ""));
   return {
-    plugins: [tanstackStart(), react({ compiler: true }), tailwindcss()],
+    plugins: [tanstackStart(), nitro(), react({ compiler: true }), tailwindcss()],
     resolve: {
       alias: {
         "~": fileURLToPath(new URL("./src", import.meta.url)),

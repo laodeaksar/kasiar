@@ -99,9 +99,6 @@ function AppLayout() {
                   <Wallet className="size-4" /> Utang
                 </Link>
               </li>
-              <li>
-                <Link to="/uji-komponen">Uji komponen</Link>
-              </li>
             </ul>
           </div>
           <Link to="/" className="btn btn-ghost text-lg font-bold">
@@ -137,9 +134,6 @@ function AppLayout() {
                 </Link>
               </li>
             )}
-            <li>
-              <Link to="/uji-komponen">Uji komponen</Link>
-            </li>
           </ul>
         </nav>
         <div className="navbar-end gap-2">

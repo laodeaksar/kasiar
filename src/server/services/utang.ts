@@ -94,7 +94,7 @@ export async function daftarUtang(search: unknown) {
     .select({
       id: pembeli.id,
       nama: pembeli.nama,
-      sisaUtang: sql<string>`${saldoPembeliSql()}::text`,
+      sisaUtang: sql<string>`(${saldoPembeliSql()})::text`,
     })
     .from(pembeli)
     .where(where)

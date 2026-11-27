@@ -97,7 +97,7 @@ admin.get('/', async (c) => {
       aktif: barang.aktif,
       hargaBeliTerakhir: sql<
         number | null
-      >`(select bm.harga_beli from barang_masuk bm where bm.barang_id = ${barang.id} order by bm.waktu_dicatat desc, bm.created_at desc limit 1)`,
+      >`(select bm.harga_beli from barang_masuk bm where bm.barang_id = ${sql.raw('"barang"."id"')} order by bm.waktu_dicatat desc, bm.created_at desc limit 1)`,
     })
     .from(barang)
     .where(where)

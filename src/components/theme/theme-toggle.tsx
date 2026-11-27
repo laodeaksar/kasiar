@@ -1,11 +1,15 @@
-import type { LucideIcon } from "lucide-react";
-
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 import { writeThemeCookie } from "./theme-cookie";
 
-type ThemeChoice = "sistem" | "terang" | "gelap";
+export type ThemeChoice = "sistem" | "terang" | "gelap";
+type StoredTheme = "terang" | "gelap" | null;
+type ThemeToggleProps = {
+  initialTheme?: StoredTheme;
+  mode?: ThemeChoice;
+  onModeChange?: (mode: ThemeChoice) => void;
+};
 
 const modes: readonly ThemeChoice[] = ["sistem", "terang", "gelap"];
 const LABELS: Record<ThemeChoice, string> = {
@@ -13,10 +17,10 @@ const LABELS: Record<ThemeChoice, string> = {
   terang: "Terang",
   gelap: "Gelap",
 };
-const NEXT_MODE: Record<ThemeChoice, string> = {
-  sistem: "light",
-  terang: "dark",
-  gelap: "system",
+const NEXT_MODE: Record<ThemeChoice, ThemeChoice> = {
+  sistem: "terang",
+  terang: "gelap",
+  gelap: "sistem",
 };
 const ICONS: Record<ThemeChoice, LucideIcon> = {
   sistem: Monitor,
@@ -34,46 +38,46 @@ function ThemeIcon({ mode }: { mode: ThemeChoice }) {
   );
 }
 
-export function ThemeToggleCompact() {
-  const [mode, setModeState] = useState<ThemeChoice>(initialTheme ?? "sistem");
+function applyTheme(mode: ThemeChoice) {
+  const theme = mode === "sistem" ? null : mode;
+  writeThemeCookie(theme);
+  const root = document.documentElement;
+  if (theme) root.dataset.theme = theme === "terang" ? "light" : "dark";
+  else delete root.dataset.theme;
+  root.style.colorScheme = theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
+}
+
+function useThemeMode({ initialTheme = null, mode, onModeChange }: ThemeToggleProps) {
+  const [localMode, setLocalMode] = useState<ThemeChoice>(initialTheme ?? "sistem");
+  const currentMode = mode ?? localMode;
 
   function setMode(value: ThemeChoice) {
-    setModeState(value);
-    const theme = value === "sistem" ? null : value;
-    writeThemeCookie(theme);
-    const root = document.documentElement;
-    if (theme) root.dataset.theme = theme === "terang" ? "light" : "dark";
-    else delete root.dataset.theme;
-    root.style.colorScheme =
-      theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
+    setLocalMode(value);
+    onModeChange?.(value);
+    applyTheme(value);
   }
-   
+
+  return { currentMode, setMode };
+}
+
+export function ThemeToggleCompact(props: ThemeToggleProps) {
+  const { currentMode, setMode } = useThemeMode(props);
+
   return (
     <button
       type="button"
-      onClick={() => setMode(NEXT_MODE[mode])}
+      onClick={() => setMode(NEXT_MODE[currentMode])}
       className="btn btn-ghost btn-square"
-      title={`Tema: ${LABELS[mode]} — klik untuk ganti`}
-      aria-label={`Ganti tema. Sekarang: ${LABELS[mode]}`}
+      title={`Tema: ${LABELS[currentMode]} — klik untuk ganti`}
+      aria-label={`Ganti tema. Sekarang: ${LABELS[currentMode]}`}
     >
-      <ThemeIcon mode={mode} />
+      <ThemeIcon mode={currentMode} />
     </button>
   );
 }
 
-export function ThemeToggle({ initialTheme = null }: { initialTheme?: "terang" | "gelap" | null }) {
-  const [mode, setModeState] = useState<ThemeChoice>(initialTheme ?? "sistem");
-
-  function setMode(value: ThemeChoice) {
-    setModeState(value);
-    const theme = value === "sistem" ? null : value;
-    writeThemeCookie(theme);
-    const root = document.documentElement;
-    if (theme) root.dataset.theme = theme === "terang" ? "light" : "dark";
-    else delete root.dataset.theme;
-    root.style.colorScheme =
-      theme === "terang" ? "light" : theme === "gelap" ? "dark" : "light dark";
-  }
+export function ThemeToggle(props: ThemeToggleProps) {
+  const { currentMode, setMode } = useThemeMode(props);
 
   return (
     <div
@@ -81,20 +85,20 @@ export function ThemeToggle({ initialTheme = null }: { initialTheme?: "terang" |
       aria-label="Pilih tema tampilan"
       className="join w-full"
     >
-      {modes.map((m) => (
+      {modes.map((mode) => (
         <button
-          key={m}
+          key={mode}
           type="button"
-          onClick={() => setMode(m)}
+          onClick={() => setMode(mode)}
           className={`join-item btn btn-sm flex-1 gap-1 ${
-            mode === m ? "btn-primary" : "btn-ghost border border-base-300"
+            currentMode === mode ? "btn-primary" : "btn-ghost border border-base-300"
           }`}
-          aria-pressed={mode === m}
-          aria-label={LABELS[m]}
-          title={LABELS[m]}
+          aria-pressed={currentMode === mode}
+          aria-label={LABELS[mode]}
+          title={LABELS[mode]}
         >
-          <ThemeIcon mode={m} />
-          <span className="hidden text-xs sm:block">{LABELS[m]}</span>
+          <ThemeIcon mode={mode} />
+          <span className="hidden text-xs sm:block">{LABELS[mode]}</span>
         </button>
       ))}
     </div>

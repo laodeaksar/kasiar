@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 
 import { useConfirm } from "~/components/confirm";
-import { ThemeToggle, ThemeToggleCompact } from "~/components/theme/theme-toggle";
+import { ThemeToggle, ThemeToggleCompact, type ThemeChoice } from "~/components/theme/theme-toggle";
 import { toast } from "~/components/toast";
 import { useCart } from "~/features/kasir/cart-store";
 import { authClient } from "~/lib/auth-client";
@@ -72,6 +72,7 @@ function AppLayout() {
   const rootData = useLoaderData({ from: "__root__" });
   const session = Route.useRouteContext({ select: (context) => context.session });
   const [open, setOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeChoice>(rootData?.theme ?? "sistem");
   const close = () => setOpen(false);
 
   async function logout() {
@@ -118,7 +119,10 @@ function AppLayout() {
           >
             Kasiar
           </Link>
-          <ThemeToggleCompact initialTheme={rootData?.theme ?? null} />
+          <ThemeToggleCompact
+            mode={themeMode}
+            onModeChange={setThemeMode}
+          />
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -197,7 +201,10 @@ function AppLayout() {
           </ul>
 
           <div className="shrink-0 space-y-3 border-t border-base-300 p-4">
-            <ThemeToggle initialTheme={rootData?.theme ?? null} />
+            <ThemeToggle
+              mode={themeMode}
+              onModeChange={setThemeMode}
+            />
             <button
               type="button"
               className="btn btn-outline w-full"

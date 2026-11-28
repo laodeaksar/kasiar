@@ -35,7 +35,7 @@ export function parseLoginSearch(
   value: unknown,
 ): v.InferOutput<typeof LoginSearchSchema> {
   const result = v.safeParse(LoginSearchSchema, value);
-  
+
   return result.success ? result.output : {};
 }
 
@@ -100,7 +100,7 @@ export function parseBarangMasukSearch(value: unknown) {
   const safeTo = sampai.success ? (sampai.output ?? "") : "";
   if (safeFrom && safeTo && safeFrom > safeTo)
     return { q: safeQ, dari: "", sampai: "", halaman: 1 };
-    
+
   return {
     q: safeQ,
     dari: safeFrom,
@@ -130,7 +130,7 @@ export function parseUtangSearch(value: unknown) {
   const status = v.safeParse(UtangStatusSchema, input.status ?? "belum-lunas");
   const pembeli = v.safeParse(UtangPageSchema, input.pembeli);
   const halaman = v.safeParse(UtangPageSchema, input.halaman ?? 1);
-  
+
   return {
     q: q.success ? q.output : "",
     status: status.success ? status.output : "belum-lunas",

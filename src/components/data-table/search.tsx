@@ -8,7 +8,7 @@ type DataTableSearchProps = {
 
 export function DataTableSearch({ value, onChange }: DataTableSearchProps) {
   const [draft, setDraft] = useState(value);
-  
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (draft !== value) onChange(draft);

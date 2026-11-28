@@ -1,24 +1,18 @@
-import type { FieldElementProps } from "@formisch/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 
 import { Eye, EyeOff } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { formatRupiah } from "~/lib/format";
+
+import type { FormFieldStore } from "./utils";
 
 import {
   PasswordRequirementsPopover,
   PasswordStrengthIndicator,
 } from "./password-requirements";
+import { errorText, ids, useFieldRef } from "./utils";
 
-type FormFieldStore = {
-  path: readonly PropertyKey[];
-  input: unknown;
-  errors: [string, ...string[]] | null;
-  isTouched: boolean;
-  onChange(value: unknown): void;
-  props: FieldElementProps;
-};
 /** Props dasar yang dimiliki semua field. */
 type BaseFieldProps = {
   field: FormFieldStore;
@@ -59,15 +53,12 @@ type PasswordFieldProps = BaseFieldProps &
 /** Field berjenis tetap (angka, rupiah, tanggal): hanya props dasar + sedikit atribut native. */
 type SimpleFieldProps = BaseFieldProps &
   Pick<NativeInputProps, "placeholder" | "disabled">;
-type NumberFieldProps = SimpleFieldProps & {
-  decimals?: 0 | 1;
-};
+type NumberFieldProps = SimpleFieldProps & { decimals?: 0 | 1 };
 type SelectOption = { label: string; value: string };
-type SelectFieldProps = BaseFieldProps & {
-  options: readonly SelectOption[];
-};
+type SelectFieldProps = BaseFieldProps & { options: readonly SelectOption[] };
 type CheckboxFieldProps = BaseFieldProps & Omit<NativeInputProps, "type">;
-type FormFieldProps = BaseFieldProps & {
+type FormFieldProps = Omit<BaseFieldProps, "label"> & {
+  label?: string;
   children: ReactNode;
 };
 type FieldShellProps = {
@@ -81,55 +72,10 @@ type FieldShellProps = {
 };
 
 /**
- * Mengambil pesan error pertama untuk ditampilkan, tetapi hanya setelah field disentuh
- * (isTouched), supaya form baru dibuka tidak langsung penuh pesan merah.
- * Mengembalikan "" jika tidak ada error.
+ * Lapisan tampilan di bawah FormField: label (legend), kontrol, pesan error, dan hint.
+ * Hint disembunyikan saat ada error. Internal; gunakan FormField.
  */
-function errorText(field: FormFieldStore) {
-  return field.isTouched ? (field.errors?.[0] ?? "") : "";
-}
-
-/**
- * Hook internal untuk elemen <input>/<select> milik field.
- * Menggabungkan ref formisch (agar field terdaftar, mis. untuk fokus otomatis ke field
- * error saat submit) dengan ref lokal untuk setCustomValidity (agar validasi native/
- * pseudo-class :user-invalid mengikuti pesan error formisch).
- *
- * @example
- * const message = errorText(field);
- * const ref = useFieldRef<HTMLInputElement>(field, message);
- * return <input {...field.props} ref={ref} />; // ref harus SETELAH spread field.props
- */
-function useFieldRef<T extends HTMLInputElement | HTMLSelectElement>(
-  field: FormFieldStore,
-  message: string,
-) {
-  const elementRef = useRef<T | null>(null);
-  const formRef = field.props.ref;
-  const ref = useCallback(
-    (element: T | null) => {
-      elementRef.current = element;
-      if (element) formRef(element);
-    },
-    [formRef],
-  );
-  useEffect(() => {
-    elementRef.current?.setCustomValidity(message);
-  }, [message]);
-  return ref;
-}
-
-/**
- * Pembungkus tampilan satu field: label (legend), kontrol, pesan error, dan hint.
- * Hint disembunyikan saat ada error. Dipakai oleh semua field di file ini; pakai langsung
- * hanya untuk membuat jenis field baru.
- *
- * @example
- * <FieldShell label="Nama *" labelId="n-label" message={errorText(field)} errorId="n-error">
- *   <input className="input validator w-full" />
- * </FieldShell>
- */
-export function FieldShell({
+function FieldShell({
   label,
   labelId,
   hint,
@@ -169,9 +115,11 @@ export function FieldShell({
 }
 
 /**
- * Pembungkus field untuk kontrol kustom (radio, textarea, upload, dll.) yang tidak punya
- * komponen sendiri. Menyediakan label, hint, dan pesan error; kontrolnya Anda tulis sendiri.
- * Gunakan `ids(field, hint)` untuk id/aria-describedby kontrol tersebut.
+ * Pembungkus standar semua field: label (legend, plus tanda * jika `required`), hint, dan
+ * pesan error, yang dihitung otomatis dari `field`. Dipakai oleh TextField, SelectField,
+ * CheckboxField, dll. Pakai langsung untuk kontrol kustom (radio, textarea, combobox).
+ * `label` opsional, mis. untuk checkbox yang labelnya sudah berada di samping kotak.
+ * Gunakan `ids(field, hint)` (dari form-field-utils) untuk id/aria-describedby kontrolnya.
  *
  * @example
  * <FormField field={field} label="Catatan" hint="Opsional">
@@ -188,7 +136,7 @@ export function FormField({
   const attr = ids(field, hint);
   return (
     <FieldShell
-      label={`${label}${required ? " *" : ""}`}
+      label={label ? `${label}${required ? " *" : ""}` : undefined}
       labelId={attr.labelId}
       hint={hint}
       hintId={attr.hintId}
@@ -199,27 +147,6 @@ export function FormField({
     </FieldShell>
   );
 }
-
-/**
- * Membuat id yang konsisten dari path field: id input, label, hint, dan error, plus
- * `describedBy` untuk aria-describedby (error lebih diutamakan daripada hint).
- *
- * @example
- * const attr = ids(field, "Contoh hint");
- * <input id={attr.id} aria-labelledby={attr.labelId} aria-describedby={attr.describedBy} />
- */
-function ids(field: FormFieldStore, hint?: string) {
-  const id = `field-${field.path.map(String).join("-")}`;
-  const message = errorText(field);
-  return {
-    id,
-    labelId: `${id}-label`,
-    hintId: hint ? `${id}-hint` : undefined,
-    errorId: message ? `${id}-error` : undefined,
-    describedBy: message ? `${id}-error` : hint ? `${id}-hint` : undefined,
-  };
-}
-
 /**
  * Field teks generik. Menerima semua atribut <input> native (type, placeholder,
  * autoComplete, inputMode, maxLength, dll.) kecuali yang dikelola formisch.
@@ -275,14 +202,13 @@ export function TextField({
       }
     />
   );
+
   return (
-    <FieldShell
-      label={`${label}${required ? " *" : ""}`}
-      labelId={attr.labelId}
+    <FormField
+      field={field}
+      label={label}
       hint={hint}
-      hintId={attr.hintId}
-      message={message}
-      errorId={attr.errorId}
+      required={required}
     >
       {wrapped ? (
         <label
@@ -295,7 +221,7 @@ export function TextField({
       ) : (
         input
       )}
-    </FieldShell>
+    </FormField>
   );
 }
 
@@ -315,16 +241,19 @@ export function PasswordField(props: PasswordFieldProps) {
   const { field, showStrength, username, ...textProps } = props;
   const [visible, setVisible] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const attr = ids(field, props.hint);
   const password = typeof field.input === "string" ? field.input : "";
   const requirementsId = `${attr.id}-requirements`;
+  
   // TextField sudah menambahkan ID error/hint miliknya sendiri; di sini hanya
   // tambahan dari luar dan daftar syarat password.
   const extraDescribedBy =
     [props["aria-describedby"], showStrength ? requirementsId : undefined]
       .filter(Boolean)
       .join(" ") || undefined;
+      
   function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
     if (
       event.relatedTarget instanceof Node &&
@@ -333,7 +262,7 @@ export function PasswordField(props: PasswordFieldProps) {
       return;
     setPopoverOpen(false);
   }
-
+  
   return (
     <div
       ref={containerRef}
@@ -358,7 +287,7 @@ export function PasswordField(props: PasswordFieldProps) {
             onClick={() => setVisible((value) => !value)}
             aria-label={visible ? "Sembunyikan password" : "Tampilkan password"}
             aria-pressed={visible}
-            className="btn btn-circle btn-ghost btn-xs"
+            className="btn btn-circle btn-ghost btn-sm"
           >
             {visible ? (
               <EyeOff className="size-4" />
@@ -418,17 +347,20 @@ const MAX_RUPIAH_DIGITS = 12;
  */
 export function RupiahField(props: SimpleFieldProps) {
   const { field } = props;
+  
   const raw =
     typeof field.input === "number"
       ? field.input
       : typeof field.input === "string" && field.input.trim() !== ""
         ? Number(field.input)
         : undefined;
+        
   // Nilai 0 tetap ditampilkan; hanya kosong/undefined yang menghasilkan teks kosong.
   const display =
     raw !== undefined && Number.isFinite(raw)
       ? formatRupiah(raw).replace(/^Rp\s?/, "")
       : "";
+      
   return (
     <TextField
       {...props}
@@ -477,14 +409,13 @@ export function SelectField({
   const message = errorText(field);
   const ref = useFieldRef<HTMLSelectElement>(field, message);
   const attr = ids(field, hint);
+  
   return (
-    <FieldShell
-      label={`${label}${required ? " *" : ""}`}
-      labelId={attr.labelId}
+    <FormField
+      field={field}
+      label={label}
       hint={hint}
-      hintId={attr.hintId}
-      message={message}
-      errorId={attr.errorId}
+      required={required}
     >
       <select
         {...field.props}
@@ -507,7 +438,7 @@ export function SelectField({
           </option>
         ))}
       </select>
-    </FieldShell>
+    </FormField>
   );
 }
 
@@ -528,12 +459,11 @@ export function CheckboxField({
   const message = errorText(field);
   const ref = useFieldRef<HTMLInputElement>(field, message);
   const attr = ids(field, hint);
+  
   return (
-    <FieldShell
+    <FormField
+      field={field}
       hint={hint}
-      hintId={attr.hintId}
-      message={message}
-      errorId={attr.errorId}
     >
       <label className="label cursor-pointer justify-start gap-3 px-0">
         <input
@@ -554,7 +484,7 @@ export function CheckboxField({
           {required ? " *" : ""}
         </span>
       </label>
-    </FieldShell>
+    </FormField>
   );
 }
 

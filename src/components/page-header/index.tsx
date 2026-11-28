@@ -28,8 +28,6 @@ const variantClass: Record<
   bahaya: "btn-error btn-outline",
 };
 
-const buttonSizeClass = "btn-sm shrink-0 gap-2 p-0 sm:px-4";
-
 function ButtonContents({
   icon: Icon,
   label,
@@ -62,7 +60,7 @@ export function HeaderButton(props: HeaderButtonProps) {
     loading = false,
   } = props;
   const unavailable = disabled || loading;
-  const className = `btn btn-sm ${variantClass[variant]} ${buttonSizeClass}${unavailable ? " opacity-50" : ""}`;
+  const className = `btn btn-sm shrink-0 gap-2 ${variantClass[variant]} ${unavailable ? " opacity-50" : ""}`;
 
   if ("to" in props && typeof props.to === "string") {
     return (
@@ -118,6 +116,7 @@ export function PageHeader({
   headingLevel?: 1 | 2;
 }) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
+  
   return (
     <header
       className={`flex min-w-0 items-start justify-between gap-2 ${className}`}

@@ -1,7 +1,8 @@
 import type { ReactTable, RowData } from "@tanstack/react-table";
 
-import type { DataTableFeatures } from "./table-features";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import type { DataTableFeatures } from "./table-features";
 
 type DataTablePaginationProps<T extends RowData> = {
   table: ReactTable<DataTableFeatures, T>;

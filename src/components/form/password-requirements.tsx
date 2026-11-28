@@ -76,11 +76,6 @@ export function PasswordRequirementsPopover({
     else if (!open && isOpen) panel.hidePopover();
   }, [anchored, open]);
 
-  /* const required = assessment.requirements.filter((requirement) => requirement.group === "wajib");
-  const recommended = assessment.requirements.filter(
-    (requirement) => requirement.group === "disarankan",
-  ); */
-
   const className = anchored
     ? panelAnchored
     : `${panelFallback} ${open ? "absolute left-0 top-full z-50 mt-2" : "hidden"}`;
@@ -112,18 +107,6 @@ export function PasswordRequirementsPopover({
     </div>
   );
 }
-
-/*
-<p className="mb-2 font-semibold">Syarat password</p>
-      <RequirementGroup
-        title="Wajib"
-        requirements={required}
-      />
-      <RequirementGroup
-        title="Disarankan (agar Kuat)"
-        requirements={recommended}
-      />
-      */
 
 function RequirementGroup({
   title,

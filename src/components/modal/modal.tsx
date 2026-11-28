@@ -1,242 +1,67 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { X } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-} from "react";
-
-type ModalSize = "kecil" | "sedang" | "besar";
-type ModalProps = {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  descriptionId?: string;
-  size?: ModalSize;
-  placement?: "bawah" | "tengah";
-  canClose?: boolean;
-  /** Alias sederhana untuk mengunci modal selama proses berjalan. */
-  locked?: boolean;
-  closeGuard?: () => boolean | Promise<boolean>;
-  initialFocusRef?: { current: HTMLElement | null };
-  children: ReactNode;
-};
-
-const RequestCloseContext = createContext<(() => void) | null>(null);
-
-// Scroll lock global: aman untuk modal bertumpuk / ditutup tidak berurutan.
-let scrollLockCount = 0;
-let scrollLockPrevOverflow = "";
-function lockScroll() {
-  if (scrollLockCount === 0) {
-    scrollLockPrevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-  }
-  scrollLockCount += 1;
-}
-function unlockScroll() {
-  scrollLockCount = Math.max(0, scrollLockCount - 1);
-  if (scrollLockCount === 0)
-    document.body.style.overflow = scrollLockPrevOverflow;
-}
+import { useEffect, useRef } from "react";
 
 export function Modal({
   open,
   onClose,
   title,
-  descriptionId,
-  size = "sedang",
-  placement = "bawah",
-  canClose = true,
-  locked = false,
-  closeGuard,
-  initialFocusRef,
   children,
-}: ModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const backdropPointerDown = useRef(false);
-  const closing = useRef(false);
-  const reactId = useId();
-  const titleId = `modal-title-${reactId.replaceAll(":", "")}`;
-  const closable = canClose && !locked;
-  const latest = useRef({
-    open,
-    onClose,
-    canClose: closable,
-    closeGuard,
-  });
-  useEffect(() => {
-    latest.current = {
-      open,
-      onClose,
-      canClose: closable,
-      closeGuard,
-    };
-  }, [open, onClose, closable, closeGuard]);
-
-  const requestClose = useCallback(async () => {
-    const current = latest.current;
-    if (!current.open || !current.canClose || closing.current) return;
-    closing.current = true;
-    try {
-      const allowed = current.closeGuard ? await current.closeGuard() : true;
-      const updated = latest.current;
-      if (allowed && updated.open && updated.canClose) updated.onClose();
-    } catch (error) {
-      // Jika pemeriksaan sebelum tutup gagal, pertahankan modal tetap terbuka.
-      if (import.meta.env.DEV) console.error("closeGuard gagal:", error);
-    } finally {
-      closing.current = false;
-    }
-  }, []);
-
-  const contextValue = useMemo(
-    () => () => {
-      void requestClose();
-    },
-    [requestClose],
-  );
+  locked = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  /** Selama true, Esc dan klik latar tidak menutup dialog (mis. impor berjalan). */
+  locked?: boolean;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!open || !dialog) return;
-    if (!dialog.open) dialog.showModal();
-    lockScroll();
-
-    const vv = window.visualViewport;
-
-    // Ikuti area yang benar-benar terlihat (mengecil saat keyboard muncul),
-    // supaya footer modal tidak tertutup keyboard.
-    const fitToVisualViewport = () => {
-      if (!vv) return;
-      dialog.style.height = `${vv.height}px`;
-      dialog.style.top = `${vv.offsetTop}px`;
-    };
-    const scrollFocusedFieldIntoView = () => {
-      const active = document.activeElement;
-      if (
-        active instanceof HTMLElement &&
-        dialog.contains(active) &&
-        active.closest("[data-modal-body]")
-      ) {
-        active.scrollIntoView({ block: "nearest" });
-      }
-    };
-    const onViewportChange = () => {
-      fitToVisualViewport();
-      scrollFocusedFieldIntoView();
-    };
-
-    fitToVisualViewport();
-    const frame = window.requestAnimationFrame(() => {
-      if (!dialog.open) return;
-      const firstField = dialog.querySelector<HTMLElement>(
-        'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])',
-      );
-      const target =
-        initialFocusRef?.current ??
-        firstField ??
-        dialog.querySelector<HTMLElement>(
-          "[data-modal-action]:not([disabled])",
-        ) ??
-        closeButtonRef.current;
-      target?.focus({ preventScroll: true });
-      scrollFocusedFieldIntoView();
-    });
-    vv?.addEventListener("resize", onViewportChange);
-    vv?.addEventListener("scroll", onViewportChange);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      vv?.removeEventListener("resize", onViewportChange);
-      vv?.removeEventListener("scroll", onViewportChange);
-      dialog.style.height = "";
-      dialog.style.top = "";
-      if (dialog.open) dialog.close();
-      unlockScroll();
-    };
-  }, [initialFocusRef, open]);
-
-  function onPointerDown(event: React.PointerEvent<HTMLDialogElement>) {
-    backdropPointerDown.current = event.target === event.currentTarget;
-  }
-  function onPointerUp(event: React.PointerEvent<HTMLDialogElement>) {
-    const endedOnBackdrop = event.target === event.currentTarget;
-    const beganOnBackdrop = backdropPointerDown.current;
-    backdropPointerDown.current = false;
-    if (beganOnBackdrop && endedOnBackdrop) void requestClose();
-  }
-
-  const sizeClasses: Record<ModalSize, string> = {
-    kecil: "sm:w-[24rem]",
-    sedang: "sm:w-[32rem]",
-    besar: "sm:w-[42rem]",
-  };
-
-  const dialogPlacement =
-    placement === "tengah"
-      ? "modal-middle p-4"
-      : "modal-bottom sm:modal-middle p-0 sm:p-4";
-  const boxPlacement =
-    placement === "tengah"
-      ? "rounded-box max-h-[calc(100%-2rem)] max-w-[calc(100vw-2rem)]"
-      : "max-h-[90%] max-w-none rounded-t-2xl rounded-b-none sm:max-h-[calc(100%-2rem)] sm:max-w-[calc(100vw-2rem)] sm:rounded-box";
+    const dialog = ref.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   return (
-    <RequestCloseContext.Provider value={contextValue}>
-      <dialog
-        ref={dialogRef}
-        className={`modal ${dialogPlacement} kasiar-modal no-print fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent text-base-content`}
-        aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        onCancel={(event) => {
-          event.preventDefault();
-          void requestClose();
-        }}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerCancel={() => {
-          backdropPointerDown.current = false;
-        }}
-      >
-        <div
-          className={`modal-box flex w-full flex-col overflow-hidden bg-base-100 p-0 shadow-xl ${boxPlacement} ${sizeClasses[size]}`}
-        >
-          <header className="relative flex shrink-0 items-center border-b border-base-300 px-4 py-3 pr-16 sm:px-6">
-            <h2
-              id={titleId}
-              className="text-lg font-semibold sm:text-xl"
-            >
-              {title}
-            </h2>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              className="btn btn-sm btn-ghost btn-circle absolute right-2 top-1/2 -translate-y-1/2 disabled:opacity-40"
-              aria-label="Tutup"
-              data-modal-close="true"
-              disabled={!closable}
-              onClick={() => {
-                void requestClose();
-              }}
-            >
-              <X
-                className="size-5"
-                aria-hidden="true"
-              />
-            </button>
-          </header>
-          {/* Di-unmount saat tertutup: state form reset & effect anak berhenti. */}
-          {open ? children : null}
+    <dialog
+      ref={ref}
+      className="modal modal-bottom sm:modal-middle no-print"
+      onCancel={(event) => {
+        if (locked) event.preventDefault();
+      }}
+      onClose={() => {
+        // Klik latar menutup tanpa event cancel: buka lagi bila terkunci.
+        if (locked) {
+          if (ref.current && !ref.current.open) ref.current.showModal();
+        } else onClose();
+      }}
+    >
+      <div className="modal-box w-full max-w-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-circle btn-ghost btn-sm"
+            aria-label="Tutup"
+          >
+            <X className="size-4" />
+          </button>
         </div>
-      </dialog>
-    </RequestCloseContext.Provider>
+        {/* Anak dipasang hanya saat terbuka agar form selalu mulai dari nilai awal. */}
+        {open ? children : null}
+      </div>
+      <form
+        method="dialog"
+        className="modal-backdrop"
+      >
+        <button type="submit">Tutup</button>
+      </form>
+    </dialog>
   );
 }
 
@@ -248,8 +73,7 @@ export function ModalBody({
   return (
     <div
       {...props}
-      data-modal-body="true"
-      className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 ${className}`}
+      className={`min-h-0 overflow-y-auto ${className}`}
     >
       {children}
     </div>
@@ -264,16 +88,9 @@ export function ModalFooter({
   return (
     <footer
       {...props}
-      className={`flex shrink-0 flex-wrap justify-end gap-2 border-t border-base-300 bg-base-100 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 sm:pb-4 ${className}`}
+      className={`flex flex-wrap justify-end gap-2 ${className}`}
     >
       {children}
     </footer>
   );
-}
-
-export function useModalClose() {
-  const requestClose = useContext(RequestCloseContext);
-  if (!requestClose)
-    throw new Error("useModalClose harus digunakan di dalam Modal.");
-  return requestClose;
 }

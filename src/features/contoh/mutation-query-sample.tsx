@@ -17,12 +17,7 @@ import {
   SelectField,
   TextField,
 } from "~/components/form";
-import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  useModalClose,
-} from "~/components/modal";
+import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiError } from "~/lib/api";
 import { ContohMutationSchema } from "~/validation/contoh-mutation";
@@ -134,15 +129,21 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
   const nama = useField(form, { path: ["nama"] });
   const simulasi = useField(form, { path: ["simulasi"] });
 
-  async function closeGuard() {
-    if (!isDirty(form)) return true;
-    return confirm({
-      title: "Buang perubahan?",
-      message: "Isian yang belum disimpan akan hilang.",
-      cancelText: "Tetap mengisi",
-      confirmText: "Buang isian",
-      danger: true,
-    });
+  async function requestClose() {
+    if (!isDirty(form)) {
+      onClose();
+      return;
+    }
+    if (
+      await confirm({
+        title: "Buang perubahan?",
+        message: "Isian yang belum disimpan akan hilang.",
+        cancelText: "Tetap mengisi",
+        confirmText: "Buang isian",
+        danger: true,
+      })
+    )
+      onClose();
   }
 
   async function submit(input: ContohMutasiInput) {
@@ -173,11 +174,8 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={requestClose}
       title="Uji kirim form"
-      size="sedang"
-      canClose={!mutation.isPending}
-      closeGuard={closeGuard}
     >
       <Form
         of={form}
@@ -199,12 +197,15 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
           />
           <FormAlert message={message} />
           <p className="text-sm text-base-content/70">
-            Saat kiriman berjalan, tombol simpan dan penutupan modal akan
-            dikunci.
+            Saat kiriman berjalan, tombol simpan dan tombol batal akan
+            dinonaktifkan.
           </p>
         </ModalBody>
         <ModalFooter>
-          <TutupButton loading={mutation.isPending} />
+          <TutupButton
+            loading={mutation.isPending}
+            onClose={requestClose}
+          />
           <FormSubmitButton loading={mutation.isPending}>
             Kirim contoh
           </FormSubmitButton>
@@ -214,14 +215,19 @@ function ContohMutationModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function TutupButton({ loading }: { loading: boolean }) {
-  const close = useModalClose();
+function TutupButton({
+  loading,
+  onClose,
+}: {
+  loading: boolean;
+  onClose: () => void | Promise<void>;
+}) {
   return (
     <button
       type="button"
       className="btn btn-ghost"
       disabled={loading}
-      onClick={close}
+      onClick={() => void onClose()}
     >
       Batal
     </button>

@@ -13,12 +13,7 @@ import type { ResetPasswordInput } from "~/validation/reset-password";
 
 import { useConfirm } from "~/components/confirm";
 import { FormAlert, FormSubmitButton, PasswordField } from "~/components/form";
-import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  useModalClose,
-} from "~/components/modal";
+import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
 import { ResetPasswordSchema } from "~/validation/reset-password";
@@ -46,15 +41,21 @@ export function ResetPasswordForm({
   const mutation = useMutation(resetPasswordMutationOptions());
   const [message, setMessage] = useState("");
 
-  async function closeGuard() {
-    if (!isDirty(form)) return true;
-    return confirm({
-      title: "Buang perubahan?",
-      message: "Isian yang belum disimpan akan hilang",
-      cancelText: "Tetap mengisi",
-      confirmText: "Buang password",
-      danger: true,
-    });
+  async function requestClose() {
+    if (!isDirty(form)) {
+      onDone();
+      return;
+    }
+    if (
+      await confirm({
+        title: "Buang perubahan?",
+        message: "Isian yang belum disimpan akan hilang",
+        cancelText: "Tetap mengisi",
+        confirmText: "Buang password",
+        danger: true,
+      })
+    )
+      onDone();
   }
 
   async function submit(input: ResetPasswordInput) {
@@ -92,17 +93,15 @@ export function ResetPasswordForm({
   return (
     <Modal
       open
-      onClose={onDone}
+      onClose={requestClose}
       title={`Reset password: ${kasir.username}`}
-      size="sedang"
-      canClose={!mutation.isPending}
-      closeGuard={closeGuard}
     >
       <ResetPasswordFields
         form={form}
         message={message}
         loading={mutation.isPending}
         username={kasir.username}
+        onClose={requestClose}
         onSubmit={submit}
       />
     </Modal>
@@ -114,15 +113,16 @@ function ResetPasswordFields({
   message,
   loading,
   username,
+  onClose,
   onSubmit,
 }: {
   form: ReturnType<typeof useForm<typeof ResetPasswordSchema>>;
   message: string;
   loading: boolean;
   username: string;
+  onClose: () => void | Promise<void>;
   onSubmit: (input: ResetPasswordInput) => Promise<void>;
 }) {
-  const close = useModalClose();
   const password = useField(form, { path: ["password"] });
 
   return (
@@ -147,7 +147,7 @@ function ResetPasswordFields({
           type="button"
           className="btn"
           disabled={loading}
-          onClick={close}
+          onClick={() => void onClose()}
         >
           Batal
         </button>

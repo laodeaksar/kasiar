@@ -18,12 +18,7 @@ import {
   PasswordField,
   TextField,
 } from "~/components/form";
-import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  useModalClose,
-} from "~/components/modal";
+import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiRequestError } from "~/lib/api";
 import { PenggunaSchema } from "~/validation/pengguna";
@@ -45,15 +40,21 @@ export function PenggunaForm({
   const mutation = useMutation(buatKasirMutationOptions());
   const [message, setMessage] = useState("");
 
-  async function closeGuard() {
-    if (!isDirty(form)) return true;
-    return confirm({
-      title: "Buang perubahan?",
-      message: "Isian yang belum disimpan akan hilang",
-      cancelText: "Tetap mengisi",
-      confirmText: "Buang isian",
-      danger: true,
-    });
+  async function requestClose() {
+    if (!isDirty(form)) {
+      onClose();
+      return;
+    }
+    if (
+      await confirm({
+        title: "Buang perubahan?",
+        message: "Isian yang belum disimpan akan hilang",
+        cancelText: "Tetap mengisi",
+        confirmText: "Buang isian",
+        danger: true,
+      })
+    )
+      onClose();
   }
 
   async function submit(input: PenggunaInput) {
@@ -89,16 +90,14 @@ export function PenggunaForm({
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={requestClose}
       title="Buat akun kasir"
-      size="sedang"
-      canClose={!mutation.isPending}
-      closeGuard={closeGuard}
     >
       <PenggunaFormFields
         form={form}
         message={message}
         loading={mutation.isPending}
+        onClose={requestClose}
         onSubmit={submit}
       />
     </Modal>
@@ -109,14 +108,15 @@ function PenggunaFormFields({
   form,
   message,
   loading,
+  onClose,
   onSubmit,
 }: {
   form: ReturnType<typeof useForm<typeof PenggunaSchema>>;
   message: string;
   loading: boolean;
+  onClose: () => void | Promise<void>;
   onSubmit: (input: PenggunaInput) => Promise<void>;
 }) {
-  const close = useModalClose();
   const username = useField(form, { path: ["username"] });
   const password = useField(form, { path: ["password"] });
 
@@ -147,7 +147,7 @@ function PenggunaFormFields({
           type="button"
           className="btn"
           disabled={loading}
-          onClick={close}
+          onClick={() => void onClose()}
         >
           Batal
         </button>

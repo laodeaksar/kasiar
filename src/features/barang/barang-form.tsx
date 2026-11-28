@@ -19,12 +19,7 @@ import {
   SelectField,
   TextField,
 } from "~/components/form";
-import {
-  Modal,
-  ModalBody,
-  ModalFooter,
-  useModalClose,
-} from "~/components/modal";
+import { Modal, ModalBody, ModalFooter } from "~/components/modal";
 import { toast } from "~/components/toast";
 import { ApiError } from "~/lib/api";
 import { formatRupiah } from "~/lib/format";
@@ -63,15 +58,21 @@ export function BarangForm({ row, onSaved, onClose }: BarangFormProps) {
   const loading = addMutation.isPending || editMutation.isPending;
   const [message, setMessage] = useState("");
 
-  async function closeGuard() {
-    if (!isDirty(form)) return true;
-    return confirm({
-      title: "Buang perubahan?",
-      message: "Isian yang belum disimpan akan hilang",
-      cancelText: row ? "Tetap mengedit" : "Tetap mengisi",
-      confirmText: "Buang isian",
-      danger: true,
-    });
+  async function requestClose() {
+    if (!isDirty(form)) {
+      onClose();
+      return;
+    }
+    if (
+      await confirm({
+        title: "Buang perubahan?",
+        message: "Isian yang belum disimpan akan hilang",
+        cancelText: row ? "Tetap mengedit" : "Tetap mengisi",
+        confirmText: "Buang isian",
+        danger: true,
+      })
+    )
+      onClose();
   }
 
   async function submit(input: BarangInput) {
@@ -157,17 +158,15 @@ export function BarangForm({ row, onSaved, onClose }: BarangFormProps) {
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={requestClose}
       title={row ? "Ubah barang" : "Barang baru"}
-      size="sedang"
-      canClose={!loading}
-      closeGuard={closeGuard}
     >
       <BarangFormFields
         form={form}
         message={message}
         loading={loading}
         editing={Boolean(row)}
+        onClose={requestClose}
         onSubmit={submit}
       />
     </Modal>
@@ -181,15 +180,16 @@ function BarangFormFields({
   message,
   loading,
   editing,
+  onClose,
   onSubmit,
 }: {
   form: BarangFormStore;
   message: string;
   loading: boolean;
   editing: boolean;
+  onClose: () => void | Promise<void>;
   onSubmit: (input: BarangInput) => Promise<void>;
 }) {
-  const close = useModalClose();
   const nama = useField(form, { path: ["nama"] });
   const satuan = useField(form, { path: ["satuan"] });
   const hargaJual = useField(form, { path: ["hargaJual"] });
@@ -228,7 +228,7 @@ function BarangFormFields({
           type="button"
           className="btn"
           disabled={loading}
-          onClick={close}
+          onClick={() => void onClose()}
         >
           Batal
         </button>

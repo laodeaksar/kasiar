@@ -67,10 +67,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         open={pending !== null}
         onClose={() => finish(false)}
         title={pending?.title ?? "Yakin?"}
-        descriptionId={messageId}
-        size="kecil"
-        placement="tengah"
-        initialFocusRef={pending?.danger ? cancelButtonRef : undefined}
       >
         <ModalBody id={messageId}>
           <p className="whitespace-pre-line">{pending?.message}</p>

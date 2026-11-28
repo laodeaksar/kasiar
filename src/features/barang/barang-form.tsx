@@ -26,35 +26,41 @@ import {
   useModalClose,
 } from "~/components/modal";
 import { toast } from "~/components/toast";
-import { ApiRequestError } from "~/lib/api";
+import { ApiError } from "~/lib/api";
+import { formatRupiah } from "~/lib/format";
 import { SATUAN_BARANG } from "~/lib/konstanta";
 import { BarangSchema } from "~/validation/barang";
 
-import { tambahBarangMutationOptions } from "./queries";
+import {
+  tambahBarangMutationOptions,
+  ubahBarangMutationOptions,
+  type BarangRow,
+} from "./queries";
 
 const satuanOptions = SATUAN_BARANG.map((value) => ({
   value,
   label: value === "kg" ? "Kilogram (kg)" : value,
 }));
 
-export function BarangForm({
-  onSaved,
-  onClose,
-}: {
+type BarangFormProps = {
+  row: BarangRow | null;
   onSaved: () => void;
   onClose: () => void;
-}) {
-  const initialInput = {
-    nama: "",
-    satuan: "pcs",
-    hargaJual: 0,
-  };
+};
+
+export function BarangForm({ row, onSaved, onClose }: BarangFormProps) {
   const form = useForm({
     schema: BarangSchema,
-    initialInput,
+    initialInput: {
+      nama: row?.nama ?? "",
+      satuan: row?.satuan ?? "pcs",
+      hargaJual: row?.hargaJual ?? 0,
+    },
   });
   const confirm = useConfirm();
-  const mutation = useMutation(tambahBarangMutationOptions());
+  const addMutation = useMutation(tambahBarangMutationOptions());
+  const editMutation = useMutation(ubahBarangMutationOptions());
+  const loading = addMutation.isPending || editMutation.isPending;
   const [message, setMessage] = useState("");
 
   async function closeGuard() {
@@ -62,7 +68,7 @@ export function BarangForm({
     return confirm({
       title: "Buang perubahan?",
       message: "Isian yang belum disimpan akan hilang",
-      cancelText: "Tetap mengisi",
+      cancelText: row ? "Tetap mengedit" : "Tetap mengisi",
       confirmText: "Buang isian",
       danger: true,
     });
@@ -70,61 +76,117 @@ export function BarangForm({
 
   async function submit(input: BarangInput) {
     setMessage("");
-    setErrors(form, { path: ["nama"], errors: null });
-    setErrors(form, { path: ["satuan"], errors: null });
-    setErrors(form, { path: ["hargaJual"], errors: null });
+    for (const field of ["nama", "satuan", "hargaJual"] as const)
+      setErrors(form, { path: [field], errors: null });
 
-    try {
-      await mutation.mutateAsync(input);
-      reset(form);
-      toast.success("Barang ditambahkan.");
-      onSaved();
-    } catch (error) {
-      if (error instanceof ApiRequestError) {
-        for (const field of ["nama", "satuan", "hargaJual"] as const) {
-          const fieldMessage = error.fields[field];
-          if (fieldMessage)
-            setErrors(form, {
-              path: [field],
-              errors: [fieldMessage],
-            });
-        }
-        setMessage(error.message);
-      } else
-        setMessage(
+    if (!row) {
+      try {
+        await addMutation.mutateAsync(input);
+        reset(form);
+        toast.success("Barang ditambahkan.");
+        onSaved();
+      } catch (error) {
+        showError(
+          error,
           "Barang tidak dapat ditambahkan. Periksa koneksi lalu coba lagi.",
         );
+      }
+      return;
     }
+
+    const nameChanged = input.nama !== row.nama || input.satuan !== row.satuan;
+    const priceChanged = input.hargaJual !== row.hargaJual;
+    if (!nameChanged && !priceChanged) {
+      onClose();
+      return;
+    }
+
+    if (
+      nameChanged &&
+      !(await confirm({
+        title: "Yakin?",
+        message: `Ubah data “${row.nama}”?${input.satuan !== row.satuan ? ` Mengubah satuan dari ${row.satuan} menjadi ${input.satuan} mengubah arti angka stok yang sudah tercatat.` : ""}`,
+        confirmText: "Ubah data",
+      }))
+    )
+      return;
+
+    if (priceChanged) {
+      const warning =
+        row.hargaBeliTerakhir !== null &&
+        row.hargaBeliTerakhir !== undefined &&
+        input.hargaJual < row.hargaBeliTerakhir
+          ? ` Peringatan: harga jual baru ${formatRupiah(input.hargaJual)} lebih rendah dari harga beli terakhir ${formatRupiah(row.hargaBeliTerakhir)}.`
+          : "";
+      if (
+        !(await confirm({
+          title: "Yakin?",
+          message: `Ubah harga jual dari ${formatRupiah(row.hargaJual)} menjadi ${formatRupiah(input.hargaJual)}?${warning}`,
+          confirmText: "Ubah harga",
+        }))
+      )
+        return;
+    }
+
+    const changes: Record<string, unknown> = {};
+    if (input.nama !== row.nama) changes.nama = input.nama;
+    if (input.satuan !== row.satuan) changes.satuan = input.satuan;
+    if (priceChanged) changes.hargaJual = input.hargaJual;
+
+    try {
+      await editMutation.mutateAsync({ id: row.id, input: changes });
+      reset(form);
+      toast.success("Data barang diperbarui.");
+      onSaved();
+    } catch (error) {
+      showError(error, "Data barang tidak dapat diperbarui.");
+    }
+  }
+
+  function showError(error: unknown, fallback: string) {
+    if (error instanceof ApiError) {
+      for (const field of ["nama", "satuan", "hargaJual"] as const) {
+        const fieldMessage = error.fields[field];
+        if (fieldMessage)
+          setErrors(form, { path: [field], errors: [fieldMessage] });
+      }
+      setMessage(error.message);
+    } else setMessage(fallback);
   }
 
   return (
     <Modal
       open
       onClose={onClose}
-      title="Barang baru"
+      title={row ? "Ubah barang" : "Barang baru"}
       size="sedang"
-      canClose={!mutation.isPending}
+      canClose={!loading}
       closeGuard={closeGuard}
     >
       <BarangFormFields
         form={form}
         message={message}
-        loading={mutation.isPending}
+        loading={loading}
+        editing={Boolean(row)}
         onSubmit={submit}
       />
     </Modal>
   );
 }
 
+type BarangFormStore = ReturnType<typeof useForm<typeof BarangSchema>>;
+
 function BarangFormFields({
   form,
   message,
   loading,
+  editing,
   onSubmit,
 }: {
-  form: ReturnType<typeof useForm<typeof BarangSchema>>;
+  form: BarangFormStore;
   message: string;
   loading: boolean;
+  editing: boolean;
   onSubmit: (input: BarangInput) => Promise<void>;
 }) {
   const close = useModalClose();
@@ -170,7 +232,9 @@ function BarangFormFields({
         >
           Batal
         </button>
-        <FormSubmitButton loading={loading}>Tambah barang</FormSubmitButton>
+        <FormSubmitButton loading={loading}>
+          {editing ? "Simpan perubahan" : "Tambah barang"}
+        </FormSubmitButton>
       </ModalFooter>
     </Form>
   );

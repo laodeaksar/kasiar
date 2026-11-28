@@ -241,19 +241,19 @@ export function PasswordField(props: PasswordFieldProps) {
   const { field, showStrength, username, ...textProps } = props;
   const [visible, setVisible] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const attr = ids(field, props.hint);
   const password = typeof field.input === "string" ? field.input : "";
   const requirementsId = `${attr.id}-requirements`;
-  
+
   // TextField sudah menambahkan ID error/hint miliknya sendiri; di sini hanya
   // tambahan dari luar dan daftar syarat password.
   const extraDescribedBy =
     [props["aria-describedby"], showStrength ? requirementsId : undefined]
       .filter(Boolean)
       .join(" ") || undefined;
-      
+
   function handleBlur(event: React.FocusEvent<HTMLDivElement>) {
     if (
       event.relatedTarget instanceof Node &&
@@ -262,7 +262,7 @@ export function PasswordField(props: PasswordFieldProps) {
       return;
     setPopoverOpen(false);
   }
-  
+
   return (
     <div
       ref={containerRef}
@@ -347,20 +347,20 @@ const MAX_RUPIAH_DIGITS = 12;
  */
 export function RupiahField(props: SimpleFieldProps) {
   const { field } = props;
-  
+
   const raw =
     typeof field.input === "number"
       ? field.input
       : typeof field.input === "string" && field.input.trim() !== ""
         ? Number(field.input)
         : undefined;
-        
+
   // Nilai 0 tetap ditampilkan; hanya kosong/undefined yang menghasilkan teks kosong.
   const display =
     raw !== undefined && Number.isFinite(raw)
       ? formatRupiah(raw).replace(/^Rp\s?/, "")
       : "";
-      
+
   return (
     <TextField
       {...props}
@@ -409,7 +409,7 @@ export function SelectField({
   const message = errorText(field);
   const ref = useFieldRef<HTMLSelectElement>(field, message);
   const attr = ids(field, hint);
-  
+
   return (
     <FormField
       field={field}
@@ -459,7 +459,7 @@ export function CheckboxField({
   const message = errorText(field);
   const ref = useFieldRef<HTMLInputElement>(field, message);
   const attr = ids(field, hint);
-  
+
   return (
     <FormField
       field={field}

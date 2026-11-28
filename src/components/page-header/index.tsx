@@ -116,7 +116,7 @@ export function PageHeader({
   headingLevel?: 1 | 2;
 }) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
-  
+
   return (
     <header
       className={`flex min-w-0 items-start justify-between gap-2 ${className}`}

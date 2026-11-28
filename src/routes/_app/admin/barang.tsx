@@ -44,10 +44,13 @@ function AdminBarangPage() {
   const { data, isPending, isError, refetch } = useQuery(
     barangListOptions(search, true),
   );
-  // undefined = modal tertutup, null = tambah, BarangRow = edit
-  const [formRow, setFormRow] = useState<BarangRow | null | undefined>(
-    undefined,
-  );
+  const [modal, setModal] = useState<{
+    open: boolean;
+    barang: BarangRow | null;
+  }>({
+    open: false,
+    barang: null,
+  });
   const confirm = useConfirm();
   const toggleMutation = useMutation(ubahBarangMutationOptions());
   const changeSearch = (patch: Partial<typeof search>) =>
@@ -94,7 +97,11 @@ function AdminBarangPage() {
   const columns = barangColumns(true, (row) => (
     <button
       className="btn btn-sm btn-outline"
-      onClick={() => (row.aktif ? setFormRow(row) : void toggleActive(row))}
+      onClick={() =>
+        row.aktif
+          ? setModal({ open: true, barang: row })
+          : void toggleActive(row)
+      }
     >
       {row.aktif ? "Ubah" : "Aktifkan"}
     </button>
@@ -113,7 +120,7 @@ function AdminBarangPage() {
               icon={Plus}
               label="Tambah barang"
               variant="utama"
-              onClick={() => setFormRow(null)}
+              onClick={() => setModal({ open: true, barang: null })}
             />
           ) : undefined
         }
@@ -166,7 +173,7 @@ function AdminBarangPage() {
           action={
             <button
               className="btn btn-primary"
-              onClick={() => setFormRow(null)}
+              onClick={() => setModal({ open: true, barang: null })}
             >
               Tambah barang
             </button>
@@ -174,12 +181,12 @@ function AdminBarangPage() {
         />
       )}
 
-      {formRow !== undefined && (
+      {modal.open && (
         <BarangForm
-          key={formRow?.id ?? "new"}
-          row={formRow}
-          onClose={() => setFormRow(undefined)}
-          onSaved={() => setFormRow(undefined)}
+          key={modal.barang?.id ?? "new"}
+          row={modal.barang}
+          onClose={() => setModal({ open: false, barang: null })}
+          onSaved={() => setModal({ open: false, barang: null })}
         />
       )}
     </section>

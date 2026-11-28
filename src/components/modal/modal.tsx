@@ -3,6 +3,28 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+/**
+ * Modal terkontrol yang dibuka dan ditutup melalui prop `open`.
+ *
+ * Cara penggunaan:
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <button onClick={() => setOpen(true)}>Buka</button>
+ * <Modal
+ *   open={open}
+ *   onClose={() => setOpen(false)}
+ *   title="Judul modal"
+ * >
+ *   <p>Isi modal.</p>
+ * </Modal>
+ * ```
+ *
+ * Gunakan `locked` ketika modal tidak boleh ditutup dengan tombol Escape atau
+ * klik latar belakang, misalnya saat proses penyimpanan sedang berjalan.
+ * Konten anak hanya dipasang ketika modal terbuka agar state form dimulai ulang
+ * setiap kali modal dibuka kembali.
+ */
 export function Modal({
   open,
   onClose,

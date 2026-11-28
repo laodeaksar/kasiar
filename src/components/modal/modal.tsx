@@ -20,6 +20,8 @@ type ModalProps = {
   size?: ModalSize;
   placement?: "bawah" | "tengah";
   canClose?: boolean;
+  /** Alias sederhana untuk mengunci modal selama proses berjalan. */
+  locked?: boolean;
   closeGuard?: () => boolean | Promise<boolean>;
   initialFocusRef?: { current: HTMLElement | null };
   children: ReactNode;
@@ -51,6 +53,7 @@ export function Modal({
   size = "sedang",
   placement = "bawah",
   canClose = true,
+  locked = false,
   closeGuard,
   initialFocusRef,
   children,
@@ -61,20 +64,21 @@ export function Modal({
   const closing = useRef(false);
   const reactId = useId();
   const titleId = `modal-title-${reactId.replaceAll(":", "")}`;
+  const closable = canClose && !locked;
   const latest = useRef({
     open,
     onClose,
-    canClose,
+    canClose: closable,
     closeGuard,
   });
   useEffect(() => {
     latest.current = {
       open,
       onClose,
-      canClose,
+      canClose: closable,
       closeGuard,
     };
-  }, [open, onClose, canClose, closeGuard]);
+  }, [open, onClose, closable, closeGuard]);
 
   const requestClose = useCallback(async () => {
     const current = latest.current;
@@ -188,7 +192,7 @@ export function Modal({
     <RequestCloseContext.Provider value={contextValue}>
       <dialog
         ref={dialogRef}
-        className={`modal ${dialogPlacement} kasiar-modal fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent text-base-content`}
+        className={`modal ${dialogPlacement} kasiar-modal no-print fixed inset-0 h-dvh w-screen max-h-none max-w-none overflow-hidden border-0 bg-transparent text-base-content`}
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         onCancel={(event) => {
@@ -217,7 +221,7 @@ export function Modal({
               className="btn btn-sm btn-ghost btn-circle absolute right-2 top-1/2 -translate-y-1/2 disabled:opacity-40"
               aria-label="Tutup"
               data-modal-close="true"
-              disabled={!canClose}
+              disabled={!closable}
               onClick={() => {
                 void requestClose();
               }}
